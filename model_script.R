@@ -14,7 +14,8 @@ require(raster)
 require(ncdf4)
 require(xlsx)
 require(gdalUtils)
-require()
+require(rjags)
+require(xtable)
 
 setwd("C:/Users/mloranty/Google Drive/GIS_projects/boreal_snow_picker")
 load("C:/Users/mloranty/Google Drive/GIS_projects/boreal_snow_picker/monthly_swe_analysis_29Nov.RData")
@@ -54,3 +55,7 @@ lc <- data.frame(lc=unique(all.dat$lc),lc.id=seq(1,length(unique(all.dat$lc))))
 all.dat <- join(all.dat,lc,type='left',by='lc')
 
 
+## perpare data for the model
+
+data.model.list <- list(Nobs=dim(all.dat)[1],SWE=all.dat$swe,Tree.cov=all.dat$vcf,LandID=all.dat$lc.id,
+                        yearID=all.dat$year.id,Nland=dim(lc)[1],Nyear=dim(year)[1])
