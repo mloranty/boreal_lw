@@ -61,7 +61,7 @@ model{
 		Beta2[i]~dnorm(0,.001)
 	}
 	tau.SWE<-pow(sig.SWE, -2)
-	sig.SWE<-dunif(0, 1000)
+	sig.SWE~dunif(0, 1000)
 
 
 }
