@@ -7,7 +7,7 @@ model{
 	####likelihood model 
 	for(i in 1:Nobs){
 		SWE[i]~dnorm(mu.SWE[i],tau.SWE)
-		mu.SW[i]<-Beta1[LandID[i]]+Beta2[LandID[i]]*Tree.cov[i]+eps[yearID[i]]
+		mu.SWE[i]<-Beta1[LandID[i]]+Beta2[LandID[i]]*Tree.cov[i]+eps[yearID[i]]
 	
 	}
 	#calculate identifiable intercept
@@ -61,7 +61,7 @@ model{
 		Beta2[i]~dnorm(0,.001)
 	}
 	tau.SWE<-pow(sig.SWE, -2)
-	sig.SWE~dunif(0, 1000)
+	sig.SWE~dunif(0, 2000)
 
 
 }

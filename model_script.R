@@ -37,9 +37,9 @@ snow <- getValues(swe.cru)
 # convert to vector - data extracted by column, we checked
 snow <- as.data.frame(as.vector(snow))
 colnames(snow) <- 'swe'
+snow$year <- rep(1980:2014, each=nrow(snow)/35)
+snow$cell.id <- rep(1:(nrow(snow)/35),35)
 snow <- na.omit(snow)
-snow$year <- rep(1980:2014, each=nrow(glc))
-snow$cell.id <- rep(1:nrow(glc),35)
 
 #combine data frames for ensuing wizardry
 covar <- join(vcf,glc,type='inner',by='cell.id')
@@ -57,5 +57,22 @@ all.dat <- join(all.dat,lc,type='left',by='lc')
 
 ## perpare data for the model
 
-data.model.list <- list(Nobs=dim(all.dat)[1],SWE=all.dat$swe,Tree.cov=all.dat$vcf,LandID=all.dat$lc.id,
-                        yearID=all.dat$year.id,Nland=dim(lc)[1],Nyear=dim(year)[1])
+data.model.list <- list(Nobs=dim(all.dat)[1],SWE=all.dat$swe,Tree.cov=all.dat$vcf,LandID=all.dat$lc.id,NyearS=dim(year)[1],
+                        yearID=all.dat$year.id,Nland=dim(lc)[1],Nyear=dim(year)[1],xS=rep(1,dim(year)[1]),yS=year$year)
+
+sample.list <- c("Beta1star","Beta2","eps.star","sig.eps","rho.eps","sig.SWE")
+
+inits <- list(list(t.eps=1,rho.eps=0.9),list(t.eps=1.5,rho.eps=0.8),list(t.eps=0.5,rho.eps=0.7))
+
+##
+model.init <- jags.model(file="C:\\Users\\mloranty\\Documents\\GitHub\\boreal_lw\\model_code.r",
+                         data=data.model.list,n.adapt=1000,n.chains=3,inits=inits)
+
+n.iter <- 60000
+n.thin <- 20
+
+coda.obj <- coda.samples(model.init,variable.names = sample.list,n.iter=n.iter,thin=n.thin)
+
+##
+plot(coda.obj,ask=TRUE)
+
