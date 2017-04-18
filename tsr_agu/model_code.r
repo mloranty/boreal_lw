@@ -7,6 +7,8 @@ model{
 	####likelihood model 
 	for(i in 1:Nobs){
 		SWE[i]~dnorm(mu.SWE[i],tau.SWE)
+		SWE.rep[i]~dnorm(mu.SWE[i],tau.SWE)
+
 		mu.SWE[i]<-Beta1[LandID[i]]+Beta2[LandID[i]]*Tree.cov[i]+eps[yearID[i]]
 	
 	}
