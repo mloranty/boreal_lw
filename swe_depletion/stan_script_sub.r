@@ -53,4 +53,4 @@ depletion<- function(b,day,mid,M,base){
 	(M/(1+exp(b*(day-mid))))+base
 }
 
-plot(seq(50,100),depletion(.08,seq(50,100),75,96,.01), type="l")	
+plot(seq(60,152),depletion(.08,seq(60,152),75,96,.01), type="l")	
