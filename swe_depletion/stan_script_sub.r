@@ -27,7 +27,7 @@ inits<-list(list(M=c(50,50,50,50,50,50,50,50,50,50),base=c(1,1,1,1,1,1,1,1,1,1),
 stan_model = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan_nh.stan", 
 				data = list(Nobs=dim(dat.swe)[1], swe=dat.swe$swe, vegeC=dat.swe$gcID,
 			day=dat.swe$doy-(61+((152-61)/2)),
-			Nveg=dim(dat.gl)[1]),init=inits,chains=3)					
+			Nveg=dim(dat.gl)[1]),chains=3)					
 			
 parms <- c("M","base","sig.swe","b","sig.swe","sig.bV",
 			"mu.base","mu.b",
