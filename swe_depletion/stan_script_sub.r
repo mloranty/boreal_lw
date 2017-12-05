@@ -27,18 +27,18 @@ stan_modelh1 = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan.sta
 				data = list(Nobs=dim(dat.swe)[1], swe=dat.swe$swe, vegeC=dat.swe$gcID,
 			day=dat.swe$doy-(61+((152-61)/2)),
 			Nveg=dim(dat.gl)[1]),init=inits1,
-			,chains=1, iter=3000)	
+			,chains=1, iter=3000,control = list(adapt_delta = 0.99))	
 
-out1<- extract(stan_modelh1)			
+outh1<- extract(stan_modelh1)			
 			
 			
-stan_model2 = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan_nh.stan", 
+stan_modelh2 = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan.stan", 
 				data = list(Nobs=dim(dat.swe)[1], swe=dat.swe$swe, vegeC=dat.swe$gcID,
 			day=dat.swe$doy-(61+((152-61)/2)),
 			Nveg=dim(dat.gl)[1]),init=inits2,
 			,chains=1, iter=3000)	
 
-out2<- extract(stan_model2)	
+outh2<- extract(stan_modelh2)	
 
 stan_model3 = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan_nh.stan", 
 				data = list(Nobs=dim(dat.swe)[1], swe=dat.swe$swe, vegeC=dat.swe$gcID,
