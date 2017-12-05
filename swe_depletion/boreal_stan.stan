@@ -3,7 +3,6 @@ data {
 	real swe[Nobs];
 	int<lower=1> vegeC[Nobs];
 	real day[Nobs];
-	real mid;
 	int<lower=1> Nveg;
 }
 
