@@ -36,7 +36,7 @@ model{
 	
 	
 	for(i in 1:Nobs){
-	swe[i]~normal((M[vegeC[i]]/(1+exp(b[vegeC[i]]*(day[i]-mid))))+base[vegeC[i]]q(), sig_swe[vegeC[i]]);
+	swe[i]~normal((M[vegeC[i]]/(1+exp(b[vegeC[i]]*(day[i]-mid))))+base[vegeC[i]], sig_swe[vegeC[i]]);
 	}
 
 
