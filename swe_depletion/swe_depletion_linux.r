@@ -1,4 +1,4 @@
-library(rjags, lib.loc="/home/hkropp/R")
+library(rjags)
 library(coda, lib.loc="/home/hkropp/R")
 library(plyr, lib.loc="/home/hkropp/R")
 library(mcmcplots, lib.loc="/home/hkropp/R")
