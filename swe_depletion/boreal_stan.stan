@@ -28,15 +28,15 @@ model{
 	sig_b~uniform(0,100);
 
 	for(i in 1:Nveg){
-		M[i]~normal(mu_M, sig_M);
-		base[i] ~normal(mu_base, sig_base);
-		b[i] ~ normal(mu_b, sig_b);
+		M[i]~normal(mu_M, sig_M)T[0,];
+		base[i] ~normal(mu_base, sig_base)T[0,];
+		b[i] ~ normal(mu_b, sig_b)T[0,];
 		sig_swe[i] ~ uniform(0,1000);
 	}	
 	
 	
 	for(i in 1:Nobs){
-	swe[i]~normal((M[vegeC[i]]/(1+exp(b[vegeC[i]]*(day[i]-mid))))+base[vegeC[i]], sig_swe[vegeC[i]]);
+	swe[i]~normal((M[vegeC[i]]/(1+exp(b[vegeC[i]]*(day[i]-mid))))+base[vegeC[i]]q(), sig_swe[vegeC[i]]);
 	}
 
 
