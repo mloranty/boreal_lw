@@ -28,9 +28,9 @@ model{
 	sig_b~uniform(0,100);
 
 	for(i in 1:Nveg){
-		M[i]~normal(mu_M, sig_M)T[0,];
-		base[i] ~normal(mu_base, sig_base)T[0,];
-		b[i] ~ normal(mu_b, sig_b)T[0,];
+		M[i]~normal(mu_M, sig_M);
+		base[i] ~normal(mu_base, sig_base);
+		b[i] ~ normal(mu_b, sig_b);
 		sig_swe[i] ~ uniform(0,1000);
 	}	
 	
