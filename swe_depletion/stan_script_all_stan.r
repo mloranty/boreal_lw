@@ -17,8 +17,8 @@ outdir <- "/local/swe/stan_all1"
 #######################################################
 #read in data files
 #start with a test year
-dat.swe <- read.csv("c:\\Users\\hkropp\\Google Drive\\swe_test\\glc_SWE_M2BGS_ease2_2010.csv")
-dat.gl <- read.csv("c:\\Users\\hkropp\\Google Drive\\swe_test\\glc50_table.csv")
+dat.swe <- read.csv("/local/swe/glc_SWE_M2BGS_ease2_2010.csv")
+dat.gl <- read.csv("/local/swe/glc50_table.csv")
 print("finish reading in data")
 #subset swe data 
 #if no glc remove 
