@@ -12,7 +12,7 @@ parameters{
 	real<lower=0> base[Nveg];		
 	real<lower=0> b[Nveg]; 
 	real<lower=0> sig_swe[Nveg];
-	real<lower=0,upper= 1000> mu_M;
+	real<lower=1,upper= 1000> mu_M;
 	real<lower=0,upper= 300> mu_base;
 	real<lower=0,upper= 100> mu_b;
 	real<lower=0,upper= 1000> sig_M;
@@ -20,9 +20,9 @@ parameters{
 	real<lower=0,upper= 100> sig_b;
 }	
 model{
-	mu_M ~uniform(0.00001,1000);
-	mu_base ~uniform(0.00001,300);
-	mu_b ~uniform(0.00001,100);
+	mu_M ~uniform(0,1000);
+	mu_base ~uniform(0,300);
+	mu_b ~uniform(0,100);
 	sig_M ~ uniform(0,1000);
 	sig_base~uniform(0,100);
 	sig_b~uniform(0,100);
