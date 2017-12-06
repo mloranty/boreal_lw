@@ -81,12 +81,12 @@ sweDF3 <- join(sweDF2, gridID, by=c("gridID","gcID"), type="left")
 
 #inits for all possible runs					
 
-inits2<-list(list(M=c(70,70,70,70,70,70,70,70,70,70),base=c(5,5,5,5,5,5,5,5,5,5),b=c(1,1,1,1,1,1,1,1,1,1),
-	sig_swe=c(30,30,30,30,30,30,30,30,30,30)))
-inits3<-list(list(M=c(60,60,60,60,60,60,60,60,60,60),base=c(10,10,10,10,10,10,10,10,10,10),b=c(.5,.5,.5,.5,.5,.5,.5,.5,.5,.5)
-		,sig_swe=c(10,10,10,10,10,10,10,10,10,10)))		
-inits1<-list(list(M=c(50,50,50,50,50,50,50,50,50,50),base=c(1,1,1,1,1,1,1,1,1,1),b=c(.1,.1,.1,.1,.1,.1,.1,.1,.1,.1),
-			sig_swe=c(20,20,20,20,20,20,20,20,20,20)))
+inits2<-list(list(M=c(70,70,70,70,70,70),base=c(5,5,5,5,5,5),b=c(1,1,1,1,1,1),
+	sig_swe=c(30,30,30,30,30,30)))
+inits3<-list(list(M=c(60,60,60,60,60,60),base=c(10,10,10,10,10,10),b=c(.5,.5,.5,.5,.5,.5)
+		,sig_swe=c(10,10,10,10,10,10)))		
+inits1<-list(list(M=c(50,50,50,50,50,50),base=c(1,1,1,1,1,1),b=c(.1,.1,.1,.1,.1,.1),
+			sig_swe=c(20,20,20,20,20,20)))
 print("start model run")			
 if(rn==1){		
 stan_model1 = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan_nh.stan", 
