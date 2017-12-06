@@ -61,14 +61,13 @@ datgcI <- dat.gl[,1:2]
 colnames(datgcI) <- c("glc","name")
 gcInfo <- join(datgcI, gridC, by=c("glc"), type="left")
 #don't include glc 3,10,15,16,18,20,21,22
-gcUse <- gcInfo[gcInfo$glc!=3&gcInfo$glc!=15&gcInfo$glc!=16&gcInfo$glc!=10&
-				gcInfo$glc!=18&gcInfo$glc<20,]
+gcUse <- gcInfo[gcInfo$glc!=2&gcInfo$glc!=3&gcInfo$glc!=15&gcInfo$glc!=16&gcInfo$glc!=10&gcInfo$glc!=14&
+				gcInfo$glc!=9&gcInfo$glc!=14&gcInfo$glc<18,]
 gcUse$gcID <- seq(1,  dim(gcUse)[1])
 #subset to include only relevant land cover classes
 sweDF2 <- join(sweDF, gcUse, by="glc", type="inner")
 
-plot(sweDF2$doy[sweDF2$gcID==7],sweDF2$swe[sweDF2$gcID==7])
-				
+
 #get unique gridcells
 gridID <- unique(data.frame(gridID=sweDF2$gridID, gcID=sweDF2$gcID))	
 gridID$MgID <- seq(1, dim(gridID)[1])
@@ -104,23 +103,38 @@ write.table(out1$b, paste0(outdir,"/b_out_chain1.csv"), sep=",")
 write.table(out1$sig_swe, paste0(outdir,"/sig_swe_out_chain1.csv"), sep=",")
 print("end output")				
 			
-}			
-#stan_modelh2 = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan_nh.stan", 
-#				data = list(Nobs=dim(dat.swe)[1], swe=dat.swe$swe, vegeC=dat.swe$gcID,
-#			day=dat.swe$doy-(61+((152-61)/2)),
-#			Nveg=dim(dat.gl)[1]),init=inits2,
-#			,chains=1, iter=3000)	
+}
+if(rn==2){			
+stan_model2 = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan_nh.stan", 
+				data = list(Nobs=dim(sweDF3)[1], swe=sweDF3$swe, vegeC=sweDF3$gcID,
+			day=sweDF3$doy-(61+((152-61)/2)),
+			Nveg=dim(gcUse)[1]),init=inits2,
+			,chains=1, iter=3000)	
+print("end model run")
+out2<- extract(stan_model2)	
+print("extract variables")	
+write.table(out2$M, paste0(outdir,"/M_out_chain2.csv"), sep=",")
+write.table(out2$base, paste0(outdir,"/base_out_chain2.csv"), sep=",")
+write.table(out2$b, paste0(outdir,"/b_out_chain2.csv"), sep=",")
+write.table(out2$sig_swe, paste0(outdir,"/sig_swe_out_chain2.csv"), sep=",")
+print("end output")		
 
-#outh2<- extract(stan_modelh2)	
+}
 
-#stan_model3 = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan_nh.stan", 
-#				data = list(Nobs=dim(dat.swe)[1], swe=dat.swe$swe, vegeC=dat.swe$gcID,
-#			day=dat.swe$doy-(61+((152-61)/2)),
-#			Nveg=dim(dat.gl)[1]),init=inits3,
-#			,chains=1, iter=3000)	
+if(rn==3){	
+stan_model3 = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan_nh.stan", 
+				data = list(Nobs=dim(sweDF3)[1], swe=sweDF3$swe, vegeC=sweDF3$gcID,
+			day=sweDF3$doy-(61+((152-61)/2)),
+			Nveg=dim(gcUse)[1]),init=inits3,
+			,chains=1, iter=3000)	
+print("end model run")
+out3<- extract(stan_model3)	
+print("extract variables")	
+write.table(out3$M, paste0(outdir,"/M_out_chain3.csv"), sep=",")
+write.table(out3$base, paste0(outdir,"/base_out_chain3.csv"), sep=",")
+write.table(out3$b, paste0(outdir,"/b_out_chain3.csv"), sep=",")
+write.table(out3$sig_swe, paste0(outdir,"/sig_swe_out_chain3.csv"), sep=",")
+print("end output")		
+			
+}
 
-#out3<- extract(stan_model1)				
-
-#write.table(out1$M, paste0(outdir,"/M_out_chain1.csv"), sep=",")
-#write.table(out2$M, paste0(outdir,"/M_out_chain2.csv"), sep=",")
-#write.table(out3$M, paste0(outdir,"/M_out_chain3.csv"), sep=",")

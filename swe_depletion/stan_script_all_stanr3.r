@@ -7,7 +7,7 @@ library(rstan)
 # set up run info                                     #
 #######################################################
 #run number
-rn <- 2
+rn <- 3
 
 #run output directory
 outdir <- "/local/swe/stan_all1"
@@ -66,12 +66,14 @@ gcUse <- gcInfo[gcInfo$glc!=2&gcInfo$glc!=3&gcInfo$glc!=15&gcInfo$glc!=16&gcInfo
 gcUse$gcID <- seq(1,  dim(gcUse)[1])
 #subset to include only relevant land cover classes
 sweDF2 <- join(sweDF, gcUse, by="glc", type="inner")
-				
+
+
 #get unique gridcells
 gridID <- unique(data.frame(gridID=sweDF2$gridID, gcID=sweDF2$gcID))	
 gridID$MgID <- seq(1, dim(gridID)[1])
 #join back into
 sweDF3 <- join(sweDF2, gridID, by=c("gridID","gcID"), type="left")
+
 
 #######################################################
 # set up model run                                    #
