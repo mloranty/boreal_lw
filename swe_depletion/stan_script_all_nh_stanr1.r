@@ -99,41 +99,41 @@ for(i in 1:dim(gcUse)[1]){
 	print(paste("end model run",i))	
 	out1<- extract(stan_model1)
 	print(paste("extract variables",i))	
-	write.table(out1$M, paste0(outdir,"/M_out_chain1_gc_"gcUse$gcID[i],".csv"), sep=",")
-	write.table(out1$base, paste0(outdir,"/base_out_chain1_gc_"gcUse$gcID[i],".csv"), sep=",")
-	write.table(out1$b, paste0(outdir,"/b_out_chain1_gc_"gcUse$gcID[i],".csv"), sep=",")
-	write.table(out1$sig_swe, paste0(outdir,"/sig_swe_out_chain1_gc_"gcUse$gcID[i],".csv"), sep=",")
+	write.table(out1$M, paste0(outdir,"/M_out_chain1_gc_",gcUse$gcID[i],".csv"), sep=",")
+	write.table(out1$base, paste0(outdir,"/base_out_chain1_gc_",gcUse$gcID[i],".csv"), sep=",")
+	write.table(out1$b, paste0(outdir,"/b_out_chain1_gc_",gcUse$gcID[i],".csv"), sep=",")
+	write.table(out1$sig_swe, paste0(outdir,"/sig_swe_out_chain1_gc_",gcUse$gcID[i],".csv"), sep=",")
 	print("end output")				
 				
 	}
 	if(rn==2){			
-	stan_model2 = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan_nh.stan", 
+	stan_model2 = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan_nh_split.stan", 
 					data = list(Nobs=dim(sweDF3[sweDF3$gcID==i])[1], swe=sweDF3$swe[sweDF3$gcID==i], 
 				day=sweDF3$doy[sweDF3$gcID==i]-(61+((152-61)/2))),init=inits2,
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))
 	out2<- extract(stan_model2)	
 	print(paste("extract variables",i))	
-	write.table(out2$M, paste0(outdir,"/M_out_chain2_gc_"gcUse$gcID[i],".csv"), sep=",")
-	write.table(out2$base, paste0(outdir,"/base_out_chain2_gc_"gcUse$gcID[i],".csv"), sep=",")
-	write.table(out2$b, paste0(outdir,"/b_out_chain2_gc_"gcUse$gcID[i],".csv"), sep=",")
-	write.table(out2$sig_swe, paste0(outdir,"/sig_swe_out_chain2_gc_"gcUse$gcID[i],".csv"), sep=",")
+	write.table(out2$M, paste0(outdir,"/M_out_chain2_gc_",gcUse$gcID[i],".csv"), sep=",")
+	write.table(out2$base, paste0(outdir,"/base_out_chain2_gc_",gcUse$gcID[i],".csv"), sep=",")
+	write.table(out2$b, paste0(outdir,"/b_out_chain2_gc_",gcUse$gcID[i],".csv"), sep=",")
+	write.table(out2$sig_swe, paste0(outdir,"/sig_swe_out_chain2_gc_",gcUse$gcID[i],".csv"), sep=",")
 	print(paste("end output",i))		
 
 	}
 
 	if(rn==3){	
-	stan_model3 = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan_nh.stan", 
+	stan_model3 = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan_nh_split.stan", 
 					data = list(Nobs=dim(sweDF3[sweDF3$gcID==i])[1], swe=sweDF3$swe[sweDF3$gcID==i], 
 				day=sweDF3$doy[sweDF3$gcID==i]-(61+((152-61)/2))),init=inits3,
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))
 	out3<- extract(stan_model3)	
 	print(paste("extract variables",i))	
-	write.table(out3$M, paste0(outdir,"/M_out_chain3_gc_"gcUse$gcID[i],".csv"), sep=",")
-	write.table(out3$base, paste0(outdir,"/base_out_chain3_gc_"gcUse$gcID[i],".csv"), sep=",")
-	write.table(out3$b, paste0(outdir,"/b_out_chain3_gc_"gcUse$gcID[i],".csv"), sep=",")
-	write.table(out3$sig_swe, paste0(outdir,"/sig_swe_out_chain3_gc_"gcUse$gcID[i],".csv"), sep=",")
+	write.table(out3$M, paste0(outdir,"/M_out_chain3_gc_",gcUse$gcID[i],".csv"), sep=",")
+	write.table(out3$base, paste0(outdir,"/base_out_chain3_gc_",gcUse$gcID[i],".csv"), sep=",")
+	write.table(out3$b, paste0(outdir,"/b_out_chain3_gc_",gcUse$gcID[i],".csv"), sep=",")
+	write.table(out3$sig_swe, paste0(outdir,"/sig_swe_out_chain3_gc_",gcUse$gcID[i],".csv"), sep=",")
 	print(paste("end output",i))		
 				
 	}

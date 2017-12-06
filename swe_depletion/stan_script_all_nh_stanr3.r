@@ -7,7 +7,7 @@ library(rstan)
 # set up run info                                     #
 #######################################################
 #run number
-rn <- 3
+rn <- 1
 
 #run output directory
 outdir <- "/local/swe/stan_all1"
@@ -99,10 +99,10 @@ for(i in 1:dim(gcUse)[1]){
 	print(paste("end model run",i))	
 	out1<- extract(stan_model1)
 	print(paste("extract variables",i))	
-	write.table(out1$M, paste0(outdir,"/M_out_chain1_gc_"gcUse$gcID[i],".csv"), sep=",")
-	write.table(out1$base, paste0(outdir,"/base_out_chain1_gc_"gcUse$gcID[i],".csv"), sep=",")
-	write.table(out1$b, paste0(outdir,"/b_out_chain1_gc_"gcUse$gcID[i],".csv"), sep=",")
-	write.table(out1$sig_swe, paste0(outdir,"/sig_swe_out_chain1_gc_"gcUse$gcID[i],".csv"), sep=",")
+	write.table(out1$M, paste0(outdir,"/M_out_chain1_gc_",gcUse$gcID[i],".csv"), sep=",")
+	write.table(out1$base, paste0(outdir,"/base_out_chain1_gc_",gcUse$gcID[i],".csv"), sep=",")
+	write.table(out1$b, paste0(outdir,"/b_out_chain1_gc_",gcUse$gcID[i],".csv"), sep=",")
+	write.table(out1$sig_swe, paste0(outdir,"/sig_swe_out_chain1_gc_",gcUse$gcID[i],".csv"), sep=",")
 	print("end output")				
 				
 	}
@@ -114,10 +114,10 @@ for(i in 1:dim(gcUse)[1]){
 	print(paste("end model run",i))
 	out2<- extract(stan_model2)	
 	print(paste("extract variables",i))	
-	write.table(out2$M, paste0(outdir,"/M_out_chain2_gc_"gcUse$gcID[i],".csv"), sep=",")
-	write.table(out2$base, paste0(outdir,"/base_out_chain2_gc_"gcUse$gcID[i],".csv"), sep=",")
-	write.table(out2$b, paste0(outdir,"/b_out_chain2_gc_"gcUse$gcID[i],".csv"), sep=",")
-	write.table(out2$sig_swe, paste0(outdir,"/sig_swe_out_chain2_gc_"gcUse$gcID[i],".csv"), sep=",")
+	write.table(out2$M, paste0(outdir,"/M_out_chain2_gc_",gcUse$gcID[i],".csv"), sep=",")
+	write.table(out2$base, paste0(outdir,"/base_out_chain2_gc_",gcUse$gcID[i],".csv"), sep=",")
+	write.table(out2$b, paste0(outdir,"/b_out_chain2_gc_",gcUse$gcID[i],".csv"), sep=",")
+	write.table(out2$sig_swe, paste0(outdir,"/sig_swe_out_chain2_gc_",gcUse$gcID[i],".csv"), sep=",")
 	print(paste("end output",i))		
 
 	}
@@ -130,10 +130,10 @@ for(i in 1:dim(gcUse)[1]){
 	print(paste("end model run",i))
 	out3<- extract(stan_model3)	
 	print(paste("extract variables",i))	
-	write.table(out3$M, paste0(outdir,"/M_out_chain3_gc_"gcUse$gcID[i],".csv"), sep=",")
-	write.table(out3$base, paste0(outdir,"/base_out_chain3_gc_"gcUse$gcID[i],".csv"), sep=",")
-	write.table(out3$b, paste0(outdir,"/b_out_chain3_gc_"gcUse$gcID[i],".csv"), sep=",")
-	write.table(out3$sig_swe, paste0(outdir,"/sig_swe_out_chain3_gc_"gcUse$gcID[i],".csv"), sep=",")
+	write.table(out3$M, paste0(outdir,"/M_out_chain3_gc_",gcUse$gcID[i],".csv"), sep=",")
+	write.table(out3$base, paste0(outdir,"/base_out_chain3_gc_",gcUse$gcID[i],".csv"), sep=",")
+	write.table(out3$b, paste0(outdir,"/b_out_chain3_gc_",gcUse$gcID[i],".csv"), sep=",")
+	write.table(out3$sig_swe, paste0(outdir,"/sig_swe_out_chain3_gc_",gcUse$gcID[i],".csv"), sep=",")
 	print(paste("end output",i))		
 				
 	}
