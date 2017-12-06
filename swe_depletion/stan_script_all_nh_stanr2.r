@@ -107,7 +107,7 @@ for(i in 1:dim(gcUse)[1]){
 				
 	}
 	if(rn==2){			
-	stan_model2 = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan_nh.stan", 
+	stan_model2 = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan_nh_split.stan", 
 					data = list(Nobs=dim(sweDF3[sweDF3$gcID==i])[1], swe=sweDF3$swe[sweDF3$gcID==i], 
 				day=sweDF3$doy[sweDF3$gcID==i]-(61+((152-61)/2))),init=inits2,
 				,chains=1, iter=3000)	
@@ -123,7 +123,7 @@ for(i in 1:dim(gcUse)[1]){
 	}
 
 	if(rn==3){	
-	stan_model3 = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan_nh.stan", 
+	stan_model3 = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan_nh_split.stan", 
 					data = list(Nobs=dim(sweDF3[sweDF3$gcID==i])[1], swe=sweDF3$swe[sweDF3$gcID==i], 
 				day=sweDF3$doy[sweDF3$gcID==i]-(61+((152-61)/2))),init=inits3,
 				,chains=1, iter=3000)	
