@@ -2,7 +2,6 @@ data {
 	int<lower=1> Nobs;
 	real swe[Nobs];
 	real day[Nobs];
-	int<lower=1> Nveg;
 }
 parameters{
 	real<lower=0,upper=1000> M; 
