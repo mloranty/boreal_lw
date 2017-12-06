@@ -61,30 +61,96 @@ gridID$MgID <- seq(1, dim(gridID)[1])
 sweDF3 <- join(sweDF2, gridID, by=c("gridID","gcID"), type="left")
 
 
-#######################################################
-# set up model run                                    #
-#######################################################
-datalist <- list(Nobs=dim(sweDF3)[1], swe=sweDF3$swe, vegeC=sweDF3$gcID,
-			day=sweDF3$doy,  mid=61+((152-61)/2),gridC=sweDF3$MgID,
-			NGridC=dim(gridID)[1], vege=gridID$gcID,
-			NVeg=dim(gcUse)[1])
-			
-			
-parms <- c("M","base","sig.swe","b", "mu.MV","mu.baseV","mu.bV",
-			"sig.MV","sig.baseV","sig.bV",
-			"mu.base","mu.b",
-			"sig.M","sig.base","sig.b")		
+####################################
+## read in output from the model ###
+####################################
+modDir <- "c:\\Users\\hkropp\\Google Drive\\swe_test\\stan1\\stan_all1"
 
-modI <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_depletion\\swe_depletion_model.r",
-	data=datalist,n.adapt=5000,n.chains=3)
+MD <- list.files(modDir)
+MSP1 <- strsplit(MD, "out")
+MSP2 <- strsplit(MD, "gc")
+MSP3 <-strsplit(MD, "chain")
+#read in output
+CD <- list()
+Cparm <- character(0)
+gN <- character(0)
+ch1 <- character(0)
+for(i in 1:length(MD)){
+	CD[[i]] <- read.csv(paste0(modDir,"\\",MD[i]))
+	Cparm[i] <- MSP1[[i]][1]
+	gN[i]<- MSP2[[i]][2]
+	ch1[i] <- MSP3[[i]][2]
+}
+Mch2<-strsplit(ch1, "gc")
+ch2<- character(0)
+for(i in 1:length(MD)){
+	ch2[i]<- Mch2[[i]][1]
+}
 
-modS <- coda.samples(modI, variable.names=parms,n.iter=5000,thin=1)
 
-plot(modS, ask=TRUE)
+#get glcID
+glcM1 <- gsub(".csv","",gN)
+glcM <- as.numeric(gsub("_","",glcM1))
+#parm
+parm <- gsub("_","",Cparm)	
+#chain
+chain <- as.numeric(gsub("_","",ch2))
+#give colnames
+CD2 <- list()
+for(i in 1:length(MD)){
+	colnames(CD[[i]])<- paste0(parm[i],"[",glcM[i],"]")
+	CD2[[i]]<- mcmc(CD[[i]])
+}
 
 
 
-	
+
+#get unique parm and glc combinations
+parmALL <- data.frame(glc=glcM, parm=parm,chain=chain)
+parmALL$MID <- seq(1, dim(parmALL)[1])
+
+parmIDS <- unique(data.frame(glc=glcM, parm=parm))
+parmSubID <- list()
+for(i in 1:dim(parmIDS)[1]){
+	parmSubID[[i]] <- parmALL$MID[parmALL$glc==parmIDS$glc[i]&parmALL$parm==parmIDS$parm[i]]
+}
+#put together into mcmc list
+CODA_all<- list()
+for(i in 1:dim(parmIDS)[1]){
+	CODA_all[[i]]<- mcmc.list(CD2[[parmSubID[[i]][1]]],CD2[[parmSubID[[i]][2]]],CD2[[parmSubID[[i]][3]]])
+}
+
+
+#make history plots
+for(i in 1:dim(parmIDS)[1]){
+	jpeg(paste0("c:\\Users\\hkropp\\Google Drive\\swe_test\\stan1\\history\\",parmIDS$parm[i],parmIDS$glc[i],".jpg"),
+			width=2000, height=1000, units="px", quality=100)
+	plot(CODA_all[[i]])		
+	dev.off()
+}
+
+
+mod.outS<- numeric(0)
+mod.outQ1<- numeric(0)
+mod.outQ2<- numeric(0)
+for(i in 1:dim(parmIDS)[1]){
+	mod.outS[i]<-summary(CODA_all[[i]])$statistics[1]
+	mod.outQ1[i]<-summary(CODA_all[[i]])$quantiles[1]
+	mod.outQ2[i]<-summary(CODA_all[[i]])$quantiles[5]
+}
+
+parmsOut <- data.frame(parmIDS, Mean=mod.outS,pc2.5=mod.outQ1,pc97.5=mod.outQ2 )
+
+plot(parmsOut$Mean[parmsOut$parm=="M"], pch=19,ylim=c(0,120), xaxt="n", ylab="maximum swe" , xlab="cover")
+arrows(seq(1,6),parmsOut$pc2.5[parmsOut$parm=="M"],seq(1,6),parmsOut$pc97.5[parmsOut$parm=="M"], code=0)
+gc.lab<- c("boreal evergreen", "boreal deciduous", "mixed leaf","shrub evergreen","shrub decid", "herb")	
+axis(1, seq(1,6), gc.lab)	
+
+plot(parmsOut$Mean[parmsOut$parm=="b"], pch=19,ylim=c(0,.15), xaxt="n", ylab="maximum swe" , xlab="cover")
+arrows(seq(1,6),parmsOut$pc2.5[parmsOut$parm=="b"],seq(1,6),parmsOut$pc97.5[parmsOut$parm=="b"], code=0)
+gc.lab<- c("boreal evergreen", "boreal deciduous", "mixed leaf","shrub evergreen","shrub decid", "herb")	
+axis(1, seq(1,6), gc.lab)
+
 #swe depletion curve
 depletion<- function(b,day,mid,M,base){
 	(M/(1+exp(b*(day-mid))))+base

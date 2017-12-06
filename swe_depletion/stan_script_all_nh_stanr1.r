@@ -139,3 +139,5 @@ for(i in 1:dim(gcUse)[1]){
 				
 	}
 }
+
+##this script ran on 806840 observations in the 6 classes in less than 2 hours
