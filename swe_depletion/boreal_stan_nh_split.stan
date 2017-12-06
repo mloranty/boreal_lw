@@ -13,11 +13,11 @@ parameters{
 model{
 
 		M~uniform(0,1000);
-		base[i] ~uniform(0,300);
-		b[i] ~ uniform(0,100);
-		sig_swe[i] ~ uniform(0,1000);
+		base ~uniform(0,300);
+		b ~ uniform(0,100);
+		sig_swe ~ uniform(0,1000);
 		
 	for(i in 1:Nobs){
-	swe[i]~normal((M/(1+exp(b*(day[i]))))+base sig_swe);
+	swe[i]~normal((M/(1+exp(b*(day[i]))))+base, sig_swe);
 	}
 }
