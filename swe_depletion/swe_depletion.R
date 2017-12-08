@@ -46,8 +46,8 @@ datgcI <- dat.gl[,1:2]
 colnames(datgcI) <- c("glc","name")
 gcInfo <- join(datgcI, gridC, by=c("glc"), type="left")
 #don't include glc 3,10,15,16,18,20,21,22
-gcUse <- gcInfo[gcInfo$glc!=3&gcInfo$glc!=15&gcInfo$glc!=16&gcInfo$glc!=10&
-				gcInfo$glc!=18&gcInfo$glc<20,]
+gcUse <- gcInfo[gcInfo$glc!=2&gcInfo$glc!=3&gcInfo$glc!=15&gcInfo$glc!=16&gcInfo$glc!=10&gcInfo$glc!=14&
+				gcInfo$glc!=9&gcInfo$glc!=14&gcInfo$glc<18,]
 gcUse$gcID <- seq(1,  dim(gcUse)[1])
 #subset to include only relevant land cover classes
 sweDF2 <- join(sweDF, gcUse, by="glc", type="inner")
