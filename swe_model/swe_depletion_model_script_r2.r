@@ -126,7 +126,7 @@ for(i in 1:dim(IDSglc)[1]){
 			
 	print(paste("start model run", i))			
 	if(rn==1){		
-	stan_model1 = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan_nh_split.stan", 
+	stan_model1 = stan(paste0(modDir), 
 					data = list(Nobs=dim(dat.swe4[dat.swe4$gcID==i,])[1], swe=dat.swe4$swe[dat.swe4$gcID==i], 
 				day=(dat.swe4$jday[dat.swe4$gcID==i]-32)/(182-32)),init=inits1,
 				,chains=1, iter=3000)	
@@ -141,7 +141,7 @@ for(i in 1:dim(IDSglc)[1]){
 				
 	}
 	if(rn==2){			
-	stan_model2 = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan_nh_split.stan", 
+	stan_model2 = stan(paste0(modDir), 
 					data =  list(Nobs=dim(dat.swe4[dat.swe4$gcID==i,])[1], swe=dat.swe4$swe[dat.swe4$gcID==i], 
 				day=(dat.swe4$jday[dat.swe4$gcID==i]-32)/(182-32)),init=inits2,
 				,chains=1, iter=3000)	
@@ -157,7 +157,7 @@ for(i in 1:dim(IDSglc)[1]){
 	}
 
 	if(rn==3){	
-	stan_model3 = stan("/home/hkropp/github/boreal_lw/swe_depletion/boreal_stan_nh_split.stan", 
+	stan_model3 = stan(paste0(modDir), 
 					data =  list(Nobs=dim(dat.swe4[sweDF3$gcID==i,])[1], swe=dat.swe4$swe[dat.swe4$gcID==i], 
 				day=(dat.swe4$jday[dat.swe4$gcID==i]-32)/(182-32)),init=inits3,
 				,chains=1, iter=3000)	
