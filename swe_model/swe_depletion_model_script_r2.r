@@ -13,7 +13,7 @@ library(rstan)
 # set up run info                                     #
 #######################################################
 #run number
-rn <- 1
+rn <- 2
 
 #run output directory
 outdir <- "/local/swe/stan_all1"
