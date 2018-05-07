@@ -16,7 +16,7 @@ model{
 		base ~uniform(0,300);
 		b ~ uniform(0,100);
 		sig_swe ~ uniform(0,1000);
-		mid ~ uniform(0,1)
+		mid ~ uniform(0,1);
 		
 	for(i in 1:Nobs){
 	swe[i]~normal((M/(1+exp(b*(day[i]-mid))))+base, sig_swe);
