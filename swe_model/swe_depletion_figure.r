@@ -76,7 +76,7 @@ modSum <- summary(codaAll)
 ###  check history                       ###
 ############################################
 
-#mcmcplot(codaAll,dir=paste0(modDI,"\\history") )
+mcmcplot(codaAll,dir=paste0(modDI,"\\history") )
 
 
 ############################################
