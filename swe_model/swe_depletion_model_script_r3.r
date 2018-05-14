@@ -15,8 +15,6 @@ library(rstan)
 #run number
 rn <- 3
 
-#run output directory
-outdir <- "/local/swe/stan_all1"
 
 #linux =1 or windows =2
 runOS <- 1
@@ -28,7 +26,7 @@ DDdir <- c("/mnt/g/projects/boreal_swe_depletion/data",
 modDir <- "/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan"				
 
 #output directory
-outdir <- "/local/swe2/run1"
+outdir <- "/mnt/g/projects/boreal_swe_depletion/model/run2"
 
 
 #######################################################
@@ -114,12 +112,12 @@ print("finish data organize")
 
 #inits for all possible runs					
 
-inits2<-list(list(M=c(.3),base=c(5),b=c(1),
-	sig_swe=c(1), mid=c(.4)))
-inits3<-list(list(M=c(.4),base=c(10),b=c(.5)
-		,sig_swe=c(10), mid=c(.5)))		
-inits1<-list(list(M=c(.5),base=c(1),b=c(.1),
-			sig_swe=c(2), mid=c(.6)))
+inits2<-list(list(M=c(.1),base=c(.05),b=c(21),
+	sig_swe=c(.05), mid=c(.4)))
+inits3<-list(list(M=c(.08),base=c(.040),b=c(25)
+		,sig_swe=c(.06), mid=c(.5)))		
+inits1<-list(list(M=c(.07),base=c(.045),b=c(30),
+			sig_swe=c(.1), mid=c(.6)))
 			
 			
 for(i in 1:dim(IDSglc)[1]){		
@@ -136,7 +134,8 @@ for(i in 1:dim(IDSglc)[1]){
 	write.table(out1$M, paste0(outdir,"/M_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$base, paste0(outdir,"/base_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$b, paste0(outdir,"/b_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$sig_swe, paste0(outdir,"/sig_swe_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out1$sig_swe, paste0(outdir,"/sig_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out1$mid, paste0(outdir,"/mid_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	print("end output")				
 				
 	}
@@ -151,14 +150,15 @@ for(i in 1:dim(IDSglc)[1]){
 	write.table(out2$M, paste0(outdir,"/M_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out2$base, paste0(outdir,"/base_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out2$b, paste0(outdir,"/b_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out2$sig_swe, paste0(outdir,"/sig_swe_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out2$sig_swe, paste0(outdir,"/sig_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out2$mid, paste0(outdir,"/mid_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	print(paste("end output",i))		
 
 	}
 
 	if(rn==3){	
 	stan_model3 = stan(paste0(modDir), 
-					data =  list(Nobs=dim(dat.swe4[dat.swe4$gcID==i,])[1], swe=dat.swe4$swe[dat.swe4$gcID==i], 
+					data =  list(Nobs=dim(dat.swe4[sweDF3$gcID==i,])[1], swe=dat.swe4$swe[dat.swe4$gcID==i], 
 				day=(dat.swe4$jday[dat.swe4$gcID==i]-32)/(182-32)),init=inits3,
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))
@@ -167,7 +167,8 @@ for(i in 1:dim(IDSglc)[1]){
 	write.table(out3$M, paste0(outdir,"/M_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out3$base, paste0(outdir,"/base_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out3$b, paste0(outdir,"/b_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out3$sig_swe, paste0(outdir,"/sig_swe_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out3$sig_swe, paste0(outdir,"/sig_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out3$mid, paste0(outdir,"/mid_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	print(paste("end output",i))		
 				
 	}
