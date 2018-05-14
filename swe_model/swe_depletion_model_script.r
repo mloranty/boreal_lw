@@ -136,7 +136,8 @@ for(i in 1:dim(IDSglc)[1]){
 	write.table(out1$M, paste0(outdir,"/M_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$base, paste0(outdir,"/base_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$b, paste0(outdir,"/b_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$sig_swe, paste0(outdir,"/sig_swe_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out1$sig_swe, paste0(outdir,"/sig_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out1$mid, paste0(outdir,"/mid_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	print("end output")				
 				
 	}
@@ -151,7 +152,8 @@ for(i in 1:dim(IDSglc)[1]){
 	write.table(out2$M, paste0(outdir,"/M_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out2$base, paste0(outdir,"/base_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out2$b, paste0(outdir,"/b_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out2$sig_swe, paste0(outdir,"/sig_swe_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out2$sig_swe, paste0(outdir,"/sig_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out2$mid, paste0(outdir,"/mid_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	print(paste("end output",i))		
 
 	}
@@ -167,7 +169,8 @@ for(i in 1:dim(IDSglc)[1]){
 	write.table(out3$M, paste0(outdir,"/M_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out3$base, paste0(outdir,"/base_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out3$b, paste0(outdir,"/b_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out3$sig_swe, paste0(outdir,"/sig_swe_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out3$sig_swe, paste0(outdir,"/sig_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out3$mid, paste0(outdir,"/mid_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	print(paste("end output",i))		
 				
 	}
