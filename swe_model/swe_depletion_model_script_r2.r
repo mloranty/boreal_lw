@@ -158,7 +158,7 @@ for(i in 1:dim(IDSglc)[1]){
 
 	if(rn==3){	
 	stan_model3 = stan(paste0(modDir), 
-					data =  list(Nobs=dim(dat.swe4[sweDF3$gcID==i,])[1], swe=dat.swe4$swe[dat.swe4$gcID==i], 
+					data =  list(Nobs=dim(dat.swe4[dat.swe4$gcID==i,])[1], swe=dat.swe4$swe[dat.swe4$gcID==i], 
 				day=(dat.swe4$jday[dat.swe4$gcID==i]-32)/(182-32)),init=inits3,
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))
