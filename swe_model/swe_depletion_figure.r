@@ -12,7 +12,74 @@ library(mcmcplots)
 ############################################
 ###  model input directory               ###
 ############################################
-modDI <- "z:\\Projects\\boreal_swe_depletion\\model\\run1\\run1"
+modDI <- "z:\\Projects\\boreal_swe_depletion\\model\\run2"
+plotDI <- "z:\\Projects\\boreal_swe_depletion\\figures\\model\\run2"
+
+############################################
+###  read in swe data  and organize      ###
+############################################
+dat.swe <- read.csv("z:\\Projects\\boreal_swe_depletion\\data\\swe_depletion_model_data.csv")
+dat.glc <- read.csv("z:\\Projects\\boreal_swe_depletion\\data\\swe_depletion_model_data.csv")
+
+#calculate proportion of land cover
+dat.swe$glc1.p <- dat.swe$glc1f/3136
+hist(dat.swe$glc1.p )
+dat.swe$glc2.p <- dat.swe$glc2f/3136
+hist(dat.swe$glc2.p )
+
+#just use first glc class 				
+dat.swe$zone <- dat.swe$glc1
+
+
+##########################
+##### Filter point 1 #####
+##########################
+#start with the simplest classification of glc 
+#>50% is dominated by the landcover class
+dat.swe1 <- dat.swe[dat.swe$glc1.p>=.5,]
+
+
+##########################
+##### Filter point 2 #####
+##########################
+#filter out land cover types not of interest
+#don't include glc 3,9,10,14,15,16,18,19,20,21,22
+dat.swe2 <- dat.swe1[dat.swe1$zone!=2&dat.swe1$zone!=3&dat.swe1$zone!=15&dat.swe1$zone!=16&dat.swe1$zone!=10&dat.swe1$zone!=14&
+				dat.swe1$zone!=9&dat.swe1$zone<18,]
+
+##########################
+##### Filter point 3 #####
+##########################				
+				
+#filter out areas with no snow extent in spring
+sweMax <- aggregate(dat.swe2$swe,by=list(dat.swe2$cell,dat.swe2$year),FUN="max")
+colnames(sweMax) <- c("cell","year","sweMax")
+sweMin <- aggregate(dat.swe2$swe,by=list(dat.swe2$cell,dat.swe2$year),FUN="min")
+colnames(sweMin) <- c("cell","year","sweMin")
+sweMax$Diff <- sweMax$sweMax-sweMin$sweMin
+te <- hist(sweMin$sweMin, breaks=seq(0,0.5, by=0.01))
+te2 <- hist(sweMax$Diff, breaks=seq(0,0.55, by=0.01))
+te3 <- hist(sweMax$sweMax, breaks=seq(0,0.6, by=0.01))
+#vast majority of minimum swe 97% is below 0.02 in a year
+#exclude any sites and years where the maximum swe does not exceed 0.04 in the year
+sweMaxF <- sweMax[sweMax$sweMax >=0.04,]
+#join back to swe to filter
+dat.swe3 <- join(dat.swe2, sweMaxF, by=c("cell","year"), type="inner")
+
+
+#######################################################
+# organize data for model run                         #
+#######################################################
+#create a table of identifiers
+#unique glc
+
+IDSglc <- unique(data.frame(zone=dat.swe3$zone))
+IDSglc <- join(IDSglc, dat.glc[,1:2], by="zone", type="left")
+IDSglc$gcID <- seq(1,dim(IDSglc)[1])
+
+
+#join glc ID into dataframe
+dat.swe4 <- join(dat.swe3,IDSglc, by="zone", type="left")
 
 ############################################
 ###  read in model input                 ###
@@ -76,10 +143,11 @@ modSum <- summary(codaAll)
 ###  check history                       ###
 ############################################
 
-mcmcplot(codaAll,dir=paste0(modDI,"\\history") )
+mcmcplot(codaAll,dir=paste0(plotDI,"\\history") )
 
 
 ############################################
 ###  plot params                         ###
 ############################################
+
 
