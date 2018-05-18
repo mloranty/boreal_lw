@@ -127,6 +127,7 @@ print("finish data organize")
 
 
 #inits for all possible runs					
+
 inits2<-list(list(M0=c(.1),base0=c(.05),b0=c(21),
 	sig_swe=c(.05), mid0=c(.4), M1=c(0.001),base1=c(0.001),b1=c(0.0001),mid1=c(0.001)))
 inits3<-list(list(M0=c(.08),base0=c(.040),b0=c(25)
@@ -134,13 +135,14 @@ inits3<-list(list(M0=c(.08),base0=c(.040),b0=c(25)
 inits1<-list(list(M0=c(.07),base0=c(.045),b0=c(30),
 			sig_swe=c(.1), mid0=c(.6), M1=c(0.003),base1=c(0.003),b1=c(0.0003),mid1=c(0.003)))
 			
+			
 for(i in 1:dim(IDSglc)[1]){		
 			
 	print(paste("start model run", i))			
 	if(rn==1){		
 	stan_model1 = stan(paste0(modDir), 
 					data = list(Nobs=dim(dat.swe5[dat.swe5$gcID==i,])[1], swe=dat.swe5$swe[dat.swe5$gcID==i], 
-				day=(dat.swe5$jday[dat.swe5$gcID==i]-32)/(182-32),tempC=dat.swe5$tempCent),init=inits1,
+				day=(dat.swe5$jday[dat.swe5$gcID==i]-32)/(182-32),tempC=dat.swe5$tempCent[dat.swe5$gcID==i,]),init=inits1,
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))	
 	out1<- extract(stan_model1)
@@ -160,7 +162,7 @@ for(i in 1:dim(IDSglc)[1]){
 	if(rn==2){			
 	stan_model2 = stan(paste0(modDir), 
 					data =  list(Nobs=dim(dat.swe5[dat.swe5$gcID==i,])[1], swe=dat.swe5$swe[dat.swe5$gcID==i], 
-				day=(dat.swe5$jday[dat.swe5$gcID==i]-32)/(182-32),tempC=dat.swe5$tempCent),init=inits2,
+				day=(dat.swe5$jday[dat.swe5$gcID==i]-32)/(182-32),tempC=dat.swe5$tempCent[dat.swe5$gcID==i,]),init=inits2,
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))
 	out2<- extract(stan_model2)	
@@ -181,7 +183,7 @@ for(i in 1:dim(IDSglc)[1]){
 	if(rn==3){	
 	stan_model3 = stan(paste0(modDir), 
 					data =  list(Nobs=dim(dat.swe5[dat.swe5$gcID==i,])[1], swe=dat.swe5$swe[dat.swe5$gcID==i], 
-				day=(dat.swe5$jday[dat.swe5$gcID==i]-32)/(182-32),tempC=dat.swe5$tempCent),init=inits3,
+				day=(dat.swe5$jday[dat.swe5$gcID==i]-32)/(182-32),tempC=dat.swe5$tempCent[dat.swe5$gcID==i,]),init=inits3,
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))
 	out3<- extract(stan_model3)	
