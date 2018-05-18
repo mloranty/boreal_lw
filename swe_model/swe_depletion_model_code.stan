@@ -2,6 +2,7 @@ data {
 	int<lower=1> Nobs;
 	real swe[Nobs];
 	real day[Nobs];
+	real tempC[Nobs];
 }
 parameters{
 	real<lower=0,upper=1000> M0; 

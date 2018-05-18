@@ -174,11 +174,11 @@ yh <- 0.5
 xplot <- seq(0,1,by=.01)
 
 xL <- seq(32,182, by=10)
-xS <- seq(0,1, length.outlength(xL))
+xS <- seq(0,1, length.out=length(xL))
 yS <- seq(0,0.5,by=.05)
 
 for(i in 1:dim(IDSglc)[1]){
-	jpeg(paste0(plotDI,"\\curve_",IDSglc$name[i],".jpeg"), width=2000,height=2000,quality=100)
+	jpeg(paste0(plotDI,"\\curves_",IDSglc$name[i],".jpeg"), width=2000,height=2000,quality=100)
 	layout(matrix(c(1),ncol=1),width=lcm(wd),height=lcm(hd))
 	par(mai=c(0,0,0,0))
 		plot(c(0,1),c(0,1), type="n", xlim=c(xl,xh), ylim=c(yl,yh), axes=FALSE,
