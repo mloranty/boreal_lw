@@ -13,7 +13,7 @@ library(rstan)
 # set up run info                                     #
 #######################################################
 #run number
-rn <- 3
+rn <- 2
 
 
 #linux =1 or windows =2
@@ -142,7 +142,7 @@ for(i in 1:dim(IDSglc)[1]){
 	if(rn==1){		
 	stan_model1 = stan(paste0(modDir), 
 					data = list(Nobs=dim(dat.swe5[dat.swe5$gcID==i,])[1], swe=dat.swe5$swe[dat.swe5$gcID==i], 
-				day=(dat.swe5$jday[dat.swe5$gcID==i]-32)/(182-32),tempC=dat.swe5$tempCent[dat.swe5$gcID==i,]),init=inits1,
+				day=(dat.swe5$jday[dat.swe5$gcID==i]-32)/(182-32),tempC=dat.swe5$tempCent[dat.swe5$gcID==i]),init=inits1,
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))	
 	out1<- extract(stan_model1)
@@ -162,7 +162,7 @@ for(i in 1:dim(IDSglc)[1]){
 	if(rn==2){			
 	stan_model2 = stan(paste0(modDir), 
 					data =  list(Nobs=dim(dat.swe5[dat.swe5$gcID==i,])[1], swe=dat.swe5$swe[dat.swe5$gcID==i], 
-				day=(dat.swe5$jday[dat.swe5$gcID==i]-32)/(182-32),tempC=dat.swe5$tempCent[dat.swe5$gcID==i,]),init=inits2,
+				day=(dat.swe5$jday[dat.swe5$gcID==i]-32)/(182-32),tempC=dat.swe5$tempCent[dat.swe5$gcID==i]),init=inits2,
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))
 	out2<- extract(stan_model2)	
@@ -183,7 +183,7 @@ for(i in 1:dim(IDSglc)[1]){
 	if(rn==3){	
 	stan_model3 = stan(paste0(modDir), 
 					data =  list(Nobs=dim(dat.swe5[dat.swe5$gcID==i,])[1], swe=dat.swe5$swe[dat.swe5$gcID==i], 
-				day=(dat.swe5$jday[dat.swe5$gcID==i]-32)/(182-32),tempC=dat.swe5$tempCent[dat.swe5$gcID==i,]),init=inits3,
+				day=(dat.swe5$jday[dat.swe5$gcID==i]-32)/(182-32),tempC=dat.swe5$tempCent[dat.swe5$gcID==i]),init=inits3,
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))
 	out3<- extract(stan_model3)	
