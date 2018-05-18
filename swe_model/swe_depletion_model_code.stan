@@ -21,10 +21,10 @@ model{
 		base0 ~uniform(0,300);
 		b0 ~ uniform(0,100);
 		mid0 ~ uniform(0,1);
-		M1 ~ normal(0,.001)T(-1,1);
-		base1 ~ normal(0,.001)T(-1,1);
-		b1 ~ normal(0,.001)T(-1,1);
-		mid1 ~ normal(0,.001)T(-1,1);
+		M1 ~ normal(0,.001)T[-1,1];
+		base1 ~ normal(0,.001)T[-1,1];
+		b1 ~ normal(0,.001)T[-1,1];
+		mid1 ~ normal(0,.001)T[-1,1];
 		sig_swe ~ uniform(0,1000);
 		
 		

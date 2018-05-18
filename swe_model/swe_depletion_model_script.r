@@ -26,7 +26,7 @@ DDdir <- c("/mnt/g/projects/boreal_swe_depletion/data",
 modDir <- "/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan"				
 
 #output directory
-outdir <- "/mnt/g/projects/boreal_swe_depletion/model/run2"
+outdir <- "/mnt/g/projects/boreal_swe_depletion/model/run3"
 
 
 #######################################################
@@ -128,12 +128,12 @@ print("finish data organize")
 
 #inits for all possible runs					
 
-inits2<-list(list(M=c(.1),base=c(.05),b=c(21),
-	sig_swe=c(.05), mid=c(.4)))
-inits3<-list(list(M=c(.08),base=c(.040),b=c(25)
-		,sig_swe=c(.06), mid=c(.5)))		
-inits1<-list(list(M=c(.07),base=c(.045),b=c(30),
-			sig_swe=c(.1), mid=c(.6)))
+inits2<-list(list(M0=c(.1),base0=c(.05),b0=c(21),
+	sig_swe=c(.05), mid0=c(.4), M1=c(0.001),base1=c(0.001),b1=c(0.0001),mid1=c(0.001)))
+inits3<-list(list(M0=c(.08),base0=c(.040),b0=c(25)
+		,sig_swe=c(.06), mid0=c(.5), M1=c(0.002),base1=c(0.002),b1=c(0.0002),mid1=c(0.002)))		
+inits1<-list(list(M0=c(.07),base0=c(.045),b0=c(30),
+			sig_swe=c(.1), mid0=c(.6), M1=c(0.003),base1=c(0.003),b1=c(0.0003),mid1=c(0.003)))
 			
 			
 for(i in 1:dim(IDSglc)[1]){		
