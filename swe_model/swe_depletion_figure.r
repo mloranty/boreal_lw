@@ -12,8 +12,8 @@ library(mcmcplots)
 ############################################
 ###  model input directory               ###
 ############################################
-modDI <- "z:\\Projects\\boreal_swe_depletion\\model\\run2"
-plotDI <- "z:\\Projects\\boreal_swe_depletion\\figures\\model\\run2"
+modDI <- "z:\\Projects\\boreal_swe_depletion\\model\\run3"
+plotDI <- "z:\\Projects\\boreal_swe_depletion\\figures\\model\\run3"
 
 ############################################
 ###  read in swe data  and organize      ###
@@ -81,6 +81,24 @@ IDSglc$gcID <- seq(1,dim(IDSglc)[1])
 #join glc ID into dataframe
 dat.swe4 <- join(dat.swe3,IDSglc, by="zone", type="left")
 
+#join glc ID into dataframe
+dat.swe4 <- join(dat.swe3,IDSglc, by="zone", type="left")
+dat.swe4$t.airC <- dat.swe4$t.air-273.15
+
+#get average temperature over a pixel, year
+
+temp.py <- aggregate(dat.swe4$t.airC, by=list(dat.swe4$cell,dat.swe4$year,dat.swe4$zone), FUN="mean")
+colnames(temp.py) <- c("cell","year","zone","temp")
+
+#calculate average to center for each zone
+temp.z <- aggregate(temp.py$temp,by=list(temp.py$zone),FUN="mean")
+colnames(temp.z) <- c("zone","temp.zoneM")
+#join zone mean back into temp.py
+temp.py <- join(temp.py, temp.z, by="zone", type="left")
+temp.py$tempCent <- temp.py$temp-temp.py$temp.zoneM
+
+#join back into swe data
+dat.swe5 <- join(dat.swe4,temp.py, by=c("cell","year","zone"), type="left")
 ############################################
 ###  read in model input                 ###
 ############################################
@@ -102,11 +120,15 @@ for(i in 1:length(modFiles)){
 }	
 
 modelOut <- data.frame(parms=modParam,glc=modGLC,chain=modChain)
+#subset to only look at glc 1 for now
 
 #pull out each model chain
-chain1 <- which(modelOut$chain==1)
-chain2 <- which(modelOut$chain==2)
-chain3 <- which(modelOut$chain==3)
+chain1 <- which(modelOut$chain==1&modelOut$glc==1)
+chain2 <- which(modelOut$chain==2&modelOut$glc==1)
+chain3 <- which(modelOut$chain==3&modelOut$glc==1)
+
+
+
 #read in coda
 chain1Out <- list()
 chain2Out <- list()
@@ -140,7 +162,7 @@ codaAll <- mcmc.list(chain1all,chain2all,chain3all)
 
 modSum <- summary(codaAll)
 datC <- data.frame(cbind(modSum$statistics,modSum$quantiles))
-datC$glcID <- rep(seq(1,6),times=5)
+datC$glcID <- rep(1,times=9)
 datC$parms <- gsub("\\d","",rownames(datC))
 
 ############################################
@@ -176,22 +198,38 @@ xplot <- seq(0,1,by=.01)
 xL <- seq(32,182, by=10)
 xS <- seq(0,1, length.out=length(xL))
 yS <- seq(0,0.5,by=.05)
-
-for(i in 1:dim(IDSglc)[1]){
+#dim(IDSglc)[1]
+for(i in 1:1){
 	jpeg(paste0(plotDI,"\\curves_",IDSglc$name[i],".jpeg"), width=2000,height=2000,quality=100)
 	layout(matrix(c(1),ncol=1),width=lcm(wd),height=lcm(hd))
 	par(mai=c(0,0,0,0))
 		plot(c(0,1),c(0,1), type="n", xlim=c(xl,xh), ylim=c(yl,yh), axes=FALSE,
 				xaxs="i", yaxs="i", xlab=" ", ylab=" ")
 				
-		points(dat.swe4$dayN,dat.swe4$swe,pch=19, col="grey75")
+		points(dat.swe5$dayN,dat.swe5$swe,pch=19, col="grey75")
 
-		points(xplot, sweC(datC$Mean[datC$parms=="M"][i],
-							datC$Mean[datC$parms=="b"][i],
+		points(xplot, sweC(datC$Mean[rownames(datC)=="M01"][i],
+							datC$Mean[rownames(datC)=="b01"][i],
 							xplot,
-							datC$Mean[datC$parms=="mid"][i],
-							datC$Mean[datC$parms=="base"][i]),type="l", lwd=6,
-							col="tomato3")
+							datC$Mean[rownames(datC)=="mid01"][i],
+							datC$Mean[rownames(datC)=="base01"][i]),type="l", lwd=6,
+							col="goldenrod3")
+							
+							
+		points(xplot, sweC(datC$Mean[rownames(datC)=="M01"][i]+(datC$Mean[rownames(datC)=="M11"][i]*-1),
+							datC$Mean[rownames(datC)=="b01"][i]+(datC$Mean[rownames(datC)=="b11"][i]*-1),
+							xplot,
+							datC$Mean[rownames(datC)=="mid01"][i]+(datC$Mean[rownames(datC)=="mid11"][i]*-1),
+							datC$Mean[rownames(datC)=="base01"][i]+(datC$Mean[rownames(datC)=="base11"][i]*-1)),type="l", lwd=6,
+							col="royalblue")	
+
+
+		points(xplot, sweC(datC$Mean[rownames(datC)=="M01"][i]+(datC$Mean[rownames(datC)=="M11"][i]*1),
+							datC$Mean[rownames(datC)=="b01"][i]+(datC$Mean[rownames(datC)=="b11"][i]*1),
+							xplot,
+							datC$Mean[rownames(datC)=="mid01"][i]+(datC$Mean[rownames(datC)=="mid11"][i]*1),
+							datC$Mean[rownames(datC)=="base01"][i]+(datC$Mean[rownames(datC)=="base11"][i]*1)),type="l", lwd=6,
+							col="tomato3")							
 		axis(1, xS,rep("", length(xS)), lwd.ticks=5)
 		mtext(xL,at=xS, side=1, line=5, cex=2)
 		axis(2,yS, rep("", length(yS)), lwd.ticks=5)
