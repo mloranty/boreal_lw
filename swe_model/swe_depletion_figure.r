@@ -223,13 +223,25 @@ for(i in 1:1){
 							datC$Mean[rownames(datC)=="base01"][i]+(datC$Mean[rownames(datC)=="base11"][i]*-1)),type="l", lwd=6,
 							col="royalblue")	
 
-
+		points(xplot, sweC(datC$Mean[rownames(datC)=="M01"][i]+(datC$Mean[rownames(datC)=="M11"][i]*-12),
+							datC$Mean[rownames(datC)=="b01"][i]+(datC$Mean[rownames(datC)=="b11"][i]*-12),
+							xplot,
+							datC$Mean[rownames(datC)=="mid01"][i]+(datC$Mean[rownames(datC)=="mid11"][i]*-12),
+							datC$Mean[rownames(datC)=="base01"][i]+(datC$Mean[rownames(datC)=="base11"][i]*-12)),type="l", lwd=6,
+							col="royalblue4")	
 		points(xplot, sweC(datC$Mean[rownames(datC)=="M01"][i]+(datC$Mean[rownames(datC)=="M11"][i]*1),
 							datC$Mean[rownames(datC)=="b01"][i]+(datC$Mean[rownames(datC)=="b11"][i]*1),
 							xplot,
 							datC$Mean[rownames(datC)=="mid01"][i]+(datC$Mean[rownames(datC)=="mid11"][i]*1),
 							datC$Mean[rownames(datC)=="base01"][i]+(datC$Mean[rownames(datC)=="base11"][i]*1)),type="l", lwd=6,
-							col="tomato3")							
+							col="tomato3")	
+
+			points(xplot, sweC(datC$Mean[rownames(datC)=="M01"][i]+(datC$Mean[rownames(datC)=="M11"][i]*14),
+							datC$Mean[rownames(datC)=="b01"][i]+(datC$Mean[rownames(datC)=="b11"][i]*14),
+							xplot,
+							datC$Mean[rownames(datC)=="mid01"][i]+(datC$Mean[rownames(datC)=="mid11"][i]*14),
+							datC$Mean[rownames(datC)=="base01"][i]+(datC$Mean[rownames(datC)=="base11"][i]*14)),type="l", lwd=6,
+							col="tomato4")							
 		axis(1, xS,rep("", length(xS)), lwd.ticks=5)
 		mtext(xL,at=xS, side=1, line=5, cex=2)
 		axis(2,yS, rep("", length(yS)), lwd.ticks=5)
@@ -238,3 +250,46 @@ for(i in 1:1){
 }					
 					
 
+hist(temp.py$tempCent[temp.py$zone==5])
+
+############################################
+###  plot data                           ###
+############################################
+
+##plot maximum swe value at beginning of season before melt
+#get the maximum swe value by averaging well before melt
+
+dat.sweMax <- dat.swe5[dat.swe5$jday<90,]
+#aggregate by cell, year
+sweMax <- aggregate(dat.sweMax$swe, by=list(dat.sweMax$cell,dat.sweMax$year,dat.sweMax$zone), FUN="mean")
+colnames(sweMax) <- c("cell","year","zone","sweMax")
+
+#join with temperature data
+sweMax2 <- join(sweMax, temp.py, by=c("cell","year","zone"), type="left")
+#join glc data
+sweMax3 <- join(sweMax2, IDSglc, by=c("zone"),type="left")
+
+#plotting info					
+wd <- 50
+hd <- 50
+
+xl <- -20
+xh <- 20
+yl <- 0
+yh <- 0.5
+yearU <- list()
+yearN <- numeric(0)
+for(i in 1:dim(IDSglc)[1]){
+	yearU[[i]] <- unique(sweMax3$year[sweMax3$gcID==i])
+	yearN[i] <- length(yearU[[i]])
+	jpeg(paste0(plotDI,"\\maxSWE\\maxSWE_",IDSglc$name[i],".jpeg"), width=2000,height=2000,quality=100)
+	layout(matrix(c(1),ncol=1),width=lcm(wd),height=lcm(hd))
+		par(mai=c(0,0,0,0))
+		plot(c(0,1),c(0,1), type="n", xlim=c(xl,xh), ylim=c(yl,yh), axes=FALSE,
+				xaxs="i", yaxs="i", xlab=" ", ylab=" ")
+		for(j in 1:yearN[i]){		
+			points(sweMax3$tempCent[sweMax3$gcID==i&sweMax3$year==yearU[[i]][j]],sweMax3$sweMax[sweMax3$gcID==i&sweMax3$year==yearU[[i]][j]],pch=19, col=j, cex=3)
+		}
+	dev.off()
+}	
+	
