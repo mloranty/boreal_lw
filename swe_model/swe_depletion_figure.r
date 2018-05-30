@@ -18,7 +18,8 @@ plotDI <- "z:\\Projects\\boreal_swe_depletion\\figures\\model\\run3"
 ############################################
 ###  read in swe data  and organize      ###
 ############################################
-dat.swe <- read.csv("z:\\Projects\\boreal_swe_depletion\\data\\swe_depletion_model_data.csv")
+#dat.swe <- read.csv("z:\\Projects\\boreal_swe_depletion\\data\\swe_depletion_model_data.csv")
+dat.swe <- read.csv("z:\\Projects\\boreal_swe_depletion\\data\\swe_depletion_model_data_vcf_no_topo.csv")
 dat.glc <- read.csv("z:\\Projects\\boreal_swe_depletion\\data\\glc50_table.csv")
 
 #calculate proportion of land cover
