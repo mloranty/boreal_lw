@@ -303,7 +303,7 @@ yS <- seq(0,.5, by=.1)
 for(i in 1:dim(IDSglc)[1]){
 	yearU[[i]] <- unique(sweMax3$year[sweMax3$gcID==i])
 	yearN[i] <- length(yearU[[i]])
-	jpeg(paste0(plotDI,"\\maxSWE\\maxSWE_",IDSglc$name[i],".jpeg"), width=2000,height=2000,quality=100)
+	jpeg(paste0(plotDI,"\\new_data\\maxSWE\\maxSWE_",IDSglc$name[i],".jpeg"), width=2000,height=2000,quality=100)
 	layout(matrix(c(1),ncol=1),width=lcm(wd),height=lcm(hd))
 		par(mai=c(0,0,0,0))
 		plot(c(0,1),c(0,1), type="n", xlim=c(xl,xh), ylim=c(yl,yh), axes=FALSE,
@@ -342,7 +342,7 @@ yS <- seq(0,.5, by=.1)
 for(i in 1:dim(IDSglc)[1]){
 	yearU[[i]] <- unique(sweMin3$year[sweMin3$gcID==i])
 	yearN[i] <- length(yearU[[i]])
-	jpeg(paste0(plotDI,"\\minSWE\\minSWE_",IDSglc$name[i],".jpeg"), width=2000,height=2000,quality=100)
+	jpeg(paste0(plotDI,"\\new_data\\minSWE\\minSWE_",IDSglc$name[i],".jpeg"), width=2000,height=2000,quality=100)
 	layout(matrix(c(1),ncol=1),width=lcm(wd),height=lcm(hd))
 		par(mai=c(0,0,0,0))
 		plot(c(0,1),c(0,1), type="n", xlim=c(xl,xh), ylim=c(yl,yh), axes=FALSE,
