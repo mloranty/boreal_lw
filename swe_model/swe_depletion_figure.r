@@ -268,6 +268,21 @@ colnames(sweMax) <- c("cell","year","zone","sweMax")
 sweMax2 <- join(sweMax, temp.py, by=c("cell","year","zone"), type="left")
 #join glc data
 sweMax3 <- join(sweMax2, IDSglc, by=c("zone"),type="left")
+# calculate min swe
+
+dat.sweMin <- dat.swe5[dat.swe5$jday>175,]
+
+#aggregate by cell, year
+sweMin <- aggregate(dat.sweMin$swe, by=list(dat.sweMin$cell,dat.sweMin$year,dat.sweMin$zone), FUN="mean")
+colnames(sweMin) <- c("cell","year","zone","sweMin")
+
+#join with temperature data
+sweMin2 <- join(sweMin, temp.py, by=c("cell","year","zone"), type="left")
+#join glc data
+sweMin3 <- join(sweMax2, IDSglc, by=c("zone"),type="left")
+# calculate min swe
+
+###### plot swe max ###### 
 
 #plotting info					
 wd <- 50
@@ -279,6 +294,11 @@ yl <- 0
 yh <- 0.5
 yearU <- list()
 yearN <- numeric(0)
+xS <- seq(xl,xh,by=10)
+yS <- seq(0,.5, by=.1)
+
+
+
 for(i in 1:dim(IDSglc)[1]){
 	yearU[[i]] <- unique(sweMax3$year[sweMax3$gcID==i])
 	yearN[i] <- length(yearU[[i]])
@@ -290,6 +310,52 @@ for(i in 1:dim(IDSglc)[1]){
 		for(j in 1:yearN[i]){		
 			points(sweMax3$tempCent[sweMax3$gcID==i&sweMax3$year==yearU[[i]][j]],sweMax3$sweMax[sweMax3$gcID==i&sweMax3$year==yearU[[i]][j]],pch=19, col=j, cex=3)
 		}
+		axis(1, xS, rep("",length(xS)), lwd.ticks=4)
+		mtext(xS, at=xS, cex=4,side=1,line=4)
+		axis(2, yS, rep("",length(yS)), lwd.ticks=4)
+		mtext(yS, at=yS, cex=4,side=2,line=4,las=2)
+		mtext("Average spring temperature - long spring temperature average in glc (C)", side=1, cex=5, line=8)
+		mtext("SWE", side=2, cex=5, line=8)
 	dev.off()
 }	
+
+
+
+
+
+#plotting info					
+wd <- 50
+hd <- 50
+
+xl <- -20
+xh <- 20
+yl <- 0
+yh <- 0.5
+yearU <- list()
+yearN <- numeric(0)
+xS <- seq(xl,xh,by=10)
+yS <- seq(0,.5, by=.1)
+
+
+
+for(i in 1:dim(IDSglc)[1]){
+	yearU[[i]] <- unique(sweMin3$year[sweMin3$gcID==i])
+	yearN[i] <- length(yearU[[i]])
+	jpeg(paste0(plotDI,"\\minSWE\\minSWE_",IDSglc$name[i],".jpeg"), width=2000,height=2000,quality=100)
+	layout(matrix(c(1),ncol=1),width=lcm(wd),height=lcm(hd))
+		par(mai=c(0,0,0,0))
+		plot(c(0,1),c(0,1), type="n", xlim=c(xl,xh), ylim=c(yl,yh), axes=FALSE,
+				xaxs="i", yaxs="i", xlab=" ", ylab=" ")
+		for(j in 1:yearN[i]){		
+			points(sweMin3$tempCent[sweMin3$gcID==i&sweMax3$year==yearU[[i]][j]],sweMin3$sweMax[sweMin3$gcID==i&sweMin3$year==yearU[[i]][j]],pch=19, col=j, cex=3)
+		}
+		axis(1, xS, rep("",length(xS)), lwd.ticks=4)
+		mtext(xS, at=xS, cex=4,side=1,line=4)
+		axis(2, yS, rep("",length(yS)), lwd.ticks=4)
+		mtext(yS, at=yS, cex=4,side=2,line=4,las=2)
+		mtext("Average spring temperature - long spring temperature average in glc (C)", side=1, cex=5, line=8)
+		mtext("end of spring SWE", side=2, cex=5, line=10)
+	dev.off()
+}	
+	
 	
