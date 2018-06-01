@@ -18,7 +18,6 @@ plotDI <- "z:\\Projects\\boreal_swe_depletion\\figures\\model\\run3"
 ############################################
 ###  read in swe data  and organize      ###
 ############################################
-#dat.swe <- read.csv("z:\\Projects\\boreal_swe_depletion\\data\\swe_depletion_model_data.csv")
 dat.swe <- read.csv("z:\\Projects\\boreal_swe_depletion\\data\\swe_depletion_model_data_vcf_no_topo.csv")
 dat.glc <- read.csv("z:\\Projects\\boreal_swe_depletion\\data\\glc50_table.csv")
 
@@ -100,6 +99,8 @@ temp.py$tempCent <- temp.py$temp-temp.py$temp.zoneM
 
 #join back into swe data
 dat.swe5 <- join(dat.swe4,temp.py, by=c("cell","year","zone"), type="left")
+
+
 ############################################
 ###  read in model input                 ###
 ############################################
@@ -181,7 +182,7 @@ IDSglc$name <- c("needleleaf deciduous","deciduous shrub","evergreen shrub","her
 					"needleleaf evergreen","mixed tree")
 					
 #normalized day
-dat.swe4$dayN <- (dat.swe4$jday-32)/(182-32)
+dat.swe5$dayN <- (dat.swe5$jday-32)/(182-32)
 #swe curve function
 sweC <- function(M, b,day,mid,base){
 	M/(1+exp(b*(day-mid)))+base
@@ -283,6 +284,16 @@ sweMin2 <- join(sweMin, temp.py, by=c("cell","year","zone"), type="left")
 sweMin3 <- join(sweMax2, IDSglc, by=c("zone"),type="left")
 # calculate min swe
 
+
+#get unique tree cover
+treeCover <- unique(data.frame(vcf=dat.swe5$vcf,cell=dat.swe5$cell))
+length(unique(dat.swe5$cell))
+dim(treeCover)[1]
+
+#join unique tree cover into min and max
+sweMin3 <- join(sweMin3,treeCover, by="cell",type="left")
+sweMax3 <- join(sweMax3,treeCover, by="cell",type="left")
+
 ###### plot swe max ###### 
 
 #plotting info					
@@ -359,4 +370,78 @@ for(i in 1:dim(IDSglc)[1]){
 	dev.off()
 }	
 	
-	
+###### plot swe max and tree cover ###### 
+
+#plotting info					
+wd <- 50
+hd <- 50
+
+xl <- 0
+xh <- 100
+yl <- 0
+yh <- 0.5
+yearU <- list()
+yearN <- numeric(0)
+xS <- seq(xl,xh,by=10)
+yS <- seq(0,.5, by=.1)
+
+
+
+for(i in 1:dim(IDSglc)[1]){
+	yearU[[i]] <- unique(sweMax3$year[sweMax3$gcID==i])
+	yearN[i] <- length(yearU[[i]])
+	jpeg(paste0(plotDI,"\\new_data\\maxSWEc\\maxSWE_",IDSglc$name[i],".jpeg"), width=2000,height=2000,quality=100)
+	layout(matrix(c(1),ncol=1),width=lcm(wd),height=lcm(hd))
+		par(mai=c(0,0,0,0))
+		plot(c(0,1),c(0,1), type="n", xlim=c(xl,xh), ylim=c(yl,yh), axes=FALSE,
+				xaxs="i", yaxs="i", xlab=" ", ylab=" ")
+		for(j in 1:yearN[i]){		
+			points(sweMax3$vcf[sweMax3$gcID==i&sweMax3$year==yearU[[i]][j]],sweMax3$sweMax[sweMax3$gcID==i&sweMax3$year==yearU[[i]][j]],pch=19, col=j, cex=3)
+		}
+		axis(1, xS, rep("",length(xS)), lwd.ticks=4)
+		mtext(xS, at=xS, cex=4,side=1,line=4)
+		axis(2, yS, rep("",length(yS)), lwd.ticks=4)
+		mtext(yS, at=yS, cex=4,side=2,line=4,las=2)
+		mtext("Tree cover", side=1, cex=5, line=8)
+		mtext("SWE", side=2, cex=5, line=8)
+	dev.off()
+}	
+
+
+
+
+
+#plotting info					
+wd <- 50
+hd <- 50
+
+xl <-0
+xh <- 100
+yl <- 0
+yh <- 0.5
+yearU <- list()
+yearN <- numeric(0)
+xS <- seq(xl,xh,by=10)
+yS <- seq(0,.5, by=.1)
+
+#plot min and tree cover
+
+for(i in 1:dim(IDSglc)[1]){
+	yearU[[i]] <- unique(sweMin3$year[sweMin3$gcID==i])
+	yearN[i] <- length(yearU[[i]])
+	jpeg(paste0(plotDI,"\\new_data\\minSWEc\\minSWE_",IDSglc$name[i],".jpeg"), width=2000,height=2000,quality=100)
+	layout(matrix(c(1),ncol=1),width=lcm(wd),height=lcm(hd))
+		par(mai=c(0,0,0,0))
+		plot(c(0,1),c(0,1), type="n", xlim=c(xl,xh), ylim=c(yl,yh), axes=FALSE,
+				xaxs="i", yaxs="i", xlab=" ", ylab=" ")
+		for(j in 1:yearN[i]){		
+			points(sweMin3$vcf[sweMin3$gcID==i&sweMax3$year==yearU[[i]][j]],sweMin3$sweMax[sweMin3$gcID==i&sweMin3$year==yearU[[i]][j]],pch=19, col=j, cex=3)
+		}
+		axis(1, xS, rep("",length(xS)), lwd.ticks=4)
+		mtext(xS, at=xS, cex=4,side=1,line=4)
+		axis(2, yS, rep("",length(yS)), lwd.ticks=4)
+		mtext(yS, at=yS, cex=4,side=2,line=4,las=2)
+		mtext("tree cover", side=1, cex=5, line=8)
+		mtext("end of spring SWE", side=2, cex=5, line=10)
+	dev.off()
+}		
