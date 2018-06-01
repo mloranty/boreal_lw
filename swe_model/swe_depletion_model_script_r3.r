@@ -26,7 +26,7 @@ DDdir <- c("/mnt/g/projects/boreal_swe_depletion/data",
 modDir <- "/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan"				
 
 #output directory
-outdir <- "/mnt/g/projects/boreal_swe_depletion/model/run3"
+outdir <- "/mnt/g/projects/boreal_swe_depletion/model/run4"
 
 
 #######################################################
@@ -119,6 +119,10 @@ temp.py$tempCent <- temp.py$temp-temp.py$temp.zoneM
 #join back into swe data
 dat.swe5 <- join(dat.swe4,temp.py, by=c("cell","year","zone"), type="left")
 
+#just run the model for a few years
+dat.swe5 <- dat.swe5[dat.swe5$year<=2013,]
+
+
 print("finish data organize")
 #######################################################
 # set up model run                                    #
@@ -129,11 +133,13 @@ print("finish data organize")
 #inits for all possible runs					
 
 inits2<-list(list(M0=c(.1),base0=c(.05),b0=c(21),
-	sig_swe=c(.05), mid0=c(.4), M1=c(0.001),base1=c(0.001),b1=c(0.0001),mid1=c(0.001)))
+	sig_swe=c(.05), mid0=c(.4), M1=c(0.001),base1=c(0.001),b1=c(0.0001),mid1=c(0.001),M2=c(0.001),base2=c(0.001),b2=c(0.0001),mid2=c(0.001)))
 inits3<-list(list(M0=c(.08),base0=c(.040),b0=c(25)
-		,sig_swe=c(.06), mid0=c(.5), M1=c(0.002),base1=c(0.002),b1=c(0.0002),mid1=c(0.002)))		
+		,sig_swe=c(.06), mid0=c(.5), M1=c(0.002),base1=c(0.002),b1=c(0.0002),mid1=c(0.002),
+		M2=c(0.002),base2=c(0.002),b2=c(0.0002),mid2=c(0.002)))		
 inits1<-list(list(M0=c(.07),base0=c(.045),b0=c(30),
-			sig_swe=c(.1), mid0=c(.6), M1=c(0.003),base1=c(0.003),b1=c(0.0003),mid1=c(0.003)))
+			sig_swe=c(.1), mid0=c(.6), M1=c(0.003),base1=c(0.003),b1=c(0.0003),mid1=c(0.003),
+			 M2=c(0.003),base2=c(0.003),b2=c(0.0003),mid2=c(0.003)))
 			
 			
 for(i in 1:dim(IDSglc)[1]){		
@@ -142,7 +148,8 @@ for(i in 1:dim(IDSglc)[1]){
 	if(rn==1){		
 	stan_model1 = stan(paste0(modDir), 
 					data = list(Nobs=dim(dat.swe5[dat.swe5$gcID==i,])[1], swe=dat.swe5$swe[dat.swe5$gcID==i], 
-				day=(dat.swe5$jday[dat.swe5$gcID==i]-32)/(182-32),tempC=dat.swe5$tempCent[dat.swe5$gcID==i]),init=inits1,
+				day=(dat.swe5$jday[dat.swe5$gcID==i]-32)/(182-32),tempC=dat.swe5$tempCent[dat.swe5$gcID==i],
+				vcf=dat.swe5$vcf[dat.swe5$gcID==i]),init=inits1,
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))	
 	out1<- extract(stan_model1)
@@ -150,19 +157,24 @@ for(i in 1:dim(IDSglc)[1]){
 	write.table(out1$M0, paste0(outdir,"/M0_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$base0, paste0(outdir,"/base0_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$b0, paste0(outdir,"/b0_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$mid0, paste0(outdir,"/mid_out0_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")	
+	write.table(out1$mid0, paste0(outdir,"/mid0_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")	
 	write.table(out1$sig_swe, paste0(outdir,"/sig_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$M1, paste0(outdir,"/M1_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$base1, paste0(outdir,"/base1_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$b1, paste0(outdir,"/b1_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$mid1, paste0(outdir,"/mid_out1_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out1$mid1, paste0(outdir,"/mid1_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out1$M2, paste0(outdir,"/M2_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out1$base2, paste0(outdir,"/base2_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out1$b2, paste0(outdir,"/b2_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out1$mid2, paste0(outdir,"/mid2_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")	
+	
 	print("end output")				
 				
 	}
 	if(rn==2){			
 	stan_model2 = stan(paste0(modDir), 
 					data =  list(Nobs=dim(dat.swe5[dat.swe5$gcID==i,])[1], swe=dat.swe5$swe[dat.swe5$gcID==i], 
-				day=(dat.swe5$jday[dat.swe5$gcID==i]-32)/(182-32),tempC=dat.swe5$tempCent[dat.swe5$gcID==i]),init=inits2,
+				day=(dat.swe5$jday[dat.swe5$gcID==i]-32)/(182-32),tempC=dat.swe5$tempCent[dat.swe5$gcID==i],vcf=dat.swe5$vcf[dat.swe5$gcID==i]),init=inits2,
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))
 	out2<- extract(stan_model2)	
@@ -176,6 +188,10 @@ for(i in 1:dim(IDSglc)[1]){
 	write.table(out2$base1, paste0(outdir,"/base1_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out2$b1, paste0(outdir,"/b1_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out2$mid1, paste0(outdir,"/mid1_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out1$M2, paste0(outdir,"/M2_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out1$base2, paste0(outdir,"/base2_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out1$b2, paste0(outdir,"/b2_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out1$mid2, paste0(outdir,"/mid2_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")	
 	print(paste("end output",i))		
 
 	}
@@ -183,7 +199,7 @@ for(i in 1:dim(IDSglc)[1]){
 	if(rn==3){	
 	stan_model3 = stan(paste0(modDir), 
 					data =  list(Nobs=dim(dat.swe5[dat.swe5$gcID==i,])[1], swe=dat.swe5$swe[dat.swe5$gcID==i], 
-				day=(dat.swe5$jday[dat.swe5$gcID==i]-32)/(182-32),tempC=dat.swe5$tempCent[dat.swe5$gcID==i]),init=inits3,
+				day=(dat.swe5$jday[dat.swe5$gcID==i]-32)/(182-32),tempC=dat.swe5$tempCent[dat.swe5$gcID==i],vcf=dat.swe5$vcf[dat.swe5$gcID==i]),init=inits3,
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))
 	out3<- extract(stan_model3)	
@@ -197,6 +213,10 @@ for(i in 1:dim(IDSglc)[1]){
 	write.table(out3$base1, paste0(outdir,"/base1_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out3$b1, paste0(outdir,"/b1_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out3$mid1, paste0(outdir,"/mid1_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")	
+	write.table(out1$M2, paste0(outdir,"/M2_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out1$base2, paste0(outdir,"/base2_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out1$b2, paste0(outdir,"/b2_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	write.table(out1$mid2, paste0(outdir,"/mid2_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")	
 	print(paste("end output",i))		
 				
 	}
