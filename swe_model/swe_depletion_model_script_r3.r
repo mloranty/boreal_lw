@@ -34,11 +34,11 @@ outdir <- "/mnt/g/projects/boreal_swe_depletion/model/run4"
 #######################################################
 #read in data files
 if(runOS==1){
-	dat.swe <- read.csv(paste0(DDdir[1], "/swe_depletion_model_data.csv"))
+	dat.swe <- read.csv(paste0(DDdir[1], "/swe_depletion_model_data_vcf_no_topo.csv"))
 	dat.glc <- read.csv(paste0(DDdir[1], "/glc50_table.csv"))
 }else{
 
-	dat.swe <- read.csv(paste0(DDdir[2],"\\swe_depletion_model_data.csv"))
+	dat.swe <- read.csv(paste0(DDdir[2],"\\swe_depletion_model_data_vcf_no_topo.csv"))
 	dat.glc <- read.csv(paste0(DDdir[2], "/glc50_table.csv"))
 }
 print("finish reading in data")
