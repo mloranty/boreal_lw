@@ -120,7 +120,7 @@ temp.py$tempCent <- temp.py$temp-temp.py$temp.zoneM
 dat.swe5 <- join(dat.swe4,temp.py, by=c("cell","year","zone"), type="left")
 
 #just run the model for a few years
-dat.swe5 <- dat.swe5[dat.swe5$year<=2013,]
+dat.swe5 <- dat.swe5[dat.swe5$year>=2013,]
 
 
 print("finish data organize")
