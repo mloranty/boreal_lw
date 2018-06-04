@@ -12,8 +12,8 @@ library(mcmcplots)
 ############################################
 ###  model input directory               ###
 ############################################
-modDI <- "z:\\Projects\\boreal_swe_depletion\\model\\run3"
-plotDI <- "z:\\Projects\\boreal_swe_depletion\\figures\\model\\run3"
+modDI <- "z:\\Projects\\boreal_swe_depletion\\model\\run4"
+plotDI <- "z:\\Projects\\boreal_swe_depletion\\figures\\model\\run4"
 
 ############################################
 ###  read in swe data  and organize      ###
@@ -445,3 +445,7 @@ for(i in 1:dim(IDSglc)[1]){
 		mtext("end of spring SWE", side=2, cex=5, line=10)
 	dev.off()
 }		
+
+dfA <- unique(data.frame(cell=dat.swe4$cell, year=dat.swe4$year))
+dfC <- unique(data.frame(cell=dat.swe4$cell))
+dfY <- unique(data.frame(year=dat.swe4$year))
