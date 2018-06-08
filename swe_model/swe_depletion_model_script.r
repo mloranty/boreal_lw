@@ -26,7 +26,7 @@ DDdir <- c("/mnt/g/projects/boreal_swe_depletion/data",
 modDir <- "/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan"				
 
 #output directory
-outdir <- "/mnt/g/projects/boreal_swe_depletion/model/run4"
+outdir <- "/mnt/g/projects/boreal_swe_depletion/model/run5"
 
 
 #######################################################
@@ -34,11 +34,11 @@ outdir <- "/mnt/g/projects/boreal_swe_depletion/model/run4"
 #######################################################
 #read in data files
 if(runOS==1){
-	dat.swe <- read.csv(paste0(DDdir[1], "/swe_depletion_model_data_vcf_no_topo.csv"))
+	dat.swe <- read.csv(paste0(DDdir[1], "/swe_depletion_model_data_vcf.csv"))
 	dat.glc <- read.csv(paste0(DDdir[1], "/glc50_table.csv"))
 }else{
 
-	dat.swe <- read.csv(paste0(DDdir[2],"\\swe_depletion_model_data_vcf_no_topo.csv"))
+	dat.swe <- read.csv(paste0(DDdir[2],"\\swe_depletion_model_data_vcf.csv"))
 	dat.glc <- read.csv(paste0(DDdir[2], "/glc50_table.csv"))
 }
 print("finish reading in data")
@@ -120,7 +120,7 @@ temp.py$tempCent <- temp.py$temp-temp.py$temp.zoneM
 dat.swe5 <- join(dat.swe4,temp.py, by=c("cell","year","zone"), type="left")
 
 #just run the model for a few years
-dat.swe5 <- dat.swe5[dat.swe5$year>=2013,]
+dat.swe5 <- dat.swe5[dat.swe5$year>=2000,]
 
 
 print("finish data organize")
