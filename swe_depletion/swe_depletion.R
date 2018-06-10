@@ -46,13 +46,13 @@ projection(topo) <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
 
 # aggregate to 0.5 degree resolution and calculate st dev of elevation
 # use to identify mountains (Mudryk et al, 2017)
-topo <- aggregate(topo,fact=30,fun=sd,
+topo <- aggregate(topo,fact=30,fun=sd,overwrite=T,
                    filename="L:/projects/boreal_swe_depletion/data/ETOPO1_Ice_c_0.5deg_stdev.tif")
 #reproject to EASE 2.0
-topo <- projectRaster(topo,pr,
+topo <- projectRaster(topo,pr,overwrite=T,
                       filename = "L:/projects/boreal_swe_depletion/data/ETOPO1_Ice_c_50km_ease_stdev.tif")
 # reclassify to create mountain mask
-topo <- reclassify(topo,c(0,200,NA,200,Inf,1),overwrite=T,
+topo <- reclassify(topo,c(0,200,1,200,Inf,NA),overwrite=T,
                    filename="L:/projects/boreal_swe_depletion/data/ETOPO1_Ice_c_50km_ease_mtn_mask.tif")
 
 ########## GLC2000 Land Cover ##########
@@ -145,7 +145,7 @@ swe.files <- list.files(pattern =".nc",path ="swe_mudryk_blended/",full.names=T)
 era.files <- list.files(pattern = ".nc", path = "era_interim/air_temp_2m_spring/",full.names=T)
 
 ## read in file from first year
-swe <- brick(swe.files[3])
+swe <- brick(swe.files[1])
 ## get date
 ts <- swe@z
 ts <- strptime(ts$Date,"%Y-%m-%d",tz="GMT")
@@ -182,19 +182,20 @@ mod.dat <- cbind(rep(1:ncell(swe),nlayers(swe)),
                  rep(d[,3],each=ncell(swe)),
                  as.vector(getValues(swe)),
                  as.vector(getValues(era.d)),
+                 rep(getValues(vcf),nlayers(swe)),
                  rep(getValues(glc.mode),nlayers(swe)),
                  rep(getValues(glc.mode.freq),nlayers(swe)),
                  rep(getValues(glc.mode2),nlayers(swe)),
-                 rep(getValues(glc.mode2.freq),nlayers(swe)),
-                 rep(getValues(topo),nlayers(swe)))
+                 rep(getValues(glc.mode2.freq),nlayers(swe)))
+#                 rep(getValues(topo),nlayers(swe)))
 colnames(mod.dat) <- c("cell","x.coord","y.coord","year","jday","swe","t.air",
-                       "glc1","glc1f","glc2","glc2f","topo")
+                        "vcf","glc1","glc1f","glc2","glc2f")
 
 # remove NA values
 mod.dat <- na.omit(mod.dat)
 
 # write data to csv file
-write.csv(mod.dat,file="L:/projects/boreal_swe_depletion/data/swe_depletion_model_data.csv",
+write.csv(mod.dat,file="L:/projects/boreal_swe_depletion/data/swe_depletion_model_data_vcf_no_topo.csv",
           row.names=F)
 
 removeTmpFiles(h=0)
@@ -239,19 +240,20 @@ for(i in 2:length(swe.files))
                    rep(d[,3],each=ncell(swe)),
                    as.vector(getValues(swe)),
                    as.vector(getValues(era.d)),
+                   rep(getValues(vcf),nlayers(swe)),
                    rep(getValues(glc.mode),nlayers(swe)),
                    rep(getValues(glc.mode.freq),nlayers(swe)),
                    rep(getValues(glc.mode2),nlayers(swe)),
-                   rep(getValues(glc.mode2.freq),nlayers(swe)),
-                   rep(getValues(topo),nlayers(swe)))
+                   rep(getValues(glc.mode2.freq),nlayers(swe)))
+#                   rep(getValues(topo),nlayers(swe)))
 
   mod.dat <- rbind(mod.dat,new.dat)
   # remove NA values
   mod.dat <- na.omit(mod.dat)
   
   # write data to csv file
-  write.csv(mod.dat,file="L:/projects/boreal_swe_depletion/data/swe_depletion_model_data.csv",
-            row.names=F)
+  write.csv(mod.dat,file="L:/projects/boreal_swe_depletion/data/swe_depletion_model_data_vcf_no_topo.csv",
+            row.names=F,append=T)
   rm(swe,era,era.d)
   removeTmpFiles(h=0)
 }
