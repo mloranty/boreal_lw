@@ -13,7 +13,7 @@ library(rstan)
 # set up run info                                     #
 #######################################################
 #run number
-rn <- 1
+rn <- 3
 
 
 #linux =1 or windows =2
