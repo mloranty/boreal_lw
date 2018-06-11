@@ -9,14 +9,14 @@ parameters{
 		
 	real<lower=0,upper=100> b0[Npixel]; 
 	real<lower=0,upper=1> mid0[Npixel];	
-	
+	real<lower=0,upper=1> sig.swe;
 }	
 model{
 
 
 		b0 ~ uniform(0,100);
 		mid0 ~ uniform(0,1);
-
+		sig.swe ~ uniform(0,1);
 
 	for(i in 1:Nobs){
 	swe[i]~normal(1/(1+exp(b0[pixID[i]]*(day[i]-mid0[pixID[i]]))), sig_swe);
