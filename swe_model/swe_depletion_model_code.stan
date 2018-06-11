@@ -2,8 +2,8 @@ data {
 	int<lower=1> Nobs;
 	real swe[Nobs];
 	real day[Nobs];
-	real tempC[Nobs];
-	real vcf[Nobs];
+	real Npixel;
+	real pixID[Nobs];
 }
 parameters{
 		
