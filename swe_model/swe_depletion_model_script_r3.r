@@ -177,9 +177,9 @@ for(i in 1:dim(IDSglc)[1]){
 inits2<-list(list(base0=rep(.05,pixGLC[i]),b0=c(21,pixGLC[i]),
 	sig_swe=c(.05)))
 inits3<-list(list(base0=c(.040,pixGLC[i]),b0=c(25,pixGLC[i])
-		,sig_swe=c(.06))))		
+		,sig_swe=c(.06)))		
 inits1<-list(list(base0=c(.045,pixGLC[i]),b0=c(30,pixGLC[i]),
-			sig_swe=c(.1))
+			sig_swe=c(.1)))
 			
 
 		
