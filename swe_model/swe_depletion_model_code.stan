@@ -3,7 +3,7 @@ data {
 	real swe[Nobs];
 	real day[Nobs];
 	int<lower=1> Npixel;
-	real pixID[Nobs];
+	int<lower=1>  pixID[Nobs];
 }
 parameters{
 		
