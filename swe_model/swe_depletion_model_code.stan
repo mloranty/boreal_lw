@@ -9,7 +9,7 @@ parameters{
 		
 	real<lower=0,upper=100> b0[Npixel]; 
 	real<lower=0,upper=1> mid0[Npixel];	
-	real<lower=0,upper=1> sig.swe;
+	real<lower=0,upper=1> sig_swe;
 }	
 model{
 
