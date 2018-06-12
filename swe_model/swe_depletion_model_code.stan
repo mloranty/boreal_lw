@@ -16,7 +16,7 @@ model{
 
 		b0 ~ uniform(0,100);
 		mid0 ~ uniform(0,1);
-		sig.swe ~ uniform(0,1);
+		sig_swe ~ uniform(0,1);
 
 	for(i in 1:Nobs){
 	swe[i]~normal(1/(1+exp(b0[pixID[i]]*(day[i]-mid0[pixID[i]]))), sig_swe);
