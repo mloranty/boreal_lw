@@ -5,10 +5,9 @@
 #######################################################
 
 #load libraries
-library(coda, lib="~/R/x86_64-redhat-linux-gnu-library/3.5")
-library(plyr, lib="~/R/x86_64-redhat-linux-gnu-library/3.5")
-library(rstan, lib="~/R/x86_64-redhat-linux-gnu-library/3.5")
-
+library(coda, lib="/home/hkropp/R.3.5")
+library(plyr, lib="/home/hkropp/R.3.5")
+library(rstan, lib="/home/hkropp/R.3.5")
 #######################################################
 # set up run info                                     #
 #######################################################
