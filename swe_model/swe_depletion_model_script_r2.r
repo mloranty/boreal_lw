@@ -5,9 +5,9 @@
 #######################################################
 
 #load libraries
-library(coda, lib="/home/hkropp/R.3.5")
-library(plyr, lib="/home/hkropp/R.3.5")
-library(rstan, lib="/home/hkropp/R.3.5")
+library(coda)
+library(plyr, lib="/home/hkropp/R3.4.4")
+library(rstan)
 #######################################################
 # set up run info                                     #
 #######################################################
