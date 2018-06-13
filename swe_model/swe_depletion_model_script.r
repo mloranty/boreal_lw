@@ -202,7 +202,7 @@ inits1<-list(list(base0=c(.045,pixGLC[i]),b0=c(30,pixGLC[i]),
 	if(rn==2){			
 	stan_model2 = stan(paste0(modDir), 
 					data =  list(Nobs=dim(dat.swe6[dat.swe6$gcID==i,])[1], swe=dat.swe6$sweN[dat.swe6$gcID==i], 
-				day=(dat.swe6$jday[dat.swe6$gcID==i]-32)/(182-32),pixID=dat.swe6$pixID[dat.swe6$gcID==i],Npixel=pixGLC[i]),chains=1, iter=3000)	
+				day=(dat.swe6$jday[dat.swe6$gcID==i]-32)/(182-32),pixID=dat.swe6$pixID[dat.swe6$gcID==i], Npixel=pixGLC[i]),chains=1, iter=3000)	
 	print(paste("end model run",i))
 	out2<- extract(stan_model2)	
 	print(paste("extract variables",i))	
