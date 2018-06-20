@@ -397,6 +397,34 @@ for(i in 1:6){
 	
 	dev.off()
 }					
+
+
+############################################
+###  example curve plot                  ###
+############################################
+#swe curve function
+sweC <- function( b,day,mid){
+	1/(1+exp(b*(day-mid)))
+}
+xseq <- seq(0,1, by=.1)
+vegsub <- 1
+pixsub <- 1
+cellSub <- b0glc[[vegsub]]$cell[which(b0glc[[vegsub]]$pixID==pixsub)]
+jpeg(paste0(plotDI,"\\example_curve.jpeg"), width=700,height=700,quality=100)
+par(mai=c(1,1,1,1))
+	plot(xseq,sweC( b0glc[[vegsub]]$Mean[pixsub]	,xseq, mid0glc[[vegsub]]$Mean[pixsub]),
+			type="l", col="firebrick2", lwd=3, xlab="Proportion into melt period", ylab="Proportion of swe peak", cex=2,
+			cex.axis=2, cex.lab=2)
+dev.off()
+vegsub <- 1
+pixsub <- 1
+cellSub <- b0glc[[vegsub]]$cell[which(b0glc[[vegsub]]$pixID==pixsub)]
+jpeg(paste0(plotDI,"\\problem_curve.jpeg"), width=700,height=700,quality=100)
+par(mai=c(1,1,1,1))
+	plot(dat.swe6$jday[dat.swe6$gcID==vegsub&dat.swe6$cell==cellSub]-32/(182-32),dat.swe6$sweN[dat.swe6$gcID==vegsub&dat.swe6$cell==cellSub],
+			pch=19,   xlab="Proportion into melt period", ylab="Proportion of swe peak", 
+			cex.axis=2, cex.lab=2)
+dev.off()
 					
 ############################################
 ###  plot params                         ###
@@ -479,6 +507,7 @@ for(i in 1:1){
 					
 
 hist(temp.py$tempCent[temp.py$zone==5])
+
 
 ############################################
 ###  plot data                           ###
