@@ -425,7 +425,9 @@ par(mai=c(1,1,1,1))
 			pch=19,   xlab="Proportion into melt period", ylab="Proportion of swe peak", 
 			cex.axis=2, cex.lab=2)
 dev.off()
-					
+	
+
+plot(b0glc[[1]]$Mean,mid0glc[[1]]$Mean)	
 ############################################
 ###  plot params                         ###
 ############################################
