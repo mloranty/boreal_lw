@@ -406,7 +406,13 @@ for(i in 1:6){
 sweC <- function( b,day,mid){
 	1/(1+exp(b*(day-mid)))
 }
-xseq <- seq(0,1, by=.1)
+
+
+
+xseq <- seq(0,1, by=.01)
+plot(xseq,sweC(10,xseq,.5),type="l",col="red")
+points(xseq,sweC(100,xseq,.5),type="l",col="green")
+points(xseq,sweC(1000,xseq,.5),type="l",col="blue")
 vegsub <- 1
 pixsub <- 1
 cellSub <- b0glc[[vegsub]]$cell[which(b0glc[[vegsub]]$pixID==pixsub)]
