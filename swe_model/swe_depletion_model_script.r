@@ -47,7 +47,7 @@ print("finish reading in data")
 ##### Subset point 1 #####
 ##########################
 #only focus on 2000-2009 for now
-dat.swe <- dat.swe[dat.swe$year==2009,]
+dat.swe <- dat.swe[dat.swe$year<=2009&dat.swe$year>=2000,]
 
 
 
@@ -132,6 +132,10 @@ dat.swe5 <- join(dat.swe4,temp.py, by=c("cell","year","zone"), type="left")
 #calculate percent
 dat.swe5$sweP <- dat.swe5$swe/dat.swe5$sweMax
 
+
+####
+#start here fix rounding
+####
 #round swe for 20% of peak to 1 and 20% of low to zero
 dat.swe5$sweN <- ifelse(dat.swe5$sweP>=0.8,1,
 					ifelse(dat.swe5$sweP<=0.2,0,dat.swe5$sweP))
