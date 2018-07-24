@@ -16,7 +16,7 @@ parameters{
 	real<lower=0,upper=100> beta0; 
 	real beta1; 
 	real beta2; 
-	real beata3; 
+	real beta3; 
 	
 	real<lower=0,upper=100> alpha0; 
 	real alpha1; 
