@@ -241,14 +241,21 @@ treeDF <- unique(data.frame(cell=dat.swe6$cell,vcf=dat.swe6$vcf))
 maxSWE <- aggregate(dat.swe6$swe, by=list(dat.swe6$cell),FUN="max")
 colnames(maxSWE) <- c("cell","max.swe")
 
+
+#plot latitude
+latSWE <- unique(data.frame(dat.swe6$y.coord, cell=dat.swe6$cell))
+
+
 #covatiate data
 covDF <- join(temp.py,treeDF, by="cell",type="left")
 covDF <- join(covDF,maxSWE, by="cell",type="left")
-
+covDF <- join(covDF,latSWE, by="cell",type="left")
 for(i in 1:6){
 	b0glc[[i]] <- join(b0glc[[i]],covDF,by="cell",type="left")
 	mid0glc[[i]] <- join(mid0glc[[i]],covDF,by="cell",type="left")
 }
+
+
 	
 ############################################
 ###  plot relationships                  ###
