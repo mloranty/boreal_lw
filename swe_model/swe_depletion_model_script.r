@@ -15,8 +15,6 @@ library(rstan)
 #run number
 rn <- 1
 
-#replicate flag
-repFlag <- 0
 
 #linux =1 or windows =2
 runOS <- 1
@@ -38,12 +36,12 @@ outdir <- "/mnt/g/projects/boreal_swe_depletion/model/run6"
 if(runOS==1){
 	dat.swe <- read.csv(paste0(DDdir[1], "/swe_depletion_model_data_vcf_no_topo.csv"))
 	dat.glc <- read.csv(paste0(DDdir[1], "/glc50_table.csv"))
-	dat.rep <- read.csv("/mnt/g/projects/boreal_swe_depletion/model/repDF_out.csv")
+
 }else{
 
 	dat.swe <- read.csv(paste0(DDdir[2],"\\swe_depletion_model_data_vcf_no_topo.csv"))
 	dat.glc <- read.csv(paste0(DDdir[2], "/glc50_table.csv"))
-	dat.rep <- read.csv("z:\\Projects\\boreal_swe_depletion\\model\\repDF_out.csv")
+
 }
 
 
@@ -176,45 +174,9 @@ dat.swe6 <- join(dat.swe5,pixJsub, by=c("cell","year","gcID"), type="left")
 
 
 print("finish data organize")
-
-#need to subset out replicated data
-#get the dimensions for each pixel and year
-#only run once so that different replicates aren't being monitored with each run
-if(repFlag==1){
-repCount <- aggregate(dat.swe6$pixID, by=list(dat.swe6$pixID,dat.swe6$gcID),FUN="length")
-colnames(repCount) <- c("pixID","gcID","count")
-nrep <- 50
-repIDS <- list()
-repSub <- list()
-repDF <- list()
-for(i in 1:dim(repCount)[1]){
-	if(repCount$count[i]<50){
-	repIDS[[i]] <- which(dat.swe6$pixID==repCount$pixID[i]&dat.swe6$gcID==repCount$gcID[i])
-	repSub[[i]] <- repIDS[[i]]
-	repDF[[i]] <- data.frame(repID=repSub[[i]],repSWE=dat.swe6$sweN[repSub[[i]]],pixID=rep(repCount$pixID[i],repCount$count[i]),
-		gcID=rep(repCount$gcID[i],repCount$count[i]))
-	}else{
-	repIDS[[i]] <- which(dat.swe6$pixID==repCount$pixID[i]&dat.swe6$gcID==repCount$gcID[i])
-	repSub[[i]] <- repIDS[[i]][sample(1:repCount$count[i],nrep)]
-	repDF[[i]] <- data.frame(repID=repSub[[i]],repSWE=dat.swe6$sweN[repSub[[i]]],pixID=rep(repCount$pixID[i],nrep),
-		gcID=rep(repCount$gcID[i],nrep))
-	}
-	#make into a dataframe
-
-	
-}
-
-repDF <- ldply(repDF,data.frame)
-
-#write replicate data
-write.table(repDF,"z:\\Projects\\boreal_swe_depletion\\model\\repDF_out.csv",sep=",",row.names=FALSE)
-}
 #######################################################
 # set up model run                                    #
 #######################################################
-
-dat.repDF <- dat.swe6[dat.rep$repID,]
-
 
 
 			
@@ -229,12 +191,7 @@ for(i in 1:dim(IDSglc)[1]){
 				pixID=dat.swe6$pixID[dat.swe6$gcID==i],
 				temp=dat.swe6$tempCent[dat.swe6$ID==i],
 				treeCov=dat.swe6$vcf[dat.swe6$ID==i],
-				year=dat.swe6$year[dat.swe6$ID==i]-2000,
-				Nrep=dim(dat.repDF[dat.repDF$gcID==i])[1],
-				dayR=dat.repDF$jday[dat.repDF$gcID==i]
-				tempR=dat.repDF$tempCent[dat.repDF$ID==i],
-				treeCovR=dat.repDF$vcf[dat.repDF$ID==i],
-				yearR=dat.repDF$year[dat.repDF$ID==i]-2000),
+				year=dat.swe6$year[dat.swe6$ID==i]-2000),
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))	
 	out1<- extract(stan_model1)
@@ -262,12 +219,7 @@ for(i in 1:dim(IDSglc)[1]){
 				pixID=dat.swe6$pixID[dat.swe6$gcID==i],
 				temp=dat.swe6$tempCent[dat.swe6$ID==i],
 				treeCov=dat.swe6$vcf[dat.swe6$ID==i],
-				year=dat.swe6$year[dat.swe6$ID==i]-2000,
-				Nrep=dim(dat.repDF[dat.repDF$gcID==i])[1],
-				dayR=dat.repDF$jday[dat.repDF$gcID==i]
-				tempR=dat.repDF$tempCent[dat.repDF$ID==i],
-				treeCovR=dat.repDF$vcf[dat.repDF$ID==i],
-				yearR=dat.repDF$year[dat.repDF$ID==i]-2000),
+				year=dat.swe6$year[dat.swe6$ID==i]-2000),
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))	
 	out1<- extract(stan_model1)
@@ -296,12 +248,7 @@ for(i in 1:dim(IDSglc)[1]){
 				pixID=dat.swe6$pixID[dat.swe6$gcID==i],
 				temp=dat.swe6$tempCent[dat.swe6$ID==i],
 				treeCov=dat.swe6$vcf[dat.swe6$ID==i],
-				year=dat.swe6$year[dat.swe6$ID==i]-2000,
-				Nrep=dim(dat.repDF[dat.repDF$gcID==i])[1],
-				dayR=dat.repDF$jday[dat.repDF$gcID==i]
-				tempR=dat.repDF$tempCent[dat.repDF$ID==i],
-				treeCovR=dat.repDF$vcf[dat.repDF$ID==i],
-				yearR=dat.repDF$year[dat.repDF$ID==i]-2000),
+				year=dat.swe6$year[dat.swe6$ID==i]-2000),
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))	
 	out1<- extract(stan_model1)
