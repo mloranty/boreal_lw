@@ -1,6 +1,5 @@
 data {
-	int<lower=1> Nobs;
-	
+	int<lower=1> Nobs;	
 	real swe[Nobs];
 	real day[Nobs];
 	real temp[Nobs];

@@ -189,9 +189,9 @@ for(i in 1:dim(IDSglc)[1]){
 					data = list(Nobs=dim(dat.swe6[dat.swe6$gcID==i,])[1], swe=dat.swe6$sweN[dat.swe6$gcID==i], 
 				day=(dat.swe6$jday[dat.swe6$gcID==i]-32)/(182-32),
 				pixID=dat.swe6$pixID[dat.swe6$gcID==i],
-				temp=dat.swe6$tempCent[dat.swe6$ID==i],
-				treeCov=dat.swe6$vcf[dat.swe6$ID==i],
-				year=dat.swe6$year[dat.swe6$ID==i]-2000),
+				temp=dat.swe6$tempCent[dat.swe6$gcID==i],
+				treeCov=dat.swe6$vcf[dat.swe6$gcID==i],
+				year=dat.swe6$year[dat.swe6$gcID==i]-2000),
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))	
 	out1<- extract(stan_model1)
@@ -217,9 +217,9 @@ for(i in 1:dim(IDSglc)[1]){
 					data = list(Nobs=dim(dat.swe6[dat.swe6$gcID==i,])[1], swe=dat.swe6$sweN[dat.swe6$gcID==i], 
 				day=(dat.swe6$jday[dat.swe6$gcID==i]-32)/(182-32),
 				pixID=dat.swe6$pixID[dat.swe6$gcID==i],
-				temp=dat.swe6$tempCent[dat.swe6$ID==i],
-				treeCov=dat.swe6$vcf[dat.swe6$ID==i],
-				year=dat.swe6$year[dat.swe6$ID==i]-2000),
+				temp=dat.swe6$tempCent[dat.swe6$gcID==i],
+				treeCov=dat.swe6$vcf[dat.swe6$gcID==i],
+				year=dat.swe6$year[dat.swe6$gcID==i]-2000),
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))	
 	out1<- extract(stan_model1)
@@ -246,9 +246,9 @@ for(i in 1:dim(IDSglc)[1]){
 					data = list(Nobs=dim(dat.swe6[dat.swe6$gcID==i,])[1], swe=dat.swe6$sweN[dat.swe6$gcID==i], 
 				day=(dat.swe6$jday[dat.swe6$gcID==i]-32)/(182-32),
 				pixID=dat.swe6$pixID[dat.swe6$gcID==i],
-				temp=dat.swe6$tempCent[dat.swe6$ID==i],
-				treeCov=dat.swe6$vcf[dat.swe6$ID==i],
-				year=dat.swe6$year[dat.swe6$ID==i]-2000),
+				temp=dat.swe6$tempCent[dat.swe6$gcID==i],
+				treeCov=dat.swe6$vcf[dat.swe6$gcID==i],
+				year=dat.swe6$year[dat.swe6$gcID==i]-2000),
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))	
 	out1<- extract(stan_model1)
