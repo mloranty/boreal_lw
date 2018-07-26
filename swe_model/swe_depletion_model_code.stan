@@ -10,12 +10,12 @@ data {
 }
 parameters{
 		
-	real<lower=0,upper=100> beta0; 
+	real<lower=0,upper=200> beta0; 
 	real beta1; 
 	real beta2; 
 	real beta3; 
 	
-	real<lower=0,upper=100> alpha0; 
+	real<lower=0,upper=1> alpha0; 
 	real alpha1; 
 	real alpha2; 
 	real alpha3; 	
@@ -30,10 +30,10 @@ model{
 		beta2 ~ normal(0,1);
 		beta3 ~ normal(0,1);
 		
-		alpha0 ~ uniform(0,100);
-		alpha1 ~ normal(0,1);
-		alpha2 ~ normal(0,1);
-		alpha3 ~ normal(0,1);		
+		alpha0 ~ uniform(0,1);
+		alpha1 ~ normal(0,.1);
+		alpha2 ~ normal(0,.1);
+		alpha3 ~ normal(0,.1);		
 	
 		
 		sig_swe ~ uniform(0,1);

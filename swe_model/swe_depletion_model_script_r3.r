@@ -205,9 +205,7 @@ for(i in 1:dim(IDSglc)[1]){
 	write.table(out1$alpha2, paste0(outdir,"/alpha2_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$alpha3, paste0(outdir,"/alpha3_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")	
 	write.table(out1$sig_swe, paste0(outdir,"/sig_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")	
-	
-	write.table(data.frame(repID=dat.repDF$repID[dat.repDF$gcID==i],swe.rep=colMeans(out1$swe_r)),
-				paste0(outdir,"/rep_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
+
 		
 	print("end output",i)				
 				
@@ -234,8 +232,7 @@ for(i in 1:dim(IDSglc)[1]){
 	write.table(out1$alpha3, paste0(outdir,"/alpha3_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")	
 	write.table(out1$sig_swe, paste0(outdir,"/sig_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")	
 	
-	write.table(data.frame(repID=dat.repDF$repID[dat.repDF$gcID==i],swe.rep=colMeans(out1$swe_r)),
-				paste0(outdir,"/rep_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
+
 		
 	print(paste("end output",i))		
 
@@ -263,8 +260,7 @@ for(i in 1:dim(IDSglc)[1]){
 	write.table(out1$alpha3, paste0(outdir,"/alpha3_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")	
 	write.table(out1$sig_swe, paste0(outdir,"/sig_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")	
 	
-	write.table(data.frame(repID=dat.repDF$repID[dat.repDF$gcID==i],swe.rep=colMeans(out1$swe_r)),
-				paste0(outdir,"/rep_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
+
 	print(paste("end output",i))		
 				
 	}
