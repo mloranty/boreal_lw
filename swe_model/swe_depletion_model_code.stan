@@ -4,7 +4,6 @@ data {
 	real day[Nobs];
 	real temp[Nobs];
 	real treeCov[Nobs];
-	real year[Nobs];
 	
 
 }
