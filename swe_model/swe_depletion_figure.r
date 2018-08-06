@@ -21,6 +21,15 @@ plotDI <- "z:\\Projects\\boreal_swe_depletion\\figures\\model\\run5"
 dat.swe <- read.csv("z:\\Projects\\boreal_swe_depletion\\data\\swe_depletion_model_data_vcf_no_topo.csv")
 dat.glc <- read.csv("z:\\Projects\\boreal_swe_depletion\\data\\glc50_table.csv")
 
+##########################
+##### Subset point 1 #####
+##########################
+#only focus on 2000-2009 for now
+dat.swe <- dat.swe[dat.swe$year<=2009&dat.swe$year>=2000,]
+
+
+
+
 #calculate proportion of land cover
 dat.swe$glc1.p <- dat.swe$glc1f/3136
 hist(dat.swe$glc1.p )
@@ -30,12 +39,6 @@ hist(dat.swe$glc2.p )
 #just use first glc class 				
 dat.swe$zone <- dat.swe$glc1
 
-
-##########################
-##### Subset point 1 #####
-##########################
-#only focus on 2000-2009 for now
-dat.swe <- dat.swe[dat.swe$year==2009,]
 
 ##########################
 ##### Filter point 1 #####
@@ -50,7 +53,7 @@ dat.swe1 <- dat.swe[dat.swe$glc1.p>=.5,]
 ##########################
 #filter out land cover types not of interest
 #don't include glc 3,9,10,14,15,16,18,19,20,21,22
-dat.swe2 <- dat.swe1[dat.swe1$zone!=2&dat.swe1$zone!=3&dat.swe1$zone!=15&dat.swe1$zone!=16&dat.swe1$zone!=10&dat.swe1$zone!=14&
+dat.swe2 <- dat.swe1[dat.swe1$zone!=2&dat.swe1$zone!=11&dat.swe1$zone!=3&dat.swe1$zone!=15&dat.swe1$zone!=16&dat.swe1$zone!=10&dat.swe1$zone!=14&
 				dat.swe1$zone!=9&dat.swe1$zone<18,]
 
 ##########################
@@ -109,17 +112,23 @@ dat.swe5$sweP <- dat.swe5$swe/dat.swe5$sweMax
 
 #round swe for 20% of peak to 1 and 20% of low to zero
 dat.swe5$sweN <- ifelse(dat.swe5$sweP>=0.8,1,
-					ifelse(dat.swe5$sweP<=0.2,0,dat.swe5$sweP))
+					ifelse(dat.swe5$sweP<=0.2,0,(dat.swe5$sweP-0.2)/0.6))
 
 
 
 #get unique pixel id in each glc for parameter id
 
-pixID <- unique(data.frame(cell=dat.swe5$cell, gcID=dat.swe5$gcID))
+pixID <- unique(data.frame(cell=dat.swe5$cell,year=dat.swe5$year, gcID=dat.swe5$gcID,zone=dat.swe5$zone))
 
-#make sure pix doesn't change class
-length(unique(dat.swe5$cell))
- dim(pixID)
+#join other info into pixID
+pixID <- join(pixID,temp.py, by=c("cell","year","zone"), type="left")
+
+#get the tree cover
+treePix <- unique(data.frame(cell=dat.swe5$cell,vcf=dat.swe5$vcf))
+
+#join to pixel
+pixID <- join(pixID,treePix, by=c("cell"), type="left")
+
 
 #subset into each glc
 pixList <- list()
@@ -131,12 +140,13 @@ for(i in 1:dim(IDSglc)[1]){
 }
 
 pixJ <- ldply(pixList,data.frame)
+#subset just to join ids back in
+pixJsub <- data.frame(cell=pixJ$cell,year=pixJ$year,gcID=pixJ$gcID,pixID=pixJ$pixID)
 
 #join back into swe
-dat.swe6 <- join(dat.swe5,pixJ, by=c("cell","gcID"), type="left")
+dat.swe6 <- join(dat.swe5,pixJsub, by=c("cell","year","gcID"), type="left")
 
 
-print("finish data organize")
 ############################################
 ###  read in model input                 ###
 ############################################
