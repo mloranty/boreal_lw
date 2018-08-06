@@ -26,7 +26,7 @@ DDdir <- c("/mnt/g/projects/boreal_swe_depletion/data",
 modDir <- "/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan"				
 
 #output directory
-outdir <- "/mnt/g/projects/boreal_swe_depletion/model/run6"
+outdir <- "/mnt/g/projects/boreal_swe_depletion/model/run7"
 
 
 #######################################################
@@ -182,7 +182,7 @@ print("finish data organize")
 			
 for(i in 1:dim(IDSglc)[1]){		
 
-		
+		#year=dat.swe6$year[dat.swe6$gcID==i]-2000),
 	print(paste("start model run", i))			
 	if(rn==1){		
 	stan_model1 = stan(paste0(modDir), 
@@ -190,8 +190,8 @@ for(i in 1:dim(IDSglc)[1]){
 				day=(dat.swe6$jday[dat.swe6$gcID==i]-32)/(182-32),
 				pixID=dat.swe6$pixID[dat.swe6$gcID==i],
 				temp=dat.swe6$tempCent[dat.swe6$gcID==i],
-				treeCov=dat.swe6$vcf[dat.swe6$gcID==i],
-				year=dat.swe6$year[dat.swe6$gcID==i]-2000),
+				treeCov=dat.swe6$vcf[dat.swe6$gcID==i]),
+				
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))	
 	out1<- extract(stan_model1)
@@ -199,11 +199,11 @@ for(i in 1:dim(IDSglc)[1]){
 	write.table(out1$beta0, paste0(outdir,"/beta0_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$beta1, paste0(outdir,"/beta1_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$beta2, paste0(outdir,"/beta2_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$beta3, paste0(outdir,"/beta3_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	#write.table(out1$beta3, paste0(outdir,"/beta3_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$alpha0, paste0(outdir,"/alpha0_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$alpha1, paste0(outdir,"/alpha1_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$alpha2, paste0(outdir,"/alpha2_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$alpha3, paste0(outdir,"/alpha3_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")	
+	#write.table(out1$alpha3, paste0(outdir,"/alpha3_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")	
 	write.table(out1$sig_swe, paste0(outdir,"/sig_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")	
 
 		
@@ -216,8 +216,8 @@ for(i in 1:dim(IDSglc)[1]){
 				day=(dat.swe6$jday[dat.swe6$gcID==i]-32)/(182-32),
 				pixID=dat.swe6$pixID[dat.swe6$gcID==i],
 				temp=dat.swe6$tempCent[dat.swe6$gcID==i],
-				treeCov=dat.swe6$vcf[dat.swe6$gcID==i],
-				year=dat.swe6$year[dat.swe6$gcID==i]-2000),
+				treeCov=dat.swe6$vcf[dat.swe6$gcID==i]),
+				
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))	
 	out1<- extract(stan_model1)
@@ -225,11 +225,11 @@ for(i in 1:dim(IDSglc)[1]){
 	write.table(out1$beta0, paste0(outdir,"/beta0_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$beta1, paste0(outdir,"/beta1_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$beta2, paste0(outdir,"/beta2_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$beta3, paste0(outdir,"/beta3_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	#write.table(out1$beta3, paste0(outdir,"/beta3_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$alpha0, paste0(outdir,"/alpha0_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$alpha1, paste0(outdir,"/alpha1_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$alpha2, paste0(outdir,"/alpha2_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$alpha3, paste0(outdir,"/alpha3_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")	
+	#write.table(out1$alpha3, paste0(outdir,"/alpha3_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")	
 	write.table(out1$sig_swe, paste0(outdir,"/sig_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")	
 	
 
@@ -244,8 +244,8 @@ for(i in 1:dim(IDSglc)[1]){
 				day=(dat.swe6$jday[dat.swe6$gcID==i]-32)/(182-32),
 				pixID=dat.swe6$pixID[dat.swe6$gcID==i],
 				temp=dat.swe6$tempCent[dat.swe6$gcID==i],
-				treeCov=dat.swe6$vcf[dat.swe6$gcID==i],
-				year=dat.swe6$year[dat.swe6$gcID==i]-2000),
+				treeCov=dat.swe6$vcf[dat.swe6$gcID==i]),
+				
 				,chains=1, iter=3000)	
 	print(paste("end model run",i))	
 	out1<- extract(stan_model1)
@@ -253,11 +253,11 @@ for(i in 1:dim(IDSglc)[1]){
 	write.table(out1$beta0, paste0(outdir,"/beta0_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$beta1, paste0(outdir,"/beta1_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$beta2, paste0(outdir,"/beta2_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$beta3, paste0(outdir,"/beta3_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
+	#write.table(out1$beta3, paste0(outdir,"/beta3_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$alpha0, paste0(outdir,"/alpha0_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$alpha1, paste0(outdir,"/alpha1_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
 	write.table(out1$alpha2, paste0(outdir,"/alpha2_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$alpha3, paste0(outdir,"/alpha3_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")	
+	#write.table(out1$alpha3, paste0(outdir,"/alpha3_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")	
 	write.table(out1$sig_swe, paste0(outdir,"/sig_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")	
 	
 
