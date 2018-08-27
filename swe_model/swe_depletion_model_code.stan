@@ -9,12 +9,12 @@ data {
 }
 parameters{
 		
-	real<lower=0.000001,upper=5> beta0; 
+	real<lower=-20,upper=5> beta0; 
 	real beta1; 
 	real beta2; 
 	real beta3; 
 	
-	real<lower=0.0000001,upper=0> alpha0; 
+	real<lower=-20,upper=0> alpha0; 
 	real alpha1; 
 	real alpha2; 
 	real alpha3; 	
@@ -25,12 +25,12 @@ parameters{
 model{
 
 
-		beta0 ~ uniform(0.000001,5);
+		beta0 ~ uniform(-20,5);
 		beta1 ~ normal(0,10);
 		beta2 ~ normal(0,10);
 		beta3 ~ normal(0,10);
 		
-		alpha0 ~ uniform(0.0000001,0);
+		alpha0 ~ uniform(-20,0);
 		alpha1 ~ normal(0,1);
 		alpha2 ~ normal(0,1);
 		alpha3 ~ normal(0,1);		
