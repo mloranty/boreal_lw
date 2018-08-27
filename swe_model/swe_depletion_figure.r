@@ -12,8 +12,8 @@ library(mcmcplots)
 ############################################
 ###  model input directory               ###
 ############################################
-modDI <- "z:\\Projects\\boreal_swe_depletion\\model\\run6"
-plotDI <- "z:\\Projects\\boreal_swe_depletion\\figures\\model\\run6"
+modDI <- "z:\\Projects\\boreal_swe_depletion\\model\\run7"
+plotDI <- "z:\\Projects\\boreal_swe_depletion\\figures\\model\\run7"
 
 ############################################
 ###  read in swe data  and organize      ###
@@ -167,7 +167,7 @@ for(i in 1:length(modFiles)){
 	
 }	
 
-modelOut <- data.frame(parms=modParam,glc=modGLC,chain=modChain)
+modelOut <- data.frame(parms=modParam,glc=modGLC,chain=modChain,modFiles=modFiles)
 modelOut <- modelOut[modelOut$parms!="sig",]
 
 #subset to only look at glc 1 for now since others still running
@@ -184,9 +184,9 @@ chain1Out <- list()
 chain2Out <- list()
 chain3Out <- list()
 for(i in 1:length(chain1)){
-	chain1Out[[i]] <- read.csv(paste0(modDI,"\\",modFiles[chain1[i]]))
-	chain2Out[[i]] <- read.csv(paste0(modDI,"\\",modFiles[chain2[i]]))
-	chain3Out[[i]] <- read.csv(paste0(modDI,"\\",modFiles[chain3[i]]))
+	chain1Out[[i]] <- read.csv(paste0(modDI,"\\",modelOut$modFiles[chain1[i]]))
+	chain2Out[[i]] <- read.csv(paste0(modDI,"\\",modelOut$modFiles[chain2[i]]))
+	chain3Out[[i]] <- read.csv(paste0(modDI,"\\",modelOut$modFiles[chain3[i]]))
 	colnames(chain1Out[[i]]) <- paste0(modelOut$parms[chain1[i]],"_",modelOut$glc[chain1[i]])
 	colnames(chain2Out[[i]]) <-  paste0(modelOut$parms[chain2[i]],"_",modelOut$glc[chain2[i]])
 	colnames(chain3Out[[i]]) <-  paste0(modelOut$parms[chain3[i]],"_",modelOut$glc[chain3[i]])
