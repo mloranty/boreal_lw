@@ -26,7 +26,7 @@ DDdir <- c("/mnt/g/projects/boreal_swe_depletion/data",
 modDir <- "/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan"				
 
 #output directory
-outdir <- "/mnt/g/projects/boreal_swe_depletion/model/run7"
+outdir <- "/mnt/g/projects/boreal_swe_depletion/model/run8"
 
 
 #######################################################
