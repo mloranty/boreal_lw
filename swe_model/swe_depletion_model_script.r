@@ -26,7 +26,7 @@ DDdir <- c("/mnt/g/projects/boreal_swe_depletion/data",
 modDir <- "/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan"				
 
 #output directory
-outdir <- "/mnt/g/projects/boreal_swe_depletion/model/run8"
+outdir <- "/home/hkropp/boreal"
 
 
 #######################################################
@@ -177,7 +177,7 @@ print("finish data organize")
 #######################################################
 # set up model run                                    #
 #######################################################
-
+#need to subset data for each glc and year
 
 			
 for(i in 1:dim(IDSglc)[1]){		
