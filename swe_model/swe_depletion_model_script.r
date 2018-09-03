@@ -8,6 +8,8 @@
 library(coda)
 library(plyr, lib="/home/hkropp/R3.4.4")
 library(rstan)
+library(snow)
+library(snowfall)
 
 #######################################################
 # set up run info                                     #
@@ -115,62 +117,38 @@ IDSglc$gcID <- seq(1,dim(IDSglc)[1])
 
 #join glc ID into dataframe
 dat.swe4 <- join(dat.swe3,IDSglc, by="zone", type="left")
-dat.swe4$t.airC <- dat.swe4$t.air-273.15
-
-#get average temperature over a pixel, year
-
-temp.py <- aggregate(dat.swe4$t.airC, by=list(dat.swe4$cell,dat.swe4$year,dat.swe4$zone), FUN="mean")
-colnames(temp.py) <- c("cell","year","zone","temp")
-
-#calculate average to center for each zone
-temp.z <- aggregate(temp.py$temp,by=list(temp.py$zone),FUN="mean")
-colnames(temp.z) <- c("zone","temp.zoneM")
-#join zone mean back into temp.py
-temp.py <- join(temp.py, temp.z, by="zone", type="left")
-temp.py$tempCent <- temp.py$temp-temp.py$temp.zoneM
-
-#join back into swe data
-dat.swe5 <- join(dat.swe4,temp.py, by=c("cell","year","zone"), type="left")
 
 #normalize swe
 #calculate percent
-dat.swe5$sweP <- dat.swe5$swe/dat.swe5$sweMax
+dat.swe4$sweP <- dat.swe4$swe/dat.swe4$sweMax
 
 #round swe for 20% of peak to 1 and 20% of low to zero
-dat.swe5$sweN <- ifelse(dat.swe5$sweP>=0.8,1,
-					ifelse(dat.swe5$sweP<=0.2,0,(dat.swe5$sweP-0.2)/0.6))
-
-
-
+dat.swe4$sweN <- ifelse(dat.swe4$sweP>=0.8,1,
+					ifelse(dat.swe4$sweP<=0.2,0,(dat.swe4$sweP-0.2)/0.6))
+							
+					
 #get unique pixel id in each glc for parameter id
 
-pixID <- unique(data.frame(cell=dat.swe5$cell,year=dat.swe5$year, gcID=dat.swe5$gcID,zone=dat.swe5$zone))
+pixID <- unique(data.frame(cell=dat.swe4$cell,year=dat.swe4$year, gcID=dat.swe4$gcID))
 
-#join other info into pixID
-pixID <- join(pixID,temp.py, by=c("cell","year","zone"), type="left")
-
-#get the tree cover
-treePix <- unique(data.frame(cell=dat.swe5$cell,vcf=dat.swe5$vcf))
-
-#join to pixel
-pixID <- join(pixID,treePix, by=c("cell"), type="left")
-
-
-#subset into each glc
+#want each cell in each year, gcID that will be the subset to run each model
+#create year x gcID dataframe
+gcYearID <- unique(data.frame(year=dat.swe4$year, gcID=dat.swe4$gcID))
+gcYearID$gcYearID <- seq(1,dim(gcYearID)[1])
+#subset into each glc xYear
 pixList <- list()
 pixGLC <- numeric(0)
-for(i in 1:dim(IDSglc)[1]){
-	pixList[[i]] <- pixID[pixID$gcID==i,]
+for(i in 1:dim(gcYearID)[1]){
+	pixList[[i]] <- pixID[pixID$gcID==gcYearID$gcID[i]&pixID$year==gcYearID$year[i],]
 	pixList[[i]]$pixID <- seq(1,dim(pixList[[i]])[1])
+	pixList[[i]]$gcYearID <- rep(gcYearID$gcYearID[i], dim(pixList[[i]])[1])
 	pixGLC[i] <- dim(pixList[[i]])[1]
 }
 
 pixJ <- ldply(pixList,data.frame)
-#subset just to join ids back in
-pixJsub <- data.frame(cell=pixJ$cell,year=pixJ$year,gcID=pixJ$gcID,pixID=pixJ$pixID)
 
 #join back into swe
-dat.swe6 <- join(dat.swe5,pixJsub, by=c("cell","year","gcID"), type="left")
+dat.swe5 <- join(dat.swe4,pixJ, by=c("cell","year","gcID"), type="left")
 
 
 print("finish data organize")
@@ -179,90 +157,28 @@ print("finish data organize")
 #######################################################
 #need to subset data for each glc and year
 
-			
-for(i in 1:dim(IDSglc)[1]){		
 
-		#year=dat.swe6$year[dat.swe6$gcID==i]-2000),
-	print(paste("start model run", i))			
-	if(rn==1){		
-	stan_model1 = stan(paste0(modDir), 
+# set the number of CPUs to be 32 for a node on the cluster
+
+
+sfInit(parallel=TRUE, cpus=32)
+
+#assign rstan to each CPU
+sfLibrary(rstan)
+
+#create unique filepath for each model run
+
+
+parallel.stan <- function(
+			stan_model1 = stan("/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan", 
 					data = list(Nobs=dim(dat.swe6[dat.swe6$gcID==i,])[1], swe=dat.swe6$sweN[dat.swe6$gcID==i], 
 				day=(dat.swe6$jday[dat.swe6$gcID==i]-32)/(182-32),
 				pixID=dat.swe6$pixID[dat.swe6$gcID==i],
 				temp=dat.swe6$tempCent[dat.swe6$gcID==i],
 				treeCov=dat.swe6$vcf[dat.swe6$gcID==i]),
-				
-				,chains=1, iter=3000)	
-	print(paste("end model run",i))	
-	out1<- extract(stan_model1)
-	print(paste("extract variables",i))	
-	write.table(out1$beta0, paste0(outdir,"/beta0_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$beta1, paste0(outdir,"/beta1_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$beta2, paste0(outdir,"/beta2_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	#write.table(out1$beta3, paste0(outdir,"/beta3_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$alpha0, paste0(outdir,"/alpha0_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$alpha1, paste0(outdir,"/alpha1_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$alpha2, paste0(outdir,"/alpha2_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	#write.table(out1$alpha3, paste0(outdir,"/alpha3_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")	
-	write.table(out1$sig_swe, paste0(outdir,"/sig_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")	
+				,chains=1, iter=3000)
+			out1<- extract(stan_model1)
+			write.table(out1$sig_swe, paste0(outdir,"/sig_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
 
 		
-	print("end output",i)				
-				
-	}
-	if(rn==2){			
-	stan_model1 = stan(paste0(modDir), 
-					data = list(Nobs=dim(dat.swe6[dat.swe6$gcID==i,])[1], swe=dat.swe6$sweN[dat.swe6$gcID==i], 
-				day=(dat.swe6$jday[dat.swe6$gcID==i]-32)/(182-32),
-				pixID=dat.swe6$pixID[dat.swe6$gcID==i],
-				temp=dat.swe6$tempCent[dat.swe6$gcID==i],
-				treeCov=dat.swe6$vcf[dat.swe6$gcID==i]),
-				
-				,chains=1, iter=3000)	
-	print(paste("end model run",i))	
-	out1<- extract(stan_model1)
-	print(paste("extract variables",i))	
-	write.table(out1$beta0, paste0(outdir,"/beta0_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$beta1, paste0(outdir,"/beta1_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$beta2, paste0(outdir,"/beta2_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	#write.table(out1$beta3, paste0(outdir,"/beta3_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$alpha0, paste0(outdir,"/alpha0_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$alpha1, paste0(outdir,"/alpha1_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$alpha2, paste0(outdir,"/alpha2_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	#write.table(out1$alpha3, paste0(outdir,"/alpha3_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")	
-	write.table(out1$sig_swe, paste0(outdir,"/sig_out_chain2_gc_",IDSglc$gcID[i],".csv"), sep=",")	
 	
-
-		
-	print(paste("end output",i))		
-
-	}
-
-	if(rn==3){	
-		stan_model1 = stan(paste0(modDir), 
-					data = list(Nobs=dim(dat.swe6[dat.swe6$gcID==i,])[1], swe=dat.swe6$sweN[dat.swe6$gcID==i], 
-				day=(dat.swe6$jday[dat.swe6$gcID==i]-32)/(182-32),
-				pixID=dat.swe6$pixID[dat.swe6$gcID==i],
-				temp=dat.swe6$tempCent[dat.swe6$gcID==i],
-				treeCov=dat.swe6$vcf[dat.swe6$gcID==i]),
-				
-				,chains=1, iter=3000)	
-	print(paste("end model run",i))	
-	out1<- extract(stan_model1)
-	print(paste("extract variables",i))	
-	write.table(out1$beta0, paste0(outdir,"/beta0_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$beta1, paste0(outdir,"/beta1_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$beta2, paste0(outdir,"/beta2_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	#write.table(out1$beta3, paste0(outdir,"/beta3_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$alpha0, paste0(outdir,"/alpha0_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$alpha1, paste0(outdir,"/alpha1_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	write.table(out1$alpha2, paste0(outdir,"/alpha2_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")
-	#write.table(out1$alpha3, paste0(outdir,"/alpha3_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")	
-	write.table(out1$sig_swe, paste0(outdir,"/sig_out_chain3_gc_",IDSglc$gcID[i],".csv"), sep=",")	
-	
-
-	print(paste("end output",i))		
-				
-	}
-}
-
