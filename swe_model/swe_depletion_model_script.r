@@ -7,7 +7,7 @@
 #load libraries
 library(coda, lib="/home/hkropp/R3.4.4")
 library(plyr, lib="/home/hkropp/R3.4.4")
-library(rstan, lib="/home/hkropp/R3.4.4")
+library(rstan)
 library(snow, lib="/home/hkropp/R3.4.4")
 library(snowfall, lib="/home/hkropp/R3.4.4")
 
