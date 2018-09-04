@@ -13,7 +13,7 @@ parameters{
 	real<lower=0,upper=200> muB0; 
 	real<lower=0,upper=1> muMid;
 	real<lower=0,upper=200> sigB0; 
-	real<lower=0,upper=1> siMid;	
+	real<lower=0,upper=1> sigMid;	
 }	
 model{
 
