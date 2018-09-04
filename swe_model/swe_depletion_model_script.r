@@ -251,10 +251,10 @@ parallel.stan <- function(X,dataL,init,outDIR){
 			write.table(out1$sig_swe, paste0(outDIR[[X]],"/sig_out.csv"), sep=",")
 			write.table(out1$b0, paste0(outDIR[[X]],"/b0_out.csv"), sep=",")
 			write.table(out1$mid0, paste0(outDIR[[X]],"/mid0_out.csv"), sep=",")
-			write.table(out1$muB0, paste0(outDIR[[X]],"/mu_b0_out.csv"), sep=",")
-			write.table(out1$sigB0, paste0(outDIR[[X]],"/sig_b0_out.csv"), sep=",")
-			write.table(out1$muMid, paste0(outDIR[[X]],"/mu_mid_out.csv"), sep=",")
-			write.table(out1$sigMid, paste0(outDIR[[X]],"/sig_mid_out.csv"), sep=",")
+			write.table(out1$muB0, paste0(outDIR[[X]],"/muB0_out.csv"), sep=",")
+			write.table(out1$sigB0, paste0(outDIR[[X]],"/sigB0_out.csv"), sep=",")
+			write.table(out1$muMid, paste0(outDIR[[X]],"/muMid_out.csv"), sep=",")
+			write.table(out1$sigMid, paste0(outDIR[[X]],"/sigMid_out.csv"), sep=",")
 }
 
 if(rn==1){
@@ -268,7 +268,3 @@ if(rn==3){
 	sfLapply(1:2, parallel.stan,dataL=datalist,init=inits,outDIR=dirList)			
 }
 sfStop()
-
-test <- stan(file="/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan", 
-					data = datalist[[1]], init=inits,
-				,chains=1, iter=100)
