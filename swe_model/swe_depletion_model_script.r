@@ -237,14 +237,14 @@ if(rn==2){
 	}
 }
 if(rn==3){
-	for(i in 1:20){
+	for(i in 1:2){
 	dirList[[i]] <- paste0(outdir,"gcID_",gcYearID$gcID[i+1],"_year_",gcYearID$year[i+1],"_chain_",chain,"_run")
 	dir.create(dirList[[i]])
 	}
 }
 #set up stan runction	
 parallel.stan <- function(X,dataL,init,outDIR){
-			stan_model1 = stan("/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan", 
+			stan_model1 = stan(file="/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan", 
 					data = dataL[[X]], init=init,
 				,chains=1, iter=4000)
 			out1= extract(stan_model1)
@@ -265,6 +265,10 @@ if(rn==2){
 	sfLapply(1:20, parallel.stan,dataL=datalist,init=inits,outDIR=dirList)			
 }	
 if(rn==3){
-	sfLapply(1:3, parallel.stan,dataL=datalist,init=inits,outDIR=dirList)			
+	sfLapply(1:2, parallel.stan,dataL=datalist,init=inits,outDIR=dirList)			
 }
 sfStop()
+
+test <- stan(file="/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan", 
+					data = datalist[[1]], init=init,
+				,chains=1, iter=100)
