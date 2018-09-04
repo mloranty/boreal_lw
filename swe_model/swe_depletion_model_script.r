@@ -5,31 +5,31 @@
 #######################################################
 
 #load libraries
-library(coda, lib="/home/hkropp/R3.4.4")
-library(plyr, lib="/home/hkropp/R3.4.4")
+library(coda, lib="/home/hkropp/Rtemp/R3.4.4")
+library(plyr, lib="/home/hkropp/Rtemp/R3.4.4")
 library(rstan)
-library(snow, lib="/home/hkropp/R3.4.4")
-library(snowfall, lib="/home/hkropp/R3.4.4")
+library(snow, lib="/home/hkropp/Rtemp/R3.4.4")
+library(snowfall, lib="/home/hkropp/Rtemp/R3.4.4")
 
 #######################################################
 # set up run info                                     #
 #######################################################
 #run number
-rn <- 3
+rn <- 1
 #chain number
 chain <- 1
 
 #linux =1 or windows =2
 runOS <- 1
 #linux data directory first option, windows second optioon
-DDdir <- c("/mnt/g/projects/boreal_swe_depletion/data",
+DDdir <- c("/home/hkropp/boreal/data",
 				"z:\\projects\\boreal_swe_depletion\\data")
 
 #model directory
 modDir <- "/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan"				
 
 #output directory
-outdir <- "/mnt/g/projects/boreal_swe_depletion/model/test1/"
+outdir <- "/home/hkropp/boreal/model/run1/"
 
 
 #######################################################
@@ -178,15 +178,7 @@ if(rn==2){
 	}
 }
 
-if(rn==3){
-	for(i in 1:2){
-		datalist[[i]] <- list(Nobs=dim(dat.swe5[dat.swe5$gcID==gcYearID$gcID[i+1]&dat.swe5$year==gcYearID$year[i+1],])[1],
-				swe=dat.swe5$sweN[dat.swe5$gcID==gcYearID$gcID[i+1]&dat.swe5$year==gcYearID$year[i+1]], 
-				day=(dat.swe5$jday[dat.swe5$gcID==gcYearID$gcID[i+1]&dat.swe5$year==gcYearID$year[i+1]]-32)/(182-32),
-				pixID=dat.swe5$pixID[dat.swe5$gcID==gcYearID$gcID[i+1]&dat.swe5$year==gcYearID$year[i+1]],
-				Npixel=dim(pixList[[i+1]])[1])
-	}
-}
+
 
 #set up inits 
 if(chain==1){
@@ -213,9 +205,7 @@ if(rn==2){
 sfInit(parallel=TRUE, cpus=20)
 }
 
-if(rn==3){
-sfInit(parallel=TRUE, cpus=2)
-}
+
 #assign rstan to each CPU
 sfLibrary(rstan)
 
@@ -236,12 +226,7 @@ if(rn==2){
 	dir.create(dirList[[i]])
 	}
 }
-if(rn==3){
-	for(i in 1:2){
-	dirList[[i]] <- paste0(outdir,"gcID_",gcYearID$gcID[i+1],"_year_",gcYearID$year[i+1],"_chain_",chain,"_run")
-	dir.create(dirList[[i]])
-	}
-}
+
 #set up stan runction	
 parallel.stan <- function(X,dataL,init,outDIR){
 			stan_model1 = stan(file="/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan", 
@@ -264,7 +249,5 @@ if(rn==1){
 if(rn==2){
 	sfLapply(1:20, parallel.stan,dataL=datalist,init=inits,outDIR=dirList)			
 }	
-if(rn==3){
-	sfLapply(1:2, parallel.stan,dataL=datalist,init=inits,outDIR=dirList)			
-}
+
 sfStop()
