@@ -24,10 +24,10 @@ model{
 		mu_mid ~ uniform(0,1);
 		sig_b0 ~ uniform(0,200);
 		sig_mid ~ uniform(0,1);
-	for(j in 1:Npixel){	
-		b0[j] ~ normal(mu_b0,sig_b0)T(0,200);
-		mid0[j] ~ uniform(mu_mid,sig_mid)T(0,1);
-	}	
+	
+		b0 ~ normal(mu_b0,sig_b0)T(0,200);
+		mid0 ~ normal(mu_mid,sig_mid)T(0,1);
+		
 	for(i in 1:Nobs){
 	swe[i]~normal(1/(1+exp(b0[pixID[i]]*(day[i]-mid0[pixID[i]]))), sig_swe);
 	
