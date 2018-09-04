@@ -15,7 +15,7 @@ library(snowfall, lib="/home/hkropp/R3.4.4")
 # set up run info                                     #
 #######################################################
 #run number
-rn <- 1
+rn <- 3
 #chain number
 chain <- 1
 
@@ -29,7 +29,7 @@ DDdir <- c("/mnt/g/projects/boreal_swe_depletion/data",
 modDir <- "/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan"				
 
 #output directory
-outdir <- "/home/hkropp/boreal/run1/"
+outdir <- "/mnt/g/projects/boreal_swe_depletion/model/test1/"
 
 
 #######################################################
@@ -177,6 +177,17 @@ if(rn==2){
 				Npixel=dim(pixList[[i+30]])[1])
 	}
 }
+
+if(rn==3){
+	for(i in 1:2){
+		datalist[[i]] <- list(Nobs=dim(dat.swe5[dat.swe5$gcID==gcYearID$gcID[i+1]&dat.swe5$year==gcYearID$year[i+1],])[1],
+				swe=dat.swe5$sweN[dat.swe5$gcID==gcYearID$gcID[i+1]&dat.swe5$year==gcYearID$year[i+1]], 
+				day=(dat.swe5$jday[dat.swe5$gcID==gcYearID$gcID[i+1]&dat.swe5$year==gcYearID$year[i+1]]-32)/(182-32),
+				pixID=dat.swe5$pixID[dat.swe5$gcID==gcYearID$gcID[i+1]&dat.swe5$year==gcYearID$year[i+1]],
+				Npixel=dim(pixList[[i+1]])[1])
+	}
+}
+
 #set up inits 
 if(chain==1){
 	inits <- list(list(mu_b0=50,sig_b0=10,mu_mid=.5,sig_mid=.05))
@@ -201,6 +212,10 @@ if(rn==1){
 if(rn==2){
 sfInit(parallel=TRUE, cpus=20)
 }
+
+if(rn==3){
+sfInit(parallel=TRUE, cpus=2)
+}
 #assign rstan to each CPU
 sfLibrary(rstan)
 
@@ -221,7 +236,12 @@ if(rn==2){
 	dir.create(dirList[[i]])
 	}
 }
-
+if(rn==3){
+	for(i in 1:20){
+	dirList[[i]] <- paste0(outdir,"gcID_",gcYearID$gcID[i+1],"_year_",gcYearID$year[i+1],"_chain_",chain,"_run")
+	dir.create(dirList[[i]])
+	}
+}
 #set up stan runction	
 parallel.stan <- function(X,dataL,init,outDIR){
 			stan_model1 = stan("/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan", 
@@ -244,5 +264,7 @@ if(rn==1){
 if(rn==2){
 	sfLapply(1:20, parallel.stan,dataL=datalist,init=inits,outDIR=dirList)			
 }	
-
+if(rn==3){
+	sfLapply(1:3, parallel.stan,dataL=datalist,init=inits,outDIR=dirList)			
+}
 sfStop()
