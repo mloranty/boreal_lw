@@ -245,7 +245,7 @@ if(rn==3){
 #set up stan runction	
 parallel.stan <- function(X,dataL,init,outDIR){
 			stan_model1 = stan("/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan", 
-					data = dataL[[X]], inits=init,
+					data = dataL[[X]], init=init,
 				,chains=1, iter=4000)
 			out1= extract(stan_model1)
 			write.table(out1$sig_swe, paste0(outDIR[[X]],"/sig_out.csv"), sep=",")
