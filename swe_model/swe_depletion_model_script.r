@@ -5,18 +5,19 @@
 #######################################################
 
 #load libraries
-library(coda)
+library(coda, lib="/home/hkropp/R3.4.4")
 library(plyr, lib="/home/hkropp/R3.4.4")
-library(rstan)
-library(snow)
-library(snowfall)
+library(rstan, lib="/home/hkropp/R3.4.4")
+library(snow, lib="/home/hkropp/R3.4.4")
+library(snowfall, lib="/home/hkropp/R3.4.4")
 
 #######################################################
 # set up run info                                     #
 #######################################################
 #run number
 rn <- 1
-
+#chain number
+chain <- 1
 
 #linux =1 or windows =2
 runOS <- 1
@@ -28,7 +29,7 @@ DDdir <- c("/mnt/g/projects/boreal_swe_depletion/data",
 modDir <- "/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan"				
 
 #output directory
-outdir <- "/home/hkropp/boreal"
+outdir <- "/home/hkropp/boreal/run1/"
 
 
 #######################################################
@@ -156,29 +157,92 @@ print("finish data organize")
 # set up model run                                    #
 #######################################################
 #need to subset data for each glc and year
+datalist <- list()
+if(rn==1){
+	for(i in 1:30){
+		datalist[[i]] <- list(Nobs=dim(dat.swe5[dat.swe5$gcID==gcYearID$gcID[i]&dat.swe5$year==gcYearID$year[i],])[1],
+				swe=dat.swe5$sweN[dat.swe5$gcID==gcYearID$gcID[i]&dat.swe5$year==gcYearID$year[i]], 
+				day=(dat.swe5$jday[dat.swe5$gcID==gcYearID$gcID[i]&dat.swe5$year==gcYearID$year[i]]-32)/(182-32),
+				pixID=dat.swe5$pixID[dat.swe5$gcID==gcYearID$gcID[i]&dat.swe5$year==gcYearID$year[i]],
+				Npixel=dim(pixList[[i]])[1])
+	}
+}
+
+if(rn==2){
+	for(i in 1:20){
+				datalist[[i]] <- list(Nobs=dim(dat.swe5[dat.swe5$gcID==gcYearID$gcID[i+30]&dat.swe5$year==gcYearID$year[i+30],])[1],
+				swe=dat.swe5$sweN[dat.swe5$gcID==gcYearID$gcID[i+30]&dat.swe5$year==gcYearID$year[i+30]], 
+				day=(dat.swe5$jday[dat.swe5$gcID==gcYearID$gcID[i+30]&dat.swe5$year==gcYearID$year[i+30]]-32)/(182-32),
+				pixID=dat.swe5$pixID[dat.swe5$gcID==gcYearID$gcID[i+30]&dat.swe5$year==gcYearID$year[i+30]],
+				Npixel=dim(pixList[[i+30]])[1])
+	}
+}
+#set up inits 
+if(chain==1){
+	inits <- list(list(mu_b0=50,sig_b0=10,mu_mid=.5,sig_mid=.05))
+}
+
+if(chain==2){
+	inits <- list(list(mu_b0=25,sig_b0=5,mu_mid=.7,sig_mid=.1))
+}
+
+if(chain==3){
+	inits <- list(list(mu_b0=75,sig_b0=15,mu_mid=.8,sig_mid=.01))
+}
 
 
 # set the number of CPUs to be 32 for a node on the cluster
 
+if(rn==1){
+	sfInit(parallel=TRUE, cpus=30)
+}
 
-sfInit(parallel=TRUE, cpus=32)
 
+if(rn==2){
+sfInit(parallel=TRUE, cpus=20)
+}
 #assign rstan to each CPU
 sfLibrary(rstan)
 
 #create unique filepath for each model run
+dirList <- list()
+if(rn==1){
+	for(i in 1:30){
+		dirList[[i]] <- paste0(outdir,"gcID_",gcYearID$gcID[i],"_year_",gcYearID$year[i],"_chain_",chain,"_run")
+		dir.create(dirList[[i]])
+	}
 
 
-parallel.stan <- function(
+}
+
+if(rn==2){
+	for(i in 1:20){
+	dirList[[i]] <- paste0(outdir,"gcID_",gcYearID$gcID[i+30],"_year_",gcYearID$year[i+30],"_chain_",chain,"_run")
+	dir.create(dirList[[i]])
+	}
+}
+
+#set up stan runction	
+parallel.stan <- function(X,dataL,init,outDIR){
 			stan_model1 = stan("/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan", 
-					data = list(Nobs=dim(dat.swe6[dat.swe6$gcID==i,])[1], swe=dat.swe6$sweN[dat.swe6$gcID==i], 
-				day=(dat.swe6$jday[dat.swe6$gcID==i]-32)/(182-32),
-				pixID=dat.swe6$pixID[dat.swe6$gcID==i],
-				temp=dat.swe6$tempCent[dat.swe6$gcID==i],
-				treeCov=dat.swe6$vcf[dat.swe6$gcID==i]),
-				,chains=1, iter=3000)
-			out1<- extract(stan_model1)
-			write.table(out1$sig_swe, paste0(outdir,"/sig_out_chain1_gc_",IDSglc$gcID[i],".csv"), sep=",")
+					data = dataL[[X]], inits=init,
+				,chains=1, iter=4000)
+			out1= extract(stan_model1)
+			write.table(out1$sig_swe, paste0(outDIR[[X]],"/sig_out.csv"), sep=",")
+			write.table(out1$b0, paste0(outDIR[[X]],"/b0_out.csv"), sep=",")
+			write.table(out1$mid0, paste0(outDIR[[X]],"/mid0_out.csv"), sep=",")
+			write.table(out1$mu_b0, paste0(outDIR[[X]],"/mu_b0_out.csv"), sep=",")
+			write.table(out1$sig_b0, paste0(outDIR[[X]],"/sig_b0_out.csv"), sep=",")
+			write.table(out1$mu_mid, paste0(outDIR[[X]],"/mu_mid_out.csv"), sep=",")
+			write.table(out1$sig_mid, paste0(outDIR[[X]],"/sig_mid_out.csv"), sep=",")
+}
 
-		
-	
+if(rn==1){
+	sfLapply(1:30, parallel.stan,dataL=datalist,init=inits,outDIR=dirList)			
+}	
+
+if(rn==2){
+	sfLapply(1:20, parallel.stan,dataL=datalist,init=inits,outDIR=dirList)			
+}	
+
+sfStop()
