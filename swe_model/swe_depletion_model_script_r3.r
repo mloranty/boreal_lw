@@ -205,7 +205,9 @@ if(chain==2){
 	inits <- list(list(mu_b0=25,sig_b0=5,mu_mid=.7,sig_mid=.1))
 }
 
-
+if(chain==3){
+	inits <- list(list(mu_b0=75,sig_b0=7,mu_mid=.8,sig_mid=.15))
+}
 
 
 # set the number of CPUs to be 32 for a node on the cluster
