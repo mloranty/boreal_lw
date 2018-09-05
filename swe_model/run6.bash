@@ -6,7 +6,7 @@
 #PBS -l walltime=900:00:00
 
 # set name of the job
-#PBS -N run5
+#PBS -N run6
 
 # mail alert at the start end and abortion of execution
 #PBS -m bea
@@ -21,4 +21,4 @@
 cd $PBS_0_WORKDIR
 
 #run the script
-/shared/R-3.4.3/bin/Rscript /home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_script_r5.r
+/shared/R-3.4.3/bin/Rscript /home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_script_r6.r
