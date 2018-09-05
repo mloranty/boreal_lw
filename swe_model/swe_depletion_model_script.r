@@ -135,7 +135,22 @@ pixID <- unique(data.frame(cell=dat.swe4$cell,year=dat.swe4$year, gcID=dat.swe4$
 #want each cell in each year, gcID that will be the subset to run each model
 #create year x gcID dataframe
 gcYearID <- unique(data.frame(year=dat.swe4$year, gcID=dat.swe4$gcID))
+
+#organize gcYear by the count of cells 
+pixCountList <- list()
+pixGLCTemp <- numeric(0)
+for(i in 1:dim(gcYearID)[1]){
+	pixCountList[[i]] <- pixID[pixID$gcID==gcYearID$gcID[i]&pixID$year==gcYearID$year[i],]
+	pixGLCTemp[i] <- dim(pixCountList[[i]])[1]
+}
+
+gcYearID$cellCount <- pixGLCTemp
+
+#organize gcYearID by cell count
+gcYearID <- gcYearID[order(gcYearID$cellCount),]
+
 gcYearID$gcYearID <- seq(1,dim(gcYearID)[1])
+
 #subset into each glc xYear
 pixList <- list()
 pixGLC <- numeric(0)
@@ -189,9 +204,7 @@ if(chain==2){
 	inits <- list(list(mu_b0=25,sig_b0=5,mu_mid=.7,sig_mid=.1))
 }
 
-if(chain==3){
-	inits <- list(list(mu_b0=75,sig_b0=15,mu_mid=.8,sig_mid=.01))
-}
+
 
 
 # set the number of CPUs to be 32 for a node on the cluster
