@@ -1,3 +1,4 @@
+#!/shared/R-3.4.3/bin/Rscript
 #######################################################
 # Script for running a model on a blended swe         #
 # product to look at differences in timing of         #
