@@ -3,7 +3,7 @@
 #PBS -l nodes=1:ppn=20
 
 # set max wall clock time
-#PBS -l walltime=900:00:00
+#PBS -l walltime=500:00:00
 
 # set name of the job
 #PBS -N run6
