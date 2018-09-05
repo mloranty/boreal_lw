@@ -6,11 +6,15 @@
 #######################################################
 
 #load libraries
-library(coda, lib="/home/hkropp/Rtemp/R3.4.4")
-library(plyr, lib="/home/hkropp/Rtemp/R3.4.4")
+#library(coda, lib="/home/hkropp/Rtemp/R3.4.4")
+#library(plyr, lib="/home/hkropp/Rtemp/R3.4.4")
+library(coda)
+library(plyr)
 library(rstan)
-library(snow, lib="/home/hkropp/Rtemp/R3.4.4")
-library(snowfall, lib="/home/hkropp/Rtemp/R3.4.4")
+library(snow)
+library(snowfall)
+#library(snow, lib="/home/hkropp/Rtemp/R3.4.4")
+#library(snowfall, lib="/home/hkropp/Rtemp/R3.4.4")
 
 #######################################################
 # set up run info                                     #
