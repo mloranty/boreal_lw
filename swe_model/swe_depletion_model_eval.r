@@ -267,13 +267,45 @@ dat.swe5 <- join(dat.swe4,pixJ, by=c("cell","year","gcID"), type="left")
 
 
 print("finish data organize")
+#join mod run with gcID
+colnames(chainDF)[3] <- "gcID" 
+gcYearID <- join(gcYearID,chainDF, by=c("gcID","year"), type="left")
 
-
-
+datalist <- list()
+rep1 <- matrix(rep(NA,6000*1000),ncol=6000)
+#for(i in 1:dim(gcYearID)[1]){
+ptm <- proc.time()
+proc.time() - ptm
+for(i in 1:1){
 		datalist[[i]] <- list(Nobs=dim(dat.swe5[dat.swe5$gcID==gcYearID$gcID[i]&dat.swe5$year==gcYearID$year[i],])[1],
 				swe=dat.swe5$sweN[dat.swe5$gcID==gcYearID$gcID[i]&dat.swe5$year==gcYearID$year[i]], 
 				day=(dat.swe5$jday[dat.swe5$gcID==gcYearID$gcID[i]&dat.swe5$year==gcYearID$year[i]]-32)/(182-32),
 				pixID=dat.swe5$pixID[dat.swe5$gcID==gcYearID$gcID[i]&dat.swe5$year==gcYearID$year[i]],
 				Npixel=dim(pixList[[i]])[1])
-
+				
+			#read in output
+		b0Out1 <- read.csv(paste0(gcYearID$dirP1[i],"\\",gcYearID$files1[i],"\\b0_out.csv"))
+		midOut1 <- read.csv(paste0(chainDF$dirP1[i],"\\",chainDF$files1[i],"\\mid0_out.csv"))
+		sigOut1 <- read.csv(paste0(chainDF$dirP1[i],"\\",chainDF$files1[i],"\\sig_out.csv"))
+		b0Out2 <- read.csv(paste0(gcYearID$dirP2[i],"\\",gcYearID$files2[i],"\\b0_out.csv"))
+		midOut2 <- read.csv(paste0(chainDF$dirP2[i],"\\",chainDF$files2[i],"\\mid0_out.csv"))
+		sigOut2 <- read.csv(paste0(chainDF$dirP2[i],"\\",chainDF$files2[i],"\\sig_out.csv"))
+		b0Out3 <- read.csv(paste0(gcYearID$dirP3[i],"\\",gcYearID$files3[i],"\\b0_out.csv"))
+		midOut3 <- read.csv(paste0(chainDF$dirP3[i],"\\",chainDF$files3[i],"\\mid0_out.csv"))
+		sigOut3 <- read.csv(paste0(chainDF$dirP3[i],"\\",chainDF$files3[i],"\\sig_out.csv"))
+		b0Out <- rbind(b0Out1,b0Out2,b0Out3)
+		midOut <- rbind(midOut1,midOut2,midOut3)
+		sigOut <- rbind(sigOut1,sigOut2,sigOut3)
+		#calculate rep	
+		ptm <- proc.time()
+		repl <- matrix(rep(NA,6000*1000),ncol=6000)
+		for(j in 1:dim(b0Out)[1]){
+			#for(m in 1:dim(datalist[[i]])[1]){
+			for(m in 1:1000){
+				rep1[m,j] <- rnorm(1,1/(1+exp(b0Out[j,datalist[[i]]$pixID[m]]*(datalist[[i]]$day[m]-midOut[j,datalist[[i]]$pixID[m]]))), sigOut[j,1])
+			}
+		}
+}
+proc.time() - ptm
+rnorm(1,1/(1+exp(b0Out1[1,datalist[[1]]$pixID[1]]*(datalist[[1]]$day[1]-midOut1[1,datalist[[1]]$pixID[1]]))), 1)
 #normal(1/(1+exp(b0[pixID[i]]*(day[i]-mid0[pixID[i]]))), sig_swe)
