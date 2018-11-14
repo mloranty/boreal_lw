@@ -173,6 +173,24 @@ dat.swe5 <- join(dat.swe4,pixJ, by=c("cell","year","gcID"), type="left")
 
 
 print("finish data organize")
+
+
+#pull out which rows each gc is related
+sweRows <- list()
+for(i in 1:dim(gcYearID)[1]){
+	sweRows[[i]] <- which(dat.swe5$gcID==gcYearID$gcID[i]&dat.swe5$year==gcYearID$year[i])
+
+}
+#find out which 
+whichrep <- list()
+for(i in 1:dim(gcYearID)[1]){
+	whichrep[[i]] <- data.frame(gcID=rep(gcYearID$gcID[i], each=5000),year=rep(gcYearID$year[i], each=5000), rows=sample(sweRows[[i]],5000))
+}
+whichrep <- ldply(whichrep,data.frame)
+write.table(whichrep,"z:\\projects\\boreal_swe_depletion\\data\\rep_subID.csv",sep=",",row.names=FALSE)
+
+datRep <- dat.swe5[whichrep$rows,]
+
 #######################################################
 # set up model run                                    #
 #######################################################
@@ -209,7 +227,9 @@ if(chain==2){
 	inits <- list(list(mu_b0=25,sig_b0=5,mu_mid=.7,sig_mid=.1))
 }
 
-
+if(chain==3){
+	inits <- list(list(mu_b0=75,sig_b0=15,mu_mid=.6,sig_mid=.2))
+}
 
 
 # set the number of CPUs to be 32 for a node on the cluster
