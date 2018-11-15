@@ -27,7 +27,8 @@ chain <- 1
 #linux =1 or windows =2
 runOS <- 1
 #linux data directory first option, windows second optioon
-DDdir <- c("/home/hkropp/boreal/data",
+DDdir <- c(#"/home/hkropp/boreal/data",
+			"/mnt/g/projects/boreal_swe_depletion/data",
 				"z:\\projects\\boreal_swe_depletion\\data")
 
 #model directory
@@ -198,7 +199,8 @@ datRep <- dat.swe5[whichrep$rows,]
 #need to subset data for each glc and year
 datalist <- list()
 if(rn==1){
-	for(i in 1:30){
+	#for(i in 1:30){
+	for(i in 1:4){
 		datalist[[i]] <- list(Nobs=dim(dat.swe5[dat.swe5$gcID==gcYearID$gcID[i]&dat.swe5$year==gcYearID$year[i],])[1],
 				swe=dat.swe5$sweN[dat.swe5$gcID==gcYearID$gcID[i]&dat.swe5$year==gcYearID$year[i]], 
 				day=(dat.swe5$jday[dat.swe5$gcID==gcYearID$gcID[i]&dat.swe5$year==gcYearID$year[i]]-32)/(182-32),
@@ -238,7 +240,8 @@ if(chain==3){
 # set the number of CPUs to be 32 for a node on the cluster
 
 if(rn==1){
-	sfInit(parallel=TRUE, cpus=30)
+	#sfInit(parallel=TRUE, cpus=30)
+	sfInit(parallel=TRUE, cpus=4)
 }
 
 
@@ -254,8 +257,8 @@ sfLibrary(rstan)
 dirList <- list()
 if(rn==1){
 	for(i in 1:30){
-		dirList[[i]] <- paste0(outdir,"gcID_",gcYearID$gcID[i],"_year_",gcYearID$year[i],"_chain_",chain,"_run")
-		dir.create(dirList[[i]])
+	#	dirList[[i]] <- paste0(outdir,"gcID_",gcYearID$gcID[i],"_year_",gcYearID$year[i],"_chain_",chain,"_run")
+	#	dir.create(dirList[[i]])
 	}
 
 
@@ -274,18 +277,19 @@ parallel.stan <- function(X,dataL,init,outDIR){
 					data = dataL[[X]], init=init,
 				,chains=1, iter=4000)
 			out1= extract(stan_model1)
-			write.table(out1$sig_swe, paste0(outDIR[[X]],"/sig_out.csv"), sep=",")
-			write.table(out1$b0, paste0(outDIR[[X]],"/b0_out.csv"), sep=",")
-			write.table(out1$mid0, paste0(outDIR[[X]],"/mid0_out.csv"), sep=",")
-			write.table(out1$muB0, paste0(outDIR[[X]],"/muB0_out.csv"), sep=",")
-			write.table(out1$sigB0, paste0(outDIR[[X]],"/sigB0_out.csv"), sep=",")
-			write.table(out1$muMid, paste0(outDIR[[X]],"/muMid_out.csv"), sep=",")
-			write.table(out1$sigMid, paste0(outDIR[[X]],"/sigMid_out.csv"), sep=",")
-			write.table(out1$swerep, paste0(outDIR[[X]],"/swerep_out.csv"), sep=",")
+		#	write.table(out1$sig_swe, paste0(outDIR[[X]],"/sig_out.csv"), sep=",")
+		#	write.table(out1$b0, paste0(outDIR[[X]],"/b0_out.csv"), sep=",")
+		#	write.table(out1$mid0, paste0(outDIR[[X]],"/mid0_out.csv"), sep=",")
+		#	write.table(out1$muB0, paste0(outDIR[[X]],"/muB0_out.csv"), sep=",")
+		#	write.table(out1$sigB0, paste0(outDIR[[X]],"/sigB0_out.csv"), sep=",")
+		#	write.table(out1$muMid, paste0(outDIR[[X]],"/muMid_out.csv"), sep=",")
+		#	write.table(out1$sigMid, paste0(outDIR[[X]],"/sigMid_out.csv"), sep=",")
+		#	write.table(out1$swerep, paste0(outDIR[[X]],"/swerep_out.csv"), sep=",")
 }
 
 if(rn==1){
-	sfLapply(1:30, parallel.stan,dataL=datalist,init=inits,outDIR=dirList)			
+	#sfLapply(1:30, parallel.stan,dataL=datalist,init=inits,outDIR=dirList)	
+	sfLapply(1:4, parallel.stan,dataL=datalist,init=inits,outDIR=dirList)	
 }	
 
 if(rn==2){
