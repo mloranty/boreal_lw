@@ -22,7 +22,7 @@ library(snowfall)
 #run number
 rn <- 1
 #chain number
-chain <- 1
+chain <- 3
 
 #linux =1 or windows =2
 runOS <- 1

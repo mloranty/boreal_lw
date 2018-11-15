@@ -20,7 +20,7 @@ library(snowfall)
 # set up run info                                     #
 #######################################################
 #run number
-rn <- 1
+rn <- 2
 #chain number
 chain <- 1
 
