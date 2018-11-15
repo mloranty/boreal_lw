@@ -241,7 +241,7 @@ if(chain==3){
 }
 
 stan_model1 = stan(file="/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan", 
-					data = datalist[[1]], init=init,
+					data = datalist[[1]], init=inits,
 				,chains=1, iter=4000)
 # set the number of CPUs to be 32 for a node on the cluster
 
