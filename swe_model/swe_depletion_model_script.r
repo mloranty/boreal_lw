@@ -44,12 +44,13 @@ outdir <- "/home/hkropp/boreal/model/run1/"
 if(runOS==1){
 	dat.swe <- read.csv(paste0(DDdir[1], "/swe_depletion_model_data_vcf_no_topo.csv"))
 	dat.glc <- read.csv(paste0(DDdir[1], "/glc50_table.csv"))
+	whichrep <- read.csv(paste0(DDdir[1],"/rep_subID.csv"))
 
 }else{
 
 	dat.swe <- read.csv(paste0(DDdir[2],"\\swe_depletion_model_data_vcf_no_topo.csv"))
 	dat.glc <- read.csv(paste0(DDdir[2], "/glc50_table.csv"))
-
+	whichrep <- read.csv(paste0(DDdir[1],"\\rep_subID.csv"))
 }
 
 
@@ -176,18 +177,18 @@ print("finish data organize")
 
 
 #pull out which rows each gc is related
-sweRows <- list()
-for(i in 1:dim(gcYearID)[1]){
-	sweRows[[i]] <- which(dat.swe5$gcID==gcYearID$gcID[i]&dat.swe5$year==gcYearID$year[i])
+#sweRows <- list()
+#for(i in 1:dim(gcYearID)[1]){
+#	sweRows[[i]] <- which(dat.swe5$gcID==gcYearID$gcID[i]&dat.swe5$year==gcYearID$year[i])
 
-}
+#}
 #find out which 
-whichrep <- list()
-for(i in 1:dim(gcYearID)[1]){
-	whichrep[[i]] <- data.frame(gcID=rep(gcYearID$gcID[i], each=5000),year=rep(gcYearID$year[i], each=5000), rows=sample(sweRows[[i]],5000))
-}
-whichrep <- ldply(whichrep,data.frame)
-write.table(whichrep,"z:\\projects\\boreal_swe_depletion\\data\\rep_subID.csv",sep=",",row.names=FALSE)
+#whichrep <- list()
+#for(i in 1:dim(gcYearID)[1]){
+#	whichrep[[i]] <- data.frame(gcID=rep(gcYearID$gcID[i], each=5000),year=rep(gcYearID$year[i], each=5000), rows=sample(sweRows[[i]],5000))
+#}
+#whichrep <- ldply(whichrep,data.frame)
+#write.table(whichrep,"z:\\projects\\boreal_swe_depletion\\data\\rep_subID.csv",sep=",",row.names=FALSE)
 
 datRep <- dat.swe5[whichrep$rows,]
 
@@ -202,7 +203,8 @@ if(rn==1){
 				swe=dat.swe5$sweN[dat.swe5$gcID==gcYearID$gcID[i]&dat.swe5$year==gcYearID$year[i]], 
 				day=(dat.swe5$jday[dat.swe5$gcID==gcYearID$gcID[i]&dat.swe5$year==gcYearID$year[i]]-32)/(182-32),
 				pixID=dat.swe5$pixID[dat.swe5$gcID==gcYearID$gcID[i]&dat.swe5$year==gcYearID$year[i]],
-				Npixel=dim(pixList[[i]])[1])
+				Npixel=dim(pixList[[i]])[1],  Rday=(datRep$jday[datRep$gcID==gcYearID$gcID[i]&datRep$year==gcYearID$year[i]]-32)/(182-32),
+				Nrep=dim(datRep[datRep$gcID==gcYearID$gcID[i]&datRep$year==gcYearID$year[i],])[1])
 	}
 }
 
@@ -212,7 +214,8 @@ if(rn==2){
 				swe=dat.swe5$sweN[dat.swe5$gcID==gcYearID$gcID[i+30]&dat.swe5$year==gcYearID$year[i+30]], 
 				day=(dat.swe5$jday[dat.swe5$gcID==gcYearID$gcID[i+30]&dat.swe5$year==gcYearID$year[i+30]]-32)/(182-32),
 				pixID=dat.swe5$pixID[dat.swe5$gcID==gcYearID$gcID[i+30]&dat.swe5$year==gcYearID$year[i+30]],
-				Npixel=dim(pixList[[i+30]])[1])
+				Npixel=dim(pixList[[i+30]])[1],  Rday=(datRep$jday[datRep$gcID==gcYearID$gcID[i+30]&datRep$year==gcYearID$year[i+30]]-32)/(182-32),
+				Nrep=dim(datRep[datRep$gcID==gcYearID$gcID[i+30]&datRep$year==gcYearID$year[i+30],])[1])
 	}
 }
 
@@ -278,6 +281,7 @@ parallel.stan <- function(X,dataL,init,outDIR){
 			write.table(out1$sigB0, paste0(outDIR[[X]],"/sigB0_out.csv"), sep=",")
 			write.table(out1$muMid, paste0(outDIR[[X]],"/muMid_out.csv"), sep=",")
 			write.table(out1$sigMid, paste0(outDIR[[X]],"/sigMid_out.csv"), sep=",")
+			write.table(out1$swerep, paste0(outDIR[[X]],"/swerep_out.csv"), sep=",")
 }
 
 if(rn==1){
