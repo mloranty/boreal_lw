@@ -205,8 +205,10 @@ if(rn==1){
 				swe=dat.swe5$sweN[dat.swe5$gcID==gcYearID$gcID[i]&dat.swe5$year==gcYearID$year[i]], 
 				day=(dat.swe5$jday[dat.swe5$gcID==gcYearID$gcID[i]&dat.swe5$year==gcYearID$year[i]]-32)/(182-32),
 				pixID=dat.swe5$pixID[dat.swe5$gcID==gcYearID$gcID[i]&dat.swe5$year==gcYearID$year[i]],
-				Npixel=dim(pixList[[i]])[1],  Rday=(datRep$jday[datRep$gcID==gcYearID$gcID[i]&datRep$year==gcYearID$year[i]]-32)/(182-32),
-				Nrep=dim(datRep[datRep$gcID==gcYearID$gcID[i]&datRep$year==gcYearID$year[i],])[1])
+				Npixel=dim(pixList[[i]])[1], 
+				Rday=(datRep$jday[datRep$gcID==gcYearID$gcID[i]&datRep$year==gcYearID$year[i]]-32)/(182-32),
+				Nrep=dim(datRep[datRep$gcID==gcYearID$gcID[i]&datRep$year==gcYearID$year[i],])[1],
+				RpixID=datRep$pixID[datRep$gcID==gcYearID$gcID[i]&datRep$year==gcYearID$year[i]])
 	}
 }
 
@@ -216,8 +218,10 @@ if(rn==2){
 				swe=dat.swe5$sweN[dat.swe5$gcID==gcYearID$gcID[i+30]&dat.swe5$year==gcYearID$year[i+30]], 
 				day=(dat.swe5$jday[dat.swe5$gcID==gcYearID$gcID[i+30]&dat.swe5$year==gcYearID$year[i+30]]-32)/(182-32),
 				pixID=dat.swe5$pixID[dat.swe5$gcID==gcYearID$gcID[i+30]&dat.swe5$year==gcYearID$year[i+30]],
-				Npixel=dim(pixList[[i+30]])[1],  Rday=(datRep$jday[datRep$gcID==gcYearID$gcID[i+30]&datRep$year==gcYearID$year[i+30]]-32)/(182-32),
-				Nrep=dim(datRep[datRep$gcID==gcYearID$gcID[i+30]&datRep$year==gcYearID$year[i+30],])[1])
+				Npixel=dim(pixList[[i+30]])[1],  
+				Rday=(datRep$jday[datRep$gcID==gcYearID$gcID[i+30]&datRep$year==gcYearID$year[i+30]]-32)/(182-32),
+				Nrep=dim(datRep[datRep$gcID==gcYearID$gcID[i+30]&datRep$year==gcYearID$year[i+30],])[1],
+				RpixID=datRep$pixID[datRep$gcID==gcYearID$gcID[i+30]&datRep$year==gcYearID$year[i+30]])
 	}
 }
 
@@ -237,7 +241,7 @@ if(chain==3){
 }
 
 stan_model1 = stan(file="/home/hkropp/github/boreal_lw/swe_model/swe_depletion_model_code.stan", 
-					data = dataL[[1]], init=init,
+					data = datalist[[1]], init=init,
 				,chains=1, iter=4000)
 # set the number of CPUs to be 32 for a node on the cluster
 
