@@ -48,7 +48,7 @@ for(i in 1:dim(datA)[1]){
 		#chain
 		datA$chain[i] <- as.numeric(strsplit(as.character(datA$files[i]),"_")[[1]][6])
 }	
-
+whichrep <- read.csv("z:\\projects\\boreal_swe_depletion\\data\\rep_subID.csv")
 #turn chains into a list
 chain1 <- datA[datA$chain==1,1:4]
 colnames(chain1)[1:2] <- paste0(colnames(chain1)[1:2],"1") 
@@ -296,3 +296,62 @@ print("finish data organize")
 #write.table(whichrep,"z:\\projects\\boreal_swe_depletion\\data\\rep_subID.csv",sep=",",row.names=FALSE)
 
 datRep <- dat.swe5[whichrep$rows,]
+
+
+#pull out replicated data
+repOut1 <- data.frame()
+repOut2 <- data.frame()
+repOut3 <- data.frame()
+repmcmc <- mcmc.list()
+repSum <- list()
+
+for(i in 1:dim(chainDF)[1]){
+
+	#read in output
+	repOut1 <- read.csv(paste0(chainDF$dirP1[i],"\\",chainDF$files1[i],"\\swerep_out.csv"))
+	repOut2 <- read.csv(paste0(chainDF$dirP2[i],"\\",chainDF$files2[i],"\\swerep_out.csv"))
+	repOut3 <- read.csv(paste0(chainDF$dirP3[i],"\\",chainDF$files3[i],"\\swerep_out.csv"))
+	colnames(repOut1) <- paste0("rep_",seq(1,dim(repOut1)[2]))
+	colnames(repOut2) <- paste0("rep_",seq(1,dim(repOut2)[2]))
+	colnames(repOut3) <- paste0("rep_",seq(1,dim(repOut3)[2]))
+	#turn into mcmc
+	repOut1 <- as.mcmc(repOut1)
+	repOut2 <- as.mcmc(repOut2)
+	repOut3 <- as.mcmc(repOut3)
+	repmcmc <- mcmc.list(repOut1,repOut2,repOut3)
+	repSum[[i]] <- summary(repmcmc)
+	}
+
+#need to subset datrep
+datRepL <- list()
+for(i in 1:dim(chainDF)[1]){
+		datRepL[[i]] <- datRep[datRep$gcID==chainDF$glc[i]&datRep$year==chainDF$year[i],]
+}
+
+#add rep data and ID	
+repL <- list()
+for(i in 1:dim(chainDF)[1]){
+
+		repL[[i]] <- data.frame(repMean=repSum[[i]]$Mean,
+						datRepL[[i]])
+						
+
+}
+repDF <- ldply(repL,data.frame)
+
+
+colnames(b0Conv)[1] <- "b0conv"
+#merge convergence info
+repDF1 <- join(repDF,midConv,by=c("gridID","glc","year"),type="left")
+repDF2 <- join(repDF,b0Conv,by=c("gridID","glc","year"),type="left")
+
+
+
+#only look at converged rep until those issues are solved
+repDF3 <- repDF2[repDF2$conv==0&repDF2$b0conv==0,]
+
+#double check this name
+fit <- lm(repDF3$Mean~repDF3$sweN)
+plot(repDF3$sweN,repDF3$Mean
+	
+	
