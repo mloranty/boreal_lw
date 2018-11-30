@@ -138,6 +138,9 @@ for(i in 1:dim(chainDF)[1]){
 }
 #
 
+#turn into a data frame
+midConv <- ldply(midCheck,data.frame)
+b0Conv <- ldply(b0Check,data.frame)
 
 #######################################################
 # read in and filter data                             #
