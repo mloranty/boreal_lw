@@ -332,18 +332,20 @@ for(i in 1:dim(chainDF)[1]){
 repL <- list()
 for(i in 1:dim(chainDF)[1]){
 
-		repL[[i]] <- data.frame(repMean=repSum[[i]]$Mean,
+		repL[[i]] <- data.frame(repMean=repSum[[i]]$statistics[,1],
 						datRepL[[i]])
 						
 
 }
 repDF <- ldply(repL,data.frame)
-
-
+colnames(midConv)[3] <- "gcID"
+colnames(b0Conv)[3] <- "gcID"
 colnames(b0Conv)[1] <- "b0conv"
+colnames(b0Conv)[2] <- "pixID"
+colnames(midConv)[2] <- "pixID"
 #merge convergence info
-repDF1 <- join(repDF,midConv,by=c("gridID","glc","year"),type="left")
-repDF2 <- join(repDF,b0Conv,by=c("gridID","glc","year"),type="left")
+repDF1 <- join(repDF,midConv,by=c("pixID","gcID","year"),type="left")
+repDF2 <- join(repDF1,b0Conv,by=c("pixID","gcID","year"),type="left")
 
 
 
@@ -351,7 +353,8 @@ repDF2 <- join(repDF,b0Conv,by=c("gridID","glc","year"),type="left")
 repDF3 <- repDF2[repDF2$conv==0&repDF2$b0conv==0,]
 
 #double check this name
-fit <- lm(repDF3$Mean~repDF3$sweN)
-plot(repDF3$sweN,repDF3$Mean
+fit <- lm(repDF3$repMean~repDF3$sweN)
+summary(fit)
+plot(repDF3$sweN,repDF3$repMean)
 	
 	
