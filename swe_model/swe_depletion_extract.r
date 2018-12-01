@@ -101,7 +101,7 @@ midOut1 <- data.frame()
 midOut2 <- data.frame()
 midOut3 <- data.frame()
 midmcmc <- mcmc.list()
-mid.diag <- list()
+midSum <- list()
 for(i in 1:dim(chainDF)[1]){
 	#read in output
 	midOut1 <- read.csv(paste0(chainDF$dirP1[i],"\\",chainDF$files1[i],"\\mid0_out.csv"))
