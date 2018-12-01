@@ -357,4 +357,20 @@ fit <- lm(repDF3$repMean~repDF3$sweN)
 summary(fit)
 plot(repDF3$sweN,repDF3$repMean)
 	
+#check if there is something about the data in pixels not covnerging	
+
+
+probMid <- midConv[midConv$conv==1,]
+probB0 <- b0Conv[b0Conv$b0conv==1,]
+
+plot(dat.swe5$jday[dat.swe5$pixID==probMid$pixID[1]&dat.swe5$year==probMid$year[1]&dat.swe5$gcID==probMid$gcID[1]],
+	dat.swe5$sweN[dat.swe5$pixID==probMid$pixID[1]&dat.swe5$year==probMid$year[1]&dat.swe5$gcID==probMid$gcID[1]])
 	
+i=2
+plot(dat.swe5$jday[dat.swe5$pixID==probMid$pixID[i]&dat.swe5$year==probMid$year[i]&dat.swe5$gcID==probMid$gcID[i]],
+	dat.swe5$sweN[dat.swe5$pixID==probMid$pixID[i]&dat.swe5$year==probMid$year[i]&dat.swe5$gcID==probMid$gcID[i]])	
+
+i=3
+plot(dat.swe5$jday[dat.swe5$pixID==probMid$pixID[i]&dat.swe5$year==probMid$year[i]&dat.swe5$gcID==probMid$gcID[i]],
+	dat.swe5$sweN[dat.swe5$pixID==probMid$pixID[i]&dat.swe5$year==probMid$year[i]&dat.swe5$gcID==probMid$gcID[i]])	
+		
