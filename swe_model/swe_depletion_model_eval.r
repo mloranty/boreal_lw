@@ -91,8 +91,8 @@ for(i in 1:dim(chainDF)[1]){
 	b0Out3 <- as.mcmc(b0Out3)
 	b0mcmc <- mcmc.list(b0Out1,b0Out2,b0Out3)
 	#make plots
-	dir.create(paste0(outD,"\\glc",chainDF$glc[i],"_year",chainDF$year[i]))
-	mcmcplot(b0mcmc,dir=paste0(outD,"\\glc",chainDF$glc[i],"_year",chainDF$year[i]))
+	#dir.create(paste0(outD,"\\glc",chainDF$glc[i],"_year",chainDF$year[i]))
+	#mcmcplot(b0mcmc,dir=paste0(outD,"\\glc",chainDF$glc[i],"_year",chainDF$year[i]))
 	b0.diag[[i]] <- gelman.diag(b0mcmc)
 }
 	
@@ -116,8 +116,8 @@ for(i in 1:dim(chainDF)[1]){
 	midOut3 <- as.mcmc(midOut3)
 	midmcmc <- mcmc.list(midOut1,midOut2,midOut3)
 	#make plots
-	dir.create(paste0(outD,"\\mid\\glc",chainDF$glc[i],"_year",chainDF$year[i]))
-	mcmcplot(midmcmc,dir=paste0(outD,"\\mid\\glc",chainDF$glc[i],"_year",chainDF$year[i]))
+	#dir.create(paste0(outD,"\\mid\\glc",chainDF$glc[i],"_year",chainDF$year[i]))
+	#mcmcplot(midmcmc,dir=paste0(outD,"\\mid\\glc",chainDF$glc[i],"_year",chainDF$year[i]))
 	mid.diag[[i]] <- gelman.diag(midmcmc)
 }
 
@@ -362,6 +362,8 @@ plot(repDF3$sweN,repDF3$repMean)
 
 probMid <- midConv[midConv$conv==1,]
 probB0 <- b0Conv[b0Conv$b0conv==1,]
+
+dfConvM <- unique(data.frame(gcID=probMid$gcID,pixID=probMid$pixID)) 
 
 plot(dat.swe5$jday[dat.swe5$pixID==probMid$pixID[1]&dat.swe5$year==probMid$year[1]&dat.swe5$gcID==probMid$gcID[1]],
 	dat.swe5$sweN[dat.swe5$pixID==probMid$pixID[1]&dat.swe5$year==probMid$year[1]&dat.swe5$gcID==probMid$gcID[1]])
