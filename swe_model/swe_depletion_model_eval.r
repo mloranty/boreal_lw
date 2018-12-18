@@ -355,7 +355,7 @@ repDF3 <- repDF2[repDF2$conv==0&repDF2$b0conv==0,]
 #double check this name
 fit <- lm(repDF3$repMean~repDF3$sweN)
 summary(fit)
-plot(repDF3$sweN,repDF3$repMean)
+plot(repDF3$sweN,repDF3$repMean, xlab="observed proportion of swe max",ylab="predicted proportion of swe max")
 	
 #check if there is something about the data in pixels not covnerging	
 
@@ -375,4 +375,50 @@ plot(dat.swe5$jday[dat.swe5$pixID==probMid$pixID[i]&dat.swe5$year==probMid$year[
 i=3
 plot(dat.swe5$jday[dat.swe5$pixID==probMid$pixID[i]&dat.swe5$year==probMid$year[i]&dat.swe5$gcID==probMid$gcID[i]],
 	dat.swe5$sweN[dat.swe5$pixID==probMid$pixID[i]&dat.swe5$year==probMid$year[i]&dat.swe5$gcID==probMid$gcID[i]])	
-		
+	
+	
+#make a map of cells
+
+library(raster)
+library(ncdf4)
+library(rgdal)
+library(gdalUtils)
+#library(lubridate)
+
+setwd("L:/data_repo/gis_data/")
+
+# define the projection - EASE2.0 equal area grid - will use 50km resolution
+# https://epsg.io/6931
+laea <- "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs" 
+
+########## SWE data from Mudryk ##########
+# swe data in m from Mudryk
+# daily mean SWE (GS2,MERRA2,Brown,Crocus)
+# list the monthly files
+swe.files <- list.files(pattern =".nc",path ="z:\\data_repo\\gis_data/swe_mudryk_blended\\",full.names=T)
+
+# read one file in to use for reprojecting
+pr <- raster(swe.files[1])
+# crop to boreal region
+pr <- crop(pr,c(-180,180,50,90))
+# reproject to 50km EASE2.0 gird
+pr <- projectRaster(pr,res=50000,crs=laea,progress='text')
+plot(pr)	
+
+#create unique ids with convergence info
+dfConvM$convI <- rep(1,dim(dfConvM)[1])
+
+cellInfo <- unique(data.frame(pixID=dat.swe5$pixID,gcID=dat.swe5$gcID,x.coord=dat.swe5$x.coord,y.coord=dat.swe5$y.coord))	
+
+cellInfo <- join(cellInfo,dfConvM,by=c("pixID","gcID"),type="left")
+
+cellIssue <- cellInfo[cellInfo$convI==1,]
+points(cellInfo$x.coord,cellInfo$y.coord,pch=19,col="cornflowerblue", cex=.4)
+points(cellIssue$x.coord,cellIssue$y.coord,pch=19,col="black",cex=.4)
+legend("topleft",c("converged","convergence issue"),col=c("cornflowerblue","black"),pch=19)
+
+#check data
+
+plot(dat.swe5$jday[dat.swe5$pixID==1&dat.swe5$year==2000&dat.swe5$gcID==1],
+	dat.swe5$sweN[dat.swe5$pixID==1&dat.swe5$year==2000&dat.swe5$gcID==1],
+	xlab="Day of year",ylab="Normalized swe (proportion of maximum swe)")
