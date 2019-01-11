@@ -402,17 +402,24 @@ probB0 <- b0Conv[b0Conv$b0conv==1,]
 
 dfConvM <- unique(data.frame(gcID=probMid$gcID,pixID=probMid$pixID)) 
 
+dfProb <- join(probMid,pixJ3,by=c("gcID","pixID","year"),type="left")
+
+
 plot(dat.swe5$jday[dat.swe5$pixID==probMid$pixID[1]&dat.swe5$year==probMid$year[1]&dat.swe5$gcID==probMid$gcID[1]],
 	dat.swe5$sweN[dat.swe5$pixID==probMid$pixID[1]&dat.swe5$year==probMid$year[1]&dat.swe5$gcID==probMid$gcID[1]])
 	
-i=2
-plot(dat.swe5$jday[dat.swe5$pixID==probMid$pixID[i]&dat.swe5$year==probMid$year[i]&dat.swe5$gcID==probMid$gcID[i]],
-	dat.swe5$sweN[dat.swe5$pixID==probMid$pixID[i]&dat.swe5$year==probMid$year[i]&dat.swe5$gcID==probMid$gcID[i]])	
-
-i=3
-plot(dat.swe5$jday[dat.swe5$pixID==probMid$pixID[i]&dat.swe5$year==probMid$year[i]&dat.swe5$gcID==probMid$gcID[i]],
-	dat.swe5$sweN[dat.swe5$pixID==probMid$pixID[i]&dat.swe5$year==probMid$year[i]&dat.swe5$gcID==probMid$gcID[i]])	
+i=28
+plot(dat.swe7$jday[dat.swe7$pixID==probMid$pixID[i]&dat.swe7$year==probMid$year[i]&dat.swe7$gcID==probMid$gcID[i]],
+	dat.swe7$sweN[dat.swe7$pixID==probMid$pixID[i]&dat.swe7$year==probMid$year[i]&dat.swe7$gcID==probMid$gcID[i]])	
 	
+	
+plot(dat.swe5$jday[dat.swe5$pixID==2&dat.swe5$year==2005&dat.swe5$gcID==3],
+	dat.swe5$sweN[dat.swe5$pixID==2&dat.swe5$year==2005&dat.swe5$gcID==3])	
+for(i in 1:dim(probMid)[1]){
+
+points(dat.swe7$jday[dat.swe7$pixID==probMid$pixID[i]&dat.swe7$year==probMid$year[i]&dat.swe7$gcID==probMid$gcID[i]],
+	dat.swe7$sweN[dat.swe7$pixID==probMid$pixID[i]&dat.swe7$year==probMid$year[i]&dat.swe7$gcID==probMid$gcID[i]], pch=19,type="l")	
+}	
 plot(dat.swe5$jday[dat.swe5$pixID==1&dat.swe5$year==2005&dat.swe5$gcID==1],
 	dat.swe5$sweN[dat.swe5$pixID==1&dat.swe5$year==2005&dat.swe5$gcID==1])	
 		
