@@ -400,6 +400,7 @@ plot(repDF3$sweN,repDF3$repMean, xlab="observed proportion of swe max",ylab="pre
 probMid <- midConv[midConv$conv==1,]
 probB0 <- b0Conv[b0Conv$b0conv==1,]
 
+
 dfConvM <- unique(data.frame(gcID=probMid$gcID,pixID=probMid$pixID)) 
 
 dfProb <- join(probMid,pixJ3,by=c("gcID","pixID","year"),type="left")

@@ -201,15 +201,62 @@ dat.swe6 <- join(dat.swe5,pixJ2, by=c("cell","year","gcID","pixID","gcYearID"), 
 dat.swe7 <- dat.swe6[dat.swe6$jday>=dat.swe6$dayMax,]
 
 
+################################################
+####omit data after zero is reached         ####
+################################################
+minTemp <- numeric(0)
+minN <- numeric(0)
+#get the final swe max time
+for(i in 1:dim(gcYearID)[1]){
+	minTemp <- numeric(0)
+	minN <- numeric(0)
+	for(j in 1:dim(pixList[[i]])[1]){
+		if(length(which(dat.swe7$pixID==pixList[[i]]$pixID[j]&dat.swe7$year==pixList[[i]]$year[j]& dat.swe7$gcID==pixList[[i]]$gcID[j]&dat.swe7$sweN==0))!=0){
+			minTemp <- which(dat.swe7$pixID==pixList[[i]]$pixID[j]&dat.swe7$year==pixList[[i]]$year[j]& dat.swe7$gcID==pixList[[i]]$gcID[j]&dat.swe7$sweN==0) 
+		
+			minN[j] <- head(minTemp, n=1)
+		}else{minN[j] <- NA}	
+	}
+	pixList[[i]]$finalMin <- minN
+}
+
+pixJ3 <- ldply(pixList,data.frame)
+
+pixJ3$dayMin <- dat.swe7$jday[pixJ3$finalMin]
+pixJ3$dayMax <- dat.swe5$jday[pixJ2$finalMax]
+
+dat.swe8 <- join(dat.swe7,pixJ3, by=c("cell","year","gcID","pixID","gcYearID"), type="left")
+dat.swe8$filterID <- ifelse(dat.swe8$jday<=dat.swe8$dayMin|is.na(dat.swe8$dayMin),1,0)
+
+dat.swe9 <- dat.swe8[dat.swe8$filterID==1,]
+
+################################################
+####omit sites with a lot of missing data   ####
+################################################
+#get the maximum day of year
+nDOY <- numeric(0)
+#get the final swe max time
+for(i in 1:dim(gcYearID)[1]){
+	nDOY <- numeric(0)
+	for(j in 1:dim(pixList[[i]])[1]){
+		nDOY[j] <- length(dat.swe9$jday[dat.swe9$pixID==pixList[[i]]$pixID[j]&dat.swe9$year==pixList[[i]]$year[j]&dat.swe9$gcID==pixList[[i]]$gcID[j]])
+		}
+		pixList[[i]]$doyN <- nDOY
+	}
+pixJ4 <- ldply(pixList,data.frame)
+pixJ4$dayMax <- dat.swe5$jday[pixJ2$finalMax]
+
+dat.swe10 <- join(dat.swe9,pixJ4, by=c("cell","year","gcID","pixID","gcYearID"), type="left")
 
 
+dat.swe11<- dat.swe10[dat.swe10$doyN>10,]	
 #pull out which rows each gc is related
-#sweRows <- list()
-#sweDims <- numeric(0)
-#for(i in 1:dim(gcYearID)[1]){
-#	sweRows[[i]] <- which(dat.swe7$gcID==gcYearID$gcID[i]&dat.swe7$year==gcYearID$year[i])
-#	sweDims[i] <- length(sweRows[[i]])
-#}
+sweRows <- list()
+sweDims <- numeric(0)
+for(i in 1:dim(gcYearID)[1]){
+	sweRows[[i]] <- which(dat.swe11$gcID==gcYearID$gcID[i]&dat.swe11$year==gcYearID$year[i])
+	sweDims[i] <- length(sweRows[[i]])
+}
 #find out which 
 #whichrep <- list()
 #for(i in 1:dim(gcYearID)[1]){
@@ -222,7 +269,7 @@ dat.swe7 <- dat.swe6[dat.swe6$jday>=dat.swe6$dayMax,]
 #whichrep <- ldply(whichrep,data.frame)
 #write.table(whichrep,"z:\\projects\\boreal_swe_depletion\\data\\rep_subID.csv",sep=",",row.names=FALSE)
 
-datRep <- dat.swe7[whichrep$rows,]
+datRep <- dat.swe11[whichrep$rows,]
 
 #######################################################
 # set up model run                                    #
@@ -232,10 +279,10 @@ datalist <- list()
 if(rn==1){
 	for(i in 1:30){
 
-		datalist[[i]] <- list(Nobs=dim(dat.swe7[dat.swe7$gcID==gcYearID$gcID[i]&dat.swe7$year==gcYearID$year[i],])[1],
-				swe=dat.swe7$sweN[dat.swe7$gcID==gcYearID$gcID[i]&dat.swe7$year==gcYearID$year[i]], 
-				day=(dat.swe7$jday[dat.swe7$gcID==gcYearID$gcID[i]&dat.swe7$year==gcYearID$year[i]]-32)/(182-32),
-				pixID=dat.swe7$pixID[dat.swe7$gcID==gcYearID$gcID[i]&dat.swe7$year==gcYearID$year[i]],
+		datalist[[i]] <- list(Nobs=dim(dat.swe11[dat.swe11$gcID==gcYearID$gcID[i]&dat.swe11$year==gcYearID$year[i],])[1],
+				swe=dat.swe11$sweN[dat.swe11$gcID==gcYearID$gcID[i]&dat.swe11$year==gcYearID$year[i]], 
+				day=(dat.swe11$jday[dat.swe11$gcID==gcYearID$gcID[i]&dat.swe11$year==gcYearID$year[i]]-32)/(182-32),
+				pixID=dat.swe11$pixID[dat.swe11$gcID==gcYearID$gcID[i]&dat.swe11$year==gcYearID$year[i]],
 				Npixel=dim(pixList[[i]])[1], 
 				Rday=(datRep$jday[datRep$gcID==gcYearID$gcID[i]&datRep$year==gcYearID$year[i]]-32)/(182-32),
 				Nrep=dim(datRep[datRep$gcID==gcYearID$gcID[i]&datRep$year==gcYearID$year[i],])[1],
@@ -245,10 +292,10 @@ if(rn==1){
 
 if(rn==2){
 	for(i in 1:20){
-				datalist[[i]] <- list(Nobs=dim(dat.swe7[dat.swe7$gcID==gcYearID$gcID[i+30]&dat.swe7$year==gcYearID$year[i+30],])[1],
-				swe=dat.swe7$sweN[dat.swe7$gcID==gcYearID$gcID[i+30]&dat.swe7$year==gcYearID$year[i+30]], 
-				day=(dat.swe7$jday[dat.swe7$gcID==gcYearID$gcID[i+30]&dat.swe7$year==gcYearID$year[i+30]]-32)/(182-32),
-				pixID=dat.swe7$pixID[dat.swe7$gcID==gcYearID$gcID[i+30]&dat.swe7$year==gcYearID$year[i+30]],
+				datalist[[i]] <- list(Nobs=dim(dat.swe11[dat.swe11$gcID==gcYearID$gcID[i+30]&dat.swe11$year==gcYearID$year[i+30],])[1],
+				swe=dat.swe11$sweN[dat.swe11$gcID==gcYearID$gcID[i+30]&dat.swe11$year==gcYearID$year[i+30]], 
+				day=(dat.swe11$jday[dat.swe11$gcID==gcYearID$gcID[i+30]&dat.swe11$year==gcYearID$year[i+30]]-32)/(182-32),
+				pixID=dat.swe11$pixID[dat.swe11$gcID==gcYearID$gcID[i+30]&dat.swe11$year==gcYearID$year[i+30]],
 				Npixel=dim(pixList[[i+30]])[1],  
 				Rday=(datRep$jday[datRep$gcID==gcYearID$gcID[i+30]&datRep$year==gcYearID$year[i+30]]-32)/(182-32),
 				Nrep=dim(datRep[datRep$gcID==gcYearID$gcID[i+30]&datRep$year==gcYearID$year[i+30],])[1],

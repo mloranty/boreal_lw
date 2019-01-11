@@ -223,10 +223,11 @@ for(i in 1:dim(gcYearID)[1]){
 pixJ3 <- ldply(pixList,data.frame)
 
 pixJ3$dayMin <- dat.swe7$jday[pixJ3$finalMin]
+pixJ3$dayMax <- dat.swe5$jday[pixJ2$finalMax]
 
 dat.swe8 <- join(dat.swe7,pixJ3, by=c("cell","year","gcID","pixID","gcYearID"), type="left")
-dat.swe8$filterID <- ifelse(dat.swe9$jday<=dat.swe9$dayMin,1,
-						ifelse(is.na(dat.swe9$dayMin),1,0))
+dat.swe8$filterID <- ifelse(dat.swe8$jday<=dat.swe8$dayMin|is.na(dat.swe8$dayMin),1,0)
+
 dat.swe9 <- dat.swe8[dat.swe8$filterID==1,]
 
 ################################################
@@ -242,12 +243,13 @@ for(i in 1:dim(gcYearID)[1]){
 		}
 		pixList[[i]]$doyN <- nDOY
 	}
-pixJ3 <- ldply(pixList,data.frame)
+pixJ4 <- ldply(pixList,data.frame)
+pixJ4$dayMax <- dat.swe5$jday[pixJ2$finalMax]
 
-dat.swe10 <- join(dat.swe9,pixJ3, by=c("cell","year","gcID","pixID","gcYearID"), type="left")
+dat.swe10 <- join(dat.swe9,pixJ4, by=c("cell","year","gcID","pixID","gcYearID"), type="left")
 
 
-dat.swe11<- dat.swe11[dat.swe11$doyN>10,]	
+dat.swe11<- dat.swe10[dat.swe10$doyN>10,]	
 #pull out which rows each gc is related
 sweRows <- list()
 sweDims <- numeric(0)
@@ -256,16 +258,16 @@ for(i in 1:dim(gcYearID)[1]){
 	sweDims[i] <- length(sweRows[[i]])
 }
 #find out which 
-whichrep <- list()
-for(i in 1:dim(gcYearID)[1]){
-	if(sweDims[i]>5000){
-		whichrep[[i]] <- data.frame(gcID=rep(gcYearID$gcID[i], each=5000),year=rep(gcYearID$year[i], each=5000), rows=sample(sweRows[[i]],5000))
-	}else{
-		whichrep[[i]] <-data.frame(gcID=rep(gcYearID$gcID[i], each=sweDims[i]),year=rep(gcYearID$year[i], each=sweDims[i]), rows=sweRows[[i]])
-	}
-}
-whichrep <- ldply(whichrep,data.frame)
-write.table(whichrep,"z:\\projects\\boreal_swe_depletion\\data\\rep_subID.csv",sep=",",row.names=FALSE)
+#whichrep <- list()
+#for(i in 1:dim(gcYearID)[1]){
+#	if(sweDims[i]>5000){
+#		whichrep[[i]] <- data.frame(gcID=rep(gcYearID$gcID[i], each=5000),year=rep(gcYearID$year[i], each=5000), rows=sample(sweRows[[i]],5000))
+#	}else{
+#		whichrep[[i]] <-data.frame(gcID=rep(gcYearID$gcID[i], each=sweDims[i]),year=rep(gcYearID$year[i], each=sweDims[i]), rows=sweRows[[i]])
+#	}
+#}
+#whichrep <- ldply(whichrep,data.frame)
+#write.table(whichrep,"z:\\projects\\boreal_swe_depletion\\data\\rep_subID.csv",sep=",",row.names=FALSE)
 
 datRep <- dat.swe11[whichrep$rows,]
 
