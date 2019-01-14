@@ -24,7 +24,7 @@ DDdir <- c("/home/hkropp/boreal/data",
 
 
 #create a vector with all of the parent directories
-dirP <- c("z:\\projects\\boreal_swe_depletion\\model\\run11\\run1")
+dirP <- c("z:\\projects\\boreal_swe_depletion\\model\\run12\\run1")
 
 outD <- "z:\\projects\\boreal_swe_depletion\\model\\run11\\eval"
 #get a list of all of the files
@@ -91,8 +91,8 @@ for(i in 1:dim(chainDF)[1]){
 	b0Out3 <- as.mcmc(b0Out3)
 	b0mcmc <- mcmc.list(b0Out1,b0Out2,b0Out3)
 	#make plots
-	dir.create(paste0(outD,"\\glc",chainDF$glc[i],"_year",chainDF$year[i]))
-	mcmcplot(b0mcmc,dir=paste0(outD,"\\glc",chainDF$glc[i],"_year",chainDF$year[i]))
+	#dir.create(paste0(outD,"\\glc",chainDF$glc[i],"_year",chainDF$year[i]))
+	#mcmcplot(b0mcmc,dir=paste0(outD,"\\glc",chainDF$glc[i],"_year",chainDF$year[i]))
 	b0.diag[[i]] <- gelman.diag(b0mcmc)
 }
 	
@@ -141,10 +141,6 @@ for(i in 1:dim(chainDF)[1]){
 #turn into a data frame
 midConv <- ldply(midCheck,data.frame)
 b0Conv <- ldply(b0Check,data.frame)
-
-#######################################################
-# read in and filter data                             #
-#######################################################
 
 #######################################################
 # read in and filter data                             #
@@ -310,15 +306,62 @@ dat.swe6 <- join(dat.swe5,pixJ2, by=c("cell","year","gcID","pixID","gcYearID"), 
 dat.swe7 <- dat.swe6[dat.swe6$jday>=dat.swe6$dayMax,]
 
 
+################################################
+####omit data after zero is reached         ####
+################################################
+minTemp <- numeric(0)
+minN <- numeric(0)
+#get the final swe max time
+for(i in 1:dim(gcYearID)[1]){
+	minTemp <- numeric(0)
+	minN <- numeric(0)
+	for(j in 1:dim(pixList[[i]])[1]){
+		if(length(which(dat.swe7$pixID==pixList[[i]]$pixID[j]&dat.swe7$year==pixList[[i]]$year[j]& dat.swe7$gcID==pixList[[i]]$gcID[j]&dat.swe7$sweN==0))!=0){
+			minTemp <- which(dat.swe7$pixID==pixList[[i]]$pixID[j]&dat.swe7$year==pixList[[i]]$year[j]& dat.swe7$gcID==pixList[[i]]$gcID[j]&dat.swe7$sweN==0) 
+		
+			minN[j] <- head(minTemp, n=1)
+		}else{minN[j] <- NA}	
+	}
+	pixList[[i]]$finalMin <- minN
+}
+
+pixJ3 <- ldply(pixList,data.frame)
+
+pixJ3$dayMin <- dat.swe7$jday[pixJ3$finalMin]
+pixJ3$dayMax <- dat.swe5$jday[pixJ2$finalMax]
+
+dat.swe8 <- join(dat.swe7,pixJ3, by=c("cell","year","gcID","pixID","gcYearID"), type="left")
+dat.swe8$filterID <- ifelse(dat.swe8$jday<=dat.swe8$dayMin|is.na(dat.swe8$dayMin),1,0)
+
+dat.swe9 <- dat.swe8[dat.swe8$filterID==1,]
+
+################################################
+####omit sites with a lot of missing data   ####
+################################################
+#get the maximum day of year
+nDOY <- numeric(0)
+#get the final swe max time
+for(i in 1:dim(gcYearID)[1]){
+	nDOY <- numeric(0)
+	for(j in 1:dim(pixList[[i]])[1]){
+		nDOY[j] <- length(dat.swe9$jday[dat.swe9$pixID==pixList[[i]]$pixID[j]&dat.swe9$year==pixList[[i]]$year[j]&dat.swe9$gcID==pixList[[i]]$gcID[j]])
+		}
+		pixList[[i]]$doyN <- nDOY
+	}
+pixJ4 <- ldply(pixList,data.frame)
+pixJ4$dayMax <- dat.swe5$jday[pixJ2$finalMax]
+
+dat.swe10 <- join(dat.swe9,pixJ4, by=c("cell","year","gcID","pixID","gcYearID"), type="left")
 
 
+dat.swe11<- dat.swe10[dat.swe10$doyN>10,]	
 #pull out which rows each gc is related
-#sweRows <- list()
-#sweDims <- numeric(0)
-#for(i in 1:dim(gcYearID)[1]){
-#	sweRows[[i]] <- which(dat.swe7$gcID==gcYearID$gcID[i]&dat.swe7$year==gcYearID$year[i])
-#	sweDims[i] <- length(sweRows[[i]])
-#}
+sweRows <- list()
+sweDims <- numeric(0)
+for(i in 1:dim(gcYearID)[1]){
+	sweRows[[i]] <- which(dat.swe11$gcID==gcYearID$gcID[i]&dat.swe11$year==gcYearID$year[i])
+	sweDims[i] <- length(sweRows[[i]])
+}
 #find out which 
 #whichrep <- list()
 #for(i in 1:dim(gcYearID)[1]){
@@ -331,8 +374,7 @@ dat.swe7 <- dat.swe6[dat.swe6$jday>=dat.swe6$dayMax,]
 #whichrep <- ldply(whichrep,data.frame)
 #write.table(whichrep,"z:\\projects\\boreal_swe_depletion\\data\\rep_subID.csv",sep=",",row.names=FALSE)
 
-datRep <- dat.swe7[whichrep$rows,]
-
+datRep <- dat.swe11[whichrep$rows,]
 
 
 #pull out replicated data
@@ -398,31 +440,23 @@ plot(repDF3$sweN,repDF3$repMean, xlab="observed proportion of swe max",ylab="pre
 
 
 probMid <- midConv[midConv$conv==1,]
-probB0 <- b0Conv[b0Conv$b0conv==1,]
+probB0 <- b0Conv[b0Conv$conv==1,]
 
+probAll <- join(probMid,probB0, by=c("gridID","glc","year"),type="full")
 
-dfConvM <- unique(data.frame(gcID=probMid$gcID,pixID=probMid$pixID)) 
+probOut <- data.frame(pixID=probAll$gridID, gcID=probAll$glc,year=probAll$year)
 
-dfProb <- join(probMid,pixJ3,by=c("gcID","pixID","year"),type="left")
-
-
-plot(dat.swe5$jday[dat.swe5$pixID==probMid$pixID[1]&dat.swe5$year==probMid$year[1]&dat.swe5$gcID==probMid$gcID[1]],
-	dat.swe5$sweN[dat.swe5$pixID==probMid$pixID[1]&dat.swe5$year==probMid$year[1]&dat.swe5$gcID==probMid$gcID[1]])
-	
-i=28
-plot(dat.swe7$jday[dat.swe7$pixID==probMid$pixID[i]&dat.swe7$year==probMid$year[i]&dat.swe7$gcID==probMid$gcID[i]],
-	dat.swe7$sweN[dat.swe7$pixID==probMid$pixID[i]&dat.swe7$year==probMid$year[i]&dat.swe7$gcID==probMid$gcID[i]])	
-	
-	
-plot(dat.swe5$jday[dat.swe5$pixID==2&dat.swe5$year==2005&dat.swe5$gcID==3],
-	dat.swe5$sweN[dat.swe5$pixID==2&dat.swe5$year==2005&dat.swe5$gcID==3])	
+write.table (probOut, "z:\\projects\\boreal_swe_depletion\\data\\prob_pix.csv",sep=",", row.names=FALSE)
+par(mfrow=c(2,3))	
 for(i in 1:dim(probMid)[1]){
 
-points(dat.swe7$jday[dat.swe7$pixID==probMid$pixID[i]&dat.swe7$year==probMid$year[i]&dat.swe7$gcID==probMid$gcID[i]],
-	dat.swe7$sweN[dat.swe7$pixID==probMid$pixID[i]&dat.swe7$year==probMid$year[i]&dat.swe7$gcID==probMid$gcID[i]], pch=19,type="l")	
+	plot(dat.swe11$jday[dat.swe11$pixID==probMid$gridID[i]&dat.swe11$year==probMid$year[i]&dat.swe11$gcID==probMid$glc[i]],
+	dat.swe11$sweN[dat.swe11$pixID==probMid$gridID[i]&dat.swe11$year==probMid$year[i]&dat.swe11$gcID==probMid$glc[i]],pch=19,
+	, xlab="Day of year",
+	ylab="normalized SWE (proportion of swe max)")		
 }	
-plot(dat.swe5$jday[dat.swe5$pixID==1&dat.swe5$year==2005&dat.swe5$gcID==1],
-	dat.swe5$sweN[dat.swe5$pixID==1&dat.swe5$year==2005&dat.swe5$gcID==1])	
+
+#write ID to file
 		
 #make a map of cells
 
