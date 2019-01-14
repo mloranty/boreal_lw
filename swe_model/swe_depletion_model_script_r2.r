@@ -45,12 +45,14 @@ if(runOS==1){
 	dat.swe <- read.csv(paste0(DDdir[1], "/swe_depletion_model_data_vcf_no_topo.csv"))
 	dat.glc <- read.csv(paste0(DDdir[1], "/glc50_table.csv"))
 	whichrep <- read.csv(paste0(DDdir[1],"/rep_subID.csv"))
+	datExc <- read.csv(paste0(DDdir[1],"/prob_pix.csv"))
 
 }else{
 
 	dat.swe <- read.csv(paste0(DDdir[2],"\\swe_depletion_model_data_vcf_no_topo.csv"))
 	dat.glc <- read.csv(paste0(DDdir[2], "/glc50_table.csv"))
 	whichrep <- read.csv(paste0(DDdir[2],"\\rep_subID.csv"))
+	datExc <- read.csv(paste0(DDdir[2],"\\prob_pix.csv"))
 }
 
 
@@ -250,11 +252,21 @@ dat.swe10 <- join(dat.swe9,pixJ4, by=c("cell","year","gcID","pixID","gcYearID"),
 
 
 dat.swe11<- dat.swe10[dat.swe10$doyN>10,]	
+
+#######################################################
+# Exclude cells with data not appropriate for model   #
+#######################################################
+
+datExc$flag <- rep(1, dim(datExc)[1])
+
+dat.swe12 <- join(dat.swe11,datExc, by=c("gcID","pixID","year"), type="left")
+dat.swe13 <- dat.swe12[is.na(dat.swe12$flag),]
+
 #pull out which rows each gc is related
 sweRows <- list()
 sweDims <- numeric(0)
 for(i in 1:dim(gcYearID)[1]){
-	sweRows[[i]] <- which(dat.swe11$gcID==gcYearID$gcID[i]&dat.swe11$year==gcYearID$year[i])
+	sweRows[[i]] <- which(dat.swe13$gcID==gcYearID$gcID[i]&dat.swe13$year==gcYearID$year[i])
 	sweDims[i] <- length(sweRows[[i]])
 }
 #find out which 
@@ -269,7 +281,7 @@ for(i in 1:dim(gcYearID)[1]){
 #whichrep <- ldply(whichrep,data.frame)
 #write.table(whichrep,"z:\\projects\\boreal_swe_depletion\\data\\rep_subID.csv",sep=",",row.names=FALSE)
 
-datRep <- dat.swe11[whichrep$rows,]
+datRep <- dat.swe13[whichrep$rows,]
 
 #######################################################
 # set up model run                                    #
@@ -279,10 +291,10 @@ datalist <- list()
 if(rn==1){
 	for(i in 1:30){
 
-		datalist[[i]] <- list(Nobs=dim(dat.swe11[dat.swe11$gcID==gcYearID$gcID[i]&dat.swe11$year==gcYearID$year[i],])[1],
-				swe=dat.swe11$sweN[dat.swe11$gcID==gcYearID$gcID[i]&dat.swe11$year==gcYearID$year[i]], 
-				day=(dat.swe11$jday[dat.swe11$gcID==gcYearID$gcID[i]&dat.swe11$year==gcYearID$year[i]]-32)/(182-32),
-				pixID=dat.swe11$pixID[dat.swe11$gcID==gcYearID$gcID[i]&dat.swe11$year==gcYearID$year[i]],
+		datalist[[i]] <- list(Nobs=dim(dat.swe13[dat.swe13$gcID==gcYearID$gcID[i]&dat.swe13$year==gcYearID$year[i],])[1],
+				swe=dat.swe13$sweN[dat.swe13$gcID==gcYearID$gcID[i]&dat.swe13$year==gcYearID$year[i]], 
+				day=(dat.swe13$jday[dat.swe13$gcID==gcYearID$gcID[i]&dat.swe13$year==gcYearID$year[i]]-32)/(182-32),
+				pixID=dat.swe13$pixID[dat.swe13$gcID==gcYearID$gcID[i]&dat.swe13$year==gcYearID$year[i]],
 				Npixel=dim(pixList[[i]])[1], 
 				Rday=(datRep$jday[datRep$gcID==gcYearID$gcID[i]&datRep$year==gcYearID$year[i]]-32)/(182-32),
 				Nrep=dim(datRep[datRep$gcID==gcYearID$gcID[i]&datRep$year==gcYearID$year[i],])[1],
@@ -292,10 +304,10 @@ if(rn==1){
 
 if(rn==2){
 	for(i in 1:20){
-				datalist[[i]] <- list(Nobs=dim(dat.swe11[dat.swe11$gcID==gcYearID$gcID[i+30]&dat.swe11$year==gcYearID$year[i+30],])[1],
-				swe=dat.swe11$sweN[dat.swe11$gcID==gcYearID$gcID[i+30]&dat.swe11$year==gcYearID$year[i+30]], 
-				day=(dat.swe11$jday[dat.swe11$gcID==gcYearID$gcID[i+30]&dat.swe11$year==gcYearID$year[i+30]]-32)/(182-32),
-				pixID=dat.swe11$pixID[dat.swe11$gcID==gcYearID$gcID[i+30]&dat.swe11$year==gcYearID$year[i+30]],
+				datalist[[i]] <- list(Nobs=dim(dat.swe13[dat.swe13$gcID==gcYearID$gcID[i+30]&dat.swe13$year==gcYearID$year[i+30],])[1],
+				swe=dat.swe13$sweN[dat.swe13$gcID==gcYearID$gcID[i+30]&dat.swe13$year==gcYearID$year[i+30]], 
+				day=(dat.swe13$jday[dat.swe13$gcID==gcYearID$gcID[i+30]&dat.swe13$year==gcYearID$year[i+30]]-32)/(182-32),
+				pixID=dat.swe13$pixID[dat.swe13$gcID==gcYearID$gcID[i+30]&dat.swe13$year==gcYearID$year[i+30]],
 				Npixel=dim(pixList[[i+30]])[1],  
 				Rday=(datRep$jday[datRep$gcID==gcYearID$gcID[i+30]&datRep$year==gcYearID$year[i+30]]-32)/(182-32),
 				Nrep=dim(datRep[datRep$gcID==gcYearID$gcID[i+30]&datRep$year==gcYearID$year[i+30],])[1],
