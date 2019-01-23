@@ -117,7 +117,70 @@ for(i in 1:dim(chainDF)[1]){
 					gcID=rep(chainDF$year[i],dim(midSumm[[i]]$statistics)[1]),pixID=seq(1,dim(midSumm[[i]]$statistics)[1]))
 }
 
+midOut <- ldply(midStat, data.frame)
+b0Out <- ldply(b0Stat, data.frame)
 
+###
+#read in means
+mumidOut1 <- data.frame()
+mumidOut2 <- data.frame()
+mumidOut3 <- data.frame()
+mumidmcmc <- mcmc.list()
+mumidSumm <- list()
+mumidStat <- list()
+for(i in 1:dim(chainDF)[1]){
+	#read in output
+	mumidOut1 <- read.csv(paste0(chainDF$dirP1[i],"\\",chainDF$files1[i],"\\muMid_out.csv"))
+	mumidOut2 <- read.csv(paste0(chainDF$dirP2[i],"\\",chainDF$files2[i],"\\muMid_out.csv"))
+	mumidOut3 <- read.csv(paste0(chainDF$dirP3[i],"\\",chainDF$files3[i],"\\muMid_out.csv"))
+	colnames(mumidOut1) <- paste0("mumid")
+	colnames(mumidOut2) <- paste0("mumid")
+	colnames(mumidOut3) <- paste0("mumid")
+	#turn into mcmc
+	mumidOut1 <- as.mcmc(mumidOut1)
+	mumidOut2 <- as.mcmc(mumidOut2)
+	mumidOut3 <- as.mcmc(mumidOut3)
+	mumidmcmc <- mcmc.list(mumidOut1,mumidOut2,mumidOut3)
+	mumidSumm[[i]] <- summary(mumidmcmc)
+	mumidStat[[i]] <- data.frame(Mean=mumidSumm[[i]]$statistics[1],
+									SD=mumidSumm[[i]]$statistics[2],
+									p2.5=mumidSumm[[i]]$quantiles[1],
+									p97.5=mumidSumm[[i]]$quantiles[5],gcID=chainDF$glc[i],
+					year=chainDF$year[i])
+}
+
+muMidOut <- ldply(mumidStat,data.frame)
+
+mub0Out1 <- data.frame()
+mub0Out2 <- data.frame()
+mub0Out3 <- data.frame()
+mub0mcmc <- mcmc.list()
+mub0.diag <- list()
+mub0Summ <- list()
+mub0Stat <- list()
+for(i in 1:dim(chainDF)[1]){
+
+	#read in output
+	mub0Out1 <- read.csv(paste0(chainDF$dirP1[i],"\\",chainDF$files1[i],"\\muB0_out.csv"))
+	mub0Out2 <- read.csv(paste0(chainDF$dirP2[i],"\\",chainDF$files2[i],"\\muB0_out.csv"))
+	mub0Out3 <- read.csv(paste0(chainDF$dirP3[i],"\\",chainDF$files3[i],"\\muB0_out.csv"))
+	colnames(mub0Out1) <- paste0("mub0")
+	colnames(mub0Out2) <- paste0("mub0")
+	colnames(mub0Out3) <- paste0("mub0")
+	#turn into mcmc
+	mub0Out1 <- as.mcmc(mub0Out1)
+	mub0Out2 <- as.mcmc(mub0Out2)
+	mub0Out3 <- as.mcmc(mub0Out3)
+	mub0mcmc <- mcmc.list(b0Out1,b0Out2,b0Out3)
+	mub0Summ[[i]] <- summary(mub0mcmc)
+	mub0Stat[[i]] <- data.frame(Mean=mub0Summ[[i]]$statistics[1],
+									SD=mub0Summ[[i]]$statistics[2],
+									p2.5=mub0Summ[[i]]$quantiles[1],
+									p97.5=mub0Summ[[i]]$quantiles[5],
+							gcID=chainDF$glc[i],
+					year=chainDF$year[i])
+}
+muB0Out <- ldply(mub0Stat,data.frame)
 #######################################################
 # read in and filter data                             #
 #######################################################
@@ -333,3 +396,7 @@ dat.swe10 <- join(dat.swe9,pixJ4, by=c("cell","year","gcID","pixID","gcYearID"),
 
 
 dat.swe11<- dat.swe10[dat.swe10$doyN>10,]	
+
+datSwe <- dat.swe11
+#clear out files that aren't needed
+rm(list=setdiff(ls(), c("datSwe","b0Out","midOut","muB0Out","muMidOut")))
