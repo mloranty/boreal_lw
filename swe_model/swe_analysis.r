@@ -4,7 +4,8 @@
 #### depletion are read in. There are three main      ####
 #### dataframes: datSwe: the actual swe data          ####
 #### b0Out: the rate of swe decline and midOut: the   ####
-#### timing of half swe                               ####
+#### timing of half swe,muB0Out=glc mean slope        ####
+#### muMidOut= glc mean midpoint                      ####
 ##########################################################
 
 
@@ -26,6 +27,20 @@ swepath <- "z:\\data_repo\\gis_data"
 ### set up a dataframe with all of the      ###
 ### data and parameters by cell             ###
 ###############################################
+sweCell <- unique(data.frame(cell=datSwe$cell,gcID=datSwe$gcID,pixID=datSwe$pixID,year=datSwe$year,
+								lat=datSwe$y.coord,lon=datSwe$x.coord,
+								vcf=datSwe$vcf,zone=datSwe$zone,dayMax=datSwe$dayMax))
+
+#calculate the average air temp during the melt period
+tempMelt <- aggregate(datSwe$t.air, by=list(datSwe$gcID,datSwe$pixID,datSwe$year), FUN="mean")
+colnames(tempMelt) <- c("gcID","pixID","year","tempK")
+tempMelt$tempC <- tempMelt$tempK-273.15
+#combine back into sweCell
+sweCell2 <- join(sweCell,tempMelt, by=c("gcID","pixID","year"),type="left")
+
+#now join to each output
+b0All <- join(b0Out,sweCell2,by=c("year","gcID","pixID"),type="left")
+midAll <- join(midOut,sweCell2,by=c("year","gcID","pixID"),type="left")
 
 ###############################################
 ### set up information for mapping           ###

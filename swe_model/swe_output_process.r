@@ -81,14 +81,16 @@ for(i in 1:dim(chainDF)[1]){
 	colnames(b0Out1) <- paste0("b0_",seq(1,dim(b0Out1)[2]))
 	colnames(b0Out2) <- paste0("b0_",seq(1,dim(b0Out2)[2]))
 	colnames(b0Out3) <- paste0("b0_",seq(1,dim(b0Out3)[2]))
+	
 	#turn into mcmc
-	b0Out1 <- as.mcmc(b0Out1)
-	b0Out2 <- as.mcmc(b0Out2)
-	b0Out3 <- as.mcmc(b0Out3)
+	#and convert to days
+	b0Out1 <- as.mcmc(apply(b0Out1,c(1,2),function(X){X/(182-32)}))
+	b0Out2 <- as.mcmc(apply(b0Out2,c(1,2),function(X){X/(182-32)}))
+	b0Out3 <- as.mcmc(apply(b0Out3,c(1,2),function(X){X/(182-32)}))
 	b0mcmc <- mcmc.list(b0Out1,b0Out2,b0Out3)
 	b0Summ[[i]] <- summary(b0mcmc)
 	b0Stat[[i]] <- data.frame(b0Summ[[i]]$statistics,b0Summ[[i]]$quantiles,gcID=rep(chainDF$glc[i],dim(b0Summ[[i]]$statistics)[1]),
-					gcID=rep(chainDF$year[i],dim(b0Summ[[i]]$statistics)[1]),pixID=seq(1,dim(b0Summ[[i]]$statistics)[1]))
+					year=rep(chainDF$year[i],dim(b0Summ[[i]]$statistics)[1]),pixID=seq(1,dim(b0Summ[[i]]$statistics)[1]))
 }
 	
 
@@ -100,6 +102,7 @@ mid.diag <- list()
 midSumm <- list()
 midStat <- list()
 for(i in 1:dim(chainDF)[1]){
+
 	#read in output
 	midOut1 <- read.csv(paste0(chainDF$dirP1[i],"\\",chainDF$files1[i],"\\mid0_out.csv"))
 	midOut2 <- read.csv(paste0(chainDF$dirP2[i],"\\",chainDF$files2[i],"\\mid0_out.csv"))
@@ -107,14 +110,16 @@ for(i in 1:dim(chainDF)[1]){
 	colnames(midOut1) <- paste0("mid0_",seq(1,dim(midOut1)[2]))
 	colnames(midOut2) <- paste0("mid0_",seq(1,dim(midOut2)[2]))
 	colnames(midOut3) <- paste0("mid0_",seq(1,dim(midOut3)[2]))
+
 	#turn into mcmc
-	midOut1 <- as.mcmc(midOut1)
-	midOut2 <- as.mcmc(midOut2)
-	midOut3 <- as.mcmc(midOut3)
+	#convert to doy
+	midOut1 <- as.mcmc(apply(midOut1,c(1,2),function(X){(X*(182-32))+32}))
+	midOut2 <- as.mcmc(apply(midOut2,c(1,2),function(X){(X*(182-32))+32}))
+	midOut3 <- as.mcmc(apply(midOut3,c(1,2),function(X){(X*(182-32))+32}))
 	midmcmc <- mcmc.list(midOut1,midOut2,midOut3)
 	midSumm[[i]] <- summary(midmcmc)
 	midStat[[i]] <- data.frame(midSumm[[i]]$statistics,midSumm[[i]]$quantiles,gcID=rep(chainDF$glc[i],dim(midSumm[[i]]$statistics)[1]),
-					gcID=rep(chainDF$year[i],dim(midSumm[[i]]$statistics)[1]),pixID=seq(1,dim(midSumm[[i]]$statistics)[1]))
+					year=rep(chainDF$year[i],dim(midSumm[[i]]$statistics)[1]),pixID=seq(1,dim(midSumm[[i]]$statistics)[1]))
 }
 
 midOut <- ldply(midStat, data.frame)
