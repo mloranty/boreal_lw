@@ -22,6 +22,7 @@ library(raster)
 library(ncdf4)
 library(rgdal)
 library(gdalUtils)
+library(sp)
 ###############################################
 ### set up file paths                       ###
 ###############################################
@@ -33,7 +34,7 @@ swepath <- "z:\\data_repo\\gis_data"
 ### data and parameters by cell             ###
 ###############################################
 sweCell <- unique(data.frame(cell=datSwe$cell,gcID=datSwe$gcID,pixID=datSwe$pixID,year=datSwe$year,
-								lat=datSwe$y.coord,lon=datSwe$x.coord,
+								y=datSwe$y.coord,x=datSwe$x.coord,
 								vcf=datSwe$vcf,zone=datSwe$zone,dayMax=datSwe$dayMax))
 
 #calculate the average air temp during the melt period
@@ -117,7 +118,7 @@ b2006 <- setValues(swe,bSwe[[7]]$Mean)
 b2007 <- setValues(swe,bSwe[[8]]$Mean)
 b2008 <- setValues(swe,bSwe[[9]]$Mean)
 b2009 <- setValues(swe,bSwe[[10]]$Mean)
-
+#plot each years curve on the map
 plot(mid2000)
 plot(mid2001)
 plot(mid2002)
@@ -141,17 +142,39 @@ plot(b2008)
 plot(b2009)
 
 
-#plot each years curve on the map
+#get lat long for each cell
+#create a spatial points
+sweSP <- SpatialPoints(unique(data.frame(x=b0All$x,y=b0All$y,cell=b0All$cell)), CRS(laea))
+#transform for wgs lat long
+sweSPr <- spTransform(sweSP, CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
 
+sweLL <- data.frame(sweSPr@coords)
+colnames(sweLL) <- c("Lon","Lat","cell")
+#join back into dataframe of results
+b0All2 <- join(b0All,sweLL, by="cell",type="left")
+midAll2 <- join(midAll,sweLL, by="cell",type="left")
 
-
-
-
-
-#plot the means for each glc
-
-
-
+#first check correlations between covariates
+plot(~b0All2$Lat[b0All2$gcID==1]+b0All2$vcf[b0All2$gcID==1]+b0All2$tempC[b0All2$gcID==1]+b0All2$year[b0All2$gcID==1])
+plot(~b0All2$Lat[b0All2$gcID==2]+b0All2$vcf[b0All2$gcID==2]+b0All2$tempC[b0All2$gcID==2]+b0All2$year[b0All2$gcID==2])
+plot(~b0All2$Lat[b0All2$gcID==3]+b0All2$vcf[b0All2$gcID==3]+b0All2$tempC[b0All2$gcID==3]+b0All2$year[b0All2$gcID==3])
+plot(~b0All2$Lat[b0All2$gcID==4]+b0All2$vcf[b0All2$gcID==4]+b0All2$tempC[b0All2$gcID==4]+b0All2$year[b0All2$gcID==4])
+plot(~b0All2$Lat[b0All2$gcID==5]+b0All2$vcf[b0All2$gcID==5]+b0All2$tempC[b0All2$gcID==5]+b0All2$year[b0All2$gcID==5])
+cor(b0All2$Lat[b0All2$gcID==1],b0All2$vcf[b0All2$gcID==1])
+cor(b0All2$Lat[b0All2$gcID==2],b0All2$vcf[b0All2$gcID==2])
+cor(b0All2$Lat[b0All2$gcID==3],b0All2$vcf[b0All2$gcID==3])
+cor(b0All2$Lat[b0All2$gcID==4],b0All2$vcf[b0All2$gcID==4])
+cor(b0All2$Lat[b0All2$gcID==5],b0All2$vcf[b0All2$gcID==5])
+cor(b0All2$Lat[b0All2$gcID==1],b0All2$tempC[b0All2$gcID==1])
+cor(b0All2$Lat[b0All2$gcID==2],b0All2$tempC[b0All2$gcID==2])
+cor(b0All2$Lat[b0All2$gcID==3],b0All2$tempC[b0All2$gcID==3])
+cor(b0All2$Lat[b0All2$gcID==4],b0All2$tempC[b0All2$gcID==4])
+cor(b0All2$Lat[b0All2$gcID==5],b0All2$tempC[b0All2$gcID==5])
+cor(b0All2$vcf[b0All2$gcID==1],b0All2$tempC[b0All2$gcID==1])
+cor(b0All2$vcf[b0All2$gcID==2],b0All2$tempC[b0All2$gcID==2])
+cor(b0All2$vcf[b0All2$gcID==3],b0All2$tempC[b0All2$gcID==3])
+cor(b0All2$vcf[b0All2$gcID==4],b0All2$tempC[b0All2$gcID==4])
+cor(b0All2$vcf[b0All2$gcID==5],b0All2$tempC[b0All2$gcID==5])
 
 #jags regression
-plot(midAll$lat,midAll$Mean)
+datalist <- list(nobs= ,mid=, b0=,sig.modB=,sig.modM=,nglc=,glcID=,year=,TempA=,Canopy=)

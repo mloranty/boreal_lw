@@ -273,6 +273,8 @@ IDSglc <- join(IDSglc, dat.glc[,1:2], by="zone", type="left")
 IDSglc$gcID <- seq(1,dim(IDSglc)[1])
 
 
+
+
 #join glc ID into dataframe
 dat.swe4 <- join(dat.swe3,IDSglc, by="zone", type="left")
 
@@ -404,4 +406,4 @@ dat.swe11<- dat.swe10[dat.swe10$doyN>10,]
 
 datSwe <- dat.swe11
 #clear out files that aren't needed
-rm(list=setdiff(ls(), c("datSwe","b0Out","midOut","muB0Out","muMidOut")))
+rm(list=setdiff(ls(), c("datSwe","b0Out","midOut","muB0Out","muMidOut","IDSglc")))
