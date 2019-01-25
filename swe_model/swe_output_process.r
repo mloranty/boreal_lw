@@ -142,9 +142,9 @@ for(i in 1:dim(chainDF)[1]){
 	colnames(mumidOut2) <- paste0("mumid")
 	colnames(mumidOut3) <- paste0("mumid")
 	#turn into mcmc
-	mumidOut1 <- as.mcmc(mumidOut1)
-	mumidOut2 <- as.mcmc(mumidOut2)
-	mumidOut3 <- as.mcmc(mumidOut3)
+	mumidOut1 <- as.mcmc(apply(mumidOut1,c(1,2),function(X){(X*(182-32))+32}))
+	mumidOut2 <- as.mcmc(apply(mumidOut2,c(1,2),function(X){(X*(182-32))+32}))
+	mumidOut3 <- as.mcmc(apply(mumidOut3,c(1,2),function(X){(X*(182-32))+32}))
 	mumidmcmc <- mcmc.list(mumidOut1,mumidOut2,mumidOut3)
 	mumidSumm[[i]] <- summary(mumidmcmc)
 	mumidStat[[i]] <- data.frame(Mean=mumidSumm[[i]]$statistics[1],
@@ -173,10 +173,10 @@ for(i in 1:dim(chainDF)[1]){
 	colnames(mub0Out2) <- paste0("mub0")
 	colnames(mub0Out3) <- paste0("mub0")
 	#turn into mcmc
-	mub0Out1 <- as.mcmc(mub0Out1)
-	mub0Out2 <- as.mcmc(mub0Out2)
-	mub0Out3 <- as.mcmc(mub0Out3)
-	mub0mcmc <- mcmc.list(b0Out1,b0Out2,b0Out3)
+	mub0Out1 <- as.mcmc(apply(mub0Out1,c(1,2),function(X){X/(182-32)}))
+	mub0Out2 <- as.mcmc(apply(mub0Out2,c(1,2),function(X){X/(182-32)}))
+	mub0Out3 <- as.mcmc(apply(mub0Out3,c(1,2),function(X){X/(182-32)}))
+	mub0mcmc <- mcmc.list(mub0Out1,mub0Out2,mub0Out3)
 	mub0Summ[[i]] <- summary(mub0mcmc)
 	mub0Stat[[i]] <- data.frame(Mean=mub0Summ[[i]]$statistics[1],
 									SD=mub0Summ[[i]]$statistics[2],
