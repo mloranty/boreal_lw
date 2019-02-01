@@ -5,19 +5,21 @@ model{
 		#midpoint of curve
 		mid[i] ~ dnorm(mu.mid[i],tau.mid[i])
 		#empirical regression
-		mu.mid[i] <- betaM0[glcID[i]] + betaM1[glcID[i]]*TempA[i] + betaM2[glcID[i]]*Canopy[i] +
-						 betaM3[glcID[i]]*year[i]
+		mu.mid[i] <- betaM0[glcIDM[i]] + betaM1[glcIDM[i]]*TempAM[i] + betaM2[glcIDM[i]]*CanopyM[i] +
+						 betaM3[glcIDM[i]]*(yearM[i]-2000)
 		#error model and standard deviation
-		sig.mid[i] <- tau.modM[i] + tau.vM[glcID[i]]
+		tau.mid[i] <- tau.modM[i] + tau.vM[glcIDM[i]]
+		tau.modM[i] <- pow(sig.modM[i],-2)
+		
 		#slope of curve
 		b0[i] ~ dnorm(mu.b0[i],tau.b0[i])
 		#empirical regression
-		mu.b0[i] <- betaB0[glcID[i]] + betaB1[glcID[i]]*TempA[i] + betaB2[glcID[i]]*Canopy[i] +
-						betaB3[glcID[i]]*latitude[i]+ betaB3[glcID[i]]*year[i]
+		mu.b0[i] <- betaB0[glcIDB[i]] + betaB1[glcIDB[i]]*TempAB[i] + betaB2[glcIDB[i]]*CanopyB[i] +
+						 betaB3[glcIDB[i]]*(yearB[i]-2000)
 		#error model 
-		sig.b0[i] <- tau.modB[i] + tau.vB[glcID[i]]
+		tau.b0[i] <- tau.modB[i] + tau.vB[glcIDB[i]]
 		tau.modB[i] <- pow(sig.modB[i],-2)
-		tau.modM[i] <- pow(sig.modM[i],-2)
+
 	}
 	#priors
 	for(i in Nglc){

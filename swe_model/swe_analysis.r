@@ -23,11 +23,15 @@ library(ncdf4)
 library(rgdal)
 library(gdalUtils)
 library(sp)
+library(rjags)
+library(coda)
+library(mcmcplots)
 ###############################################
 ### set up file paths                       ###
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
+modDir <- "
 
 ###############################################
 ### set up a dataframe with all of the      ###
@@ -176,5 +180,38 @@ cor(b0All2$vcf[b0All2$gcID==3],b0All2$tempC[b0All2$gcID==3])
 cor(b0All2$vcf[b0All2$gcID==4],b0All2$tempC[b0All2$gcID==4])
 cor(b0All2$vcf[b0All2$gcID==5],b0All2$tempC[b0All2$gcID==5])
 
+#
+
+
 #jags regression
-datalist <- list(nobs= ,mid=, b0=,sig.modB=,sig.modM=,nglc=,glcID=,year=,TempA=,Canopy=)
+datalist <- list(Nobs= dim(b0All2)[1],
+					mid=midAll2$Mean,
+					b0=b0All2$Mean,
+					glcIDM=midAll2$gcID,
+					glcIDB=b0All2$gcID,
+					TempAB=b0All2$tempC,
+					CanopyB=b0All2$vcf,
+					TempAM=midAll2$tempC,
+					CanopyM=midAll2$vcf,
+					yearM=midAll2$year,
+					yearB=b0All2$year,
+					sig.modB=b0All2$SD,
+					sig.modM=midAll2$SD,
+					Nglc=dim(IDSglc)[1])
+
+parms <- c("betaM0","betaM1","betaM2","betaM3",
+			"betaB0","betaB1","betaB2","betaB3",
+			"mu.betaM0","mu.betaM1","mu.betaM2","mu.betaM3",
+			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
+			"sig.M0","sig.M1","sig.M2","sig.M3",
+			"sig.B0","sig.B1","sig.B2","sig.B3",
+			"sig.vB","sig.vM")
+			
+			
+curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_curve_empirical_regression.r",
+						data=datalist,n.adapt=5000,n.chains=3)
+						
+curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=5000,thin=1)						
+			
+			
+			
