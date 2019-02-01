@@ -122,28 +122,6 @@ b2006 <- setValues(swe,bSwe[[7]]$Mean)
 b2007 <- setValues(swe,bSwe[[8]]$Mean)
 b2008 <- setValues(swe,bSwe[[9]]$Mean)
 b2009 <- setValues(swe,bSwe[[10]]$Mean)
-#plot each years curve on the map
-plot(mid2000)
-plot(mid2001)
-plot(mid2002)
-plot(mid2003)
-plot(mid2004)
-plot(mid2005)
-plot(mid2006)
-plot(mid2007)
-plot(mid2008)
-plot(mid2009)
-
-plot(b2000)
-plot(b2001)
-plot(b2002)
-plot(b2003)
-plot(b2004)
-plot(b2005)
-plot(b2006)
-plot(b2007)
-plot(b2008)
-plot(b2009)
 
 
 #get lat long for each cell
@@ -157,75 +135,3 @@ colnames(sweLL) <- c("Lon","Lat","cell")
 #join back into dataframe of results
 b0All2 <- join(b0All,sweLL, by="cell",type="left")
 midAll2 <- join(midAll,sweLL, by="cell",type="left")
-
-#first check correlations between covariates
-plot(~b0All2$Lat[b0All2$gcID==1]+b0All2$vcf[b0All2$gcID==1]+b0All2$tempC[b0All2$gcID==1]+b0All2$year[b0All2$gcID==1])
-plot(~b0All2$Lat[b0All2$gcID==2]+b0All2$vcf[b0All2$gcID==2]+b0All2$tempC[b0All2$gcID==2]+b0All2$year[b0All2$gcID==2])
-plot(~b0All2$Lat[b0All2$gcID==3]+b0All2$vcf[b0All2$gcID==3]+b0All2$tempC[b0All2$gcID==3]+b0All2$year[b0All2$gcID==3])
-plot(~b0All2$Lat[b0All2$gcID==4]+b0All2$vcf[b0All2$gcID==4]+b0All2$tempC[b0All2$gcID==4]+b0All2$year[b0All2$gcID==4])
-plot(~b0All2$Lat[b0All2$gcID==5]+b0All2$vcf[b0All2$gcID==5]+b0All2$tempC[b0All2$gcID==5]+b0All2$year[b0All2$gcID==5])
-cor(b0All2$Lat[b0All2$gcID==1],b0All2$vcf[b0All2$gcID==1])
-cor(b0All2$Lat[b0All2$gcID==2],b0All2$vcf[b0All2$gcID==2])
-cor(b0All2$Lat[b0All2$gcID==3],b0All2$vcf[b0All2$gcID==3])
-cor(b0All2$Lat[b0All2$gcID==4],b0All2$vcf[b0All2$gcID==4])
-cor(b0All2$Lat[b0All2$gcID==5],b0All2$vcf[b0All2$gcID==5])
-cor(b0All2$Lat[b0All2$gcID==1],b0All2$tempC[b0All2$gcID==1])
-cor(b0All2$Lat[b0All2$gcID==2],b0All2$tempC[b0All2$gcID==2])
-cor(b0All2$Lat[b0All2$gcID==3],b0All2$tempC[b0All2$gcID==3])
-cor(b0All2$Lat[b0All2$gcID==4],b0All2$tempC[b0All2$gcID==4])
-cor(b0All2$Lat[b0All2$gcID==5],b0All2$tempC[b0All2$gcID==5])
-cor(b0All2$vcf[b0All2$gcID==1],b0All2$tempC[b0All2$gcID==1])
-cor(b0All2$vcf[b0All2$gcID==2],b0All2$tempC[b0All2$gcID==2])
-cor(b0All2$vcf[b0All2$gcID==3],b0All2$tempC[b0All2$gcID==3])
-cor(b0All2$vcf[b0All2$gcID==4],b0All2$tempC[b0All2$gcID==4])
-cor(b0All2$vcf[b0All2$gcID==5],b0All2$tempC[b0All2$gcID==5])
-
-#
-
-
-#jags regression
-datalist <- list(Nobs= dim(b0All2)[1],
-					mid=midAll2$Mean,
-					b0=b0All2$Mean,
-					glcIDM=midAll2$gcID,
-					glcIDB=b0All2$gcID,
-					TempAB=b0All2$tempC,
-					CanopyB=b0All2$vcf,
-					TempAM=midAll2$tempC,
-					CanopyM=midAll2$vcf,
-					yearM=midAll2$year,
-					yearB=b0All2$year,
-					sig.modB=b0All2$SD,
-					sig.modM=midAll2$SD,
-					Nglc=dim(IDSglc)[1])
-
-parms <- c("betaM0","betaM1","betaM2","betaM3",
-			"betaB0","betaB1","betaB2","betaB3",
-			"sig.vB","sig.vM")
-			
-	
-curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_curve_empirical_regression.r",
-						data=datalist,n.adapt=5000,n.chains=3)
-						
-curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=3000,thin=1)						
-			
-mcmcplot(curve.sample, parms=parms,dir=paste0(modDir,"\\history"))		
-
-
-#model output							   
-mod.out <- summary(curve.sample)
-
-write.table(mod.out$statistics,paste0(modDir,"\\curve_mod_stats.csv"),
-			sep=",",row.names=TRUE)
-write.table(mod.out$quantiles,paste0(modDir,"\\curve_mod_quant.csv"),
-			sep=",",row.names=TRUE)	
-			
-
-#coda output
-chain1<-as.matrix(curve.sample[[1]])
-write.table(chain1,paste0(modDir,"\\chain1_coda.csv"), sep=",")
-chain2<-as.matrix(curve.sample[[2]])
-write.table(chain2,paste0(modDir,"\\chain2_coda.csv"), sep=",")
-chain3<-as.matrix(curve.sample[[3]])
-write.table(chain3,paste0(modDir,"\\chain3_coda.csv"), sep=",")					
-			
