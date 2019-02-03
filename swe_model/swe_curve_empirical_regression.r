@@ -39,10 +39,10 @@ model{
 
 		# variance parameters midpoint
 		tau.vM[i] <- pow(sig.vM[i],-2)
-		sig.vM[i] ~ dunif(0,500)
+		sig.vM[i] ~ dgamma(0.0001,0.0001)
 		# variance parameters slope
 		tau.vB[i] <- pow(sig.vB[i],-2)
-		sig.vB[i] ~ dunif(0,500)		
+		sig.vB[i] ~ dgamma(0.0001,0.0001)		
 	}
 	#hyper priors
 	#means

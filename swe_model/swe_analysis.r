@@ -31,7 +31,7 @@ library(mcmcplots)
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run2"
+modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run3"
 
 ###############################################
 ### set up a dataframe with all of the      ###
@@ -199,7 +199,9 @@ datalist <- list(Nobs= dim(b0All2)[1],
 					sig.modM=midAll2$SD,
 					Nglc=dim(IDSglc)[1])
 
-
+inits <- list(list(sig.vM=rep(2,dim(IDSglc)[1]),sig.vB=rep(2,dim(IDSglc)[1])),
+				list(sig.vM=rep(10,dim(IDSglc)[1]),sig.vB=rep(1,dim(IDSglc)[1])),
+				list(sig.vM=rep(5,dim(IDSglc)[1]),sig.vB=rep(.5,dim(IDSglc)[1])))
 parms <- c("betaM0","betaM1","betaM2","betaM3",
 			"betaB0","betaB1","betaB2","betaB3",
 			"mu.betaM0","mu.betaM1","mu.betaM2","mu.betaM3",
@@ -210,7 +212,7 @@ parms <- c("betaM0","betaM1","betaM2","betaM3",
 			
 	
 curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_curve_empirical_regression.r",
-						data=datalist,n.adapt=5000,n.chains=3)
+						data=datalist,n.adapt=5000,n.chains=3,inits=inits)
 						
 curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=30000,thin=10)						
 			
