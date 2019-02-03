@@ -31,7 +31,7 @@ library(mcmcplots)
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run1"
+modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run2"
 
 ###############################################
 ### set up a dataframe with all of the      ###
@@ -181,8 +181,8 @@ cor(b0All2$vcf[b0All2$gcID==4],b0All2$tempC[b0All2$gcID==4])
 cor(b0All2$vcf[b0All2$gcID==5],b0All2$tempC[b0All2$gcID==5])
 
 #
-
-
+plot(b0All2$Mean,midAll2$Mean)
+cor(b0All2$Mean,midAll2$Mean)
 #jags regression
 datalist <- list(Nobs= dim(b0All2)[1],
 					mid=midAll2$Mean,
@@ -199,17 +199,28 @@ datalist <- list(Nobs= dim(b0All2)[1],
 					sig.modM=midAll2$SD,
 					Nglc=dim(IDSglc)[1])
 
+
 parms <- c("betaM0","betaM1","betaM2","betaM3",
 			"betaB0","betaB1","betaB2","betaB3",
-			"sig.vB","sig.vM")
+			"mu.betaM0","mu.betaM1","mu.betaM2","mu.betaM3",
+			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
+			"sig.M0","sig.M1","sig.M2","sig.M3",
+			"sig.B0","sig.B1","sig.B2","sig.B3",
+			"sig.vB","sig.vM", "rep.mid","rep.b0")
 			
 	
 curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_curve_empirical_regression.r",
 						data=datalist,n.adapt=5000,n.chains=3)
 						
-curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=3000,thin=1)						
+curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=30000,thin=10)						
 			
-mcmcplot(curve.sample, parms=parms,dir=paste0(modDir,"\\history"))		
+mcmcplot(curve.sample, parms=c("betaM0","betaM1","betaM2","betaM3",
+			"betaB0","betaB1","betaB2","betaB3",
+			"mu.betaM0","mu.betaM1","mu.betaM2","mu.betaM3",
+			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
+			"sig.M0","sig.M1","sig.M2","sig.M3",
+			"sig.B0","sig.B1","sig.B2","sig.B3",
+			"sig.vB","sig.vM"),dir=paste0(modDir,"\\history"))		
 
 
 #model output							   

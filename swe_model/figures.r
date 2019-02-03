@@ -26,12 +26,15 @@ library(sp)
 library(rjags)
 library(coda)
 library(mcmcplots)
+library(maps)
+library(imager)
 ###############################################
 ### set up file paths                       ###
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
 modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run1"
+plotDir <- "z:\\projects\\boreal_swe_depletion\\figures\\figures"
 
 ###############################################
 ### set up a dataframe with all of the      ###
@@ -112,6 +115,7 @@ mid2007 <- setValues(swe,midSwe[[8]]$Mean)
 mid2008 <- setValues(swe,midSwe[[9]]$Mean)
 mid2009 <- setValues(swe,midSwe[[10]]$Mean)
 
+
 b2000 <- setValues(swe,bSwe[[1]]$Mean)
 b2001 <- setValues(swe,bSwe[[2]]$Mean)
 b2002 <- setValues(swe,bSwe[[3]]$Mean)
@@ -135,3 +139,190 @@ colnames(sweLL) <- c("Lon","Lat","cell")
 #join back into dataframe of results
 b0All2 <- join(b0All,sweLL, by="cell",type="left")
 midAll2 <- join(midAll,sweLL, by="cell",type="left")
+
+###############################################
+### panel of results                        ###
+###############################################
+#get map data
+world <- readOGR("c:\\Program Files (x86)\\ArcGIS\\Desktop10.5\\ArcGlobeData\\continent.shp")
+worldP <- spTransform(world,laea)
+plot(mid2000)
+
+#######################################
+#####world data                   ##### 
+#######################################
+
+worldmap <- map("world", ylim=c(50,90), fill=TRUE)
+
+#world map
+worldPR <- project(matrix(c(worldmap$x,worldmap$y), ncol=2,byrow=FALSE),laea)
+
+#######################################
+#####plot1 map of day of half melt##### 
+#######################################
+tx <- 3
+br1 <- 30
+br2 <- 170
+#set up breaks
+breaks <- seq(br1,br2,by=5)
+breaks.lab <- seq(br1,br2,by=10)
+cols <- heat.colors(breaks)
+
+#2000
+#set up empty plot
+png(paste0(plotDir,"\\map_mid\\mid2000.png"),width = 480, height = 480, units = "px")
+plot(mid2000,col="white",breaks=breaks, lab.breaks=breaks.lab, zlim=c(br1,br2), axes=FALSE,xlab=" ", ylab=" ")
+#color background
+polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000),
+			border=NA, col=rgb(180/255,205/255,205/255,.5))
+#boundaries
+points(world, type="l", lwd=2, col="grey65")
+#continent color
+polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col="cornsilk2",border=NA)	
+plot(mid2000,col=cols,breaks=breaks, lab.breaks=breaks.lab, zlim=c(br1,br2),cex.lab=2,add=TRUE)		
+mtext("2000", outer=TRUE,side=3,line=-3,cex=tx)
+dev.off()
+
+#2001
+png(paste0(plotDir,"\\map_mid\\mid2001.png"),width = 480, height = 480, units = "px")
+#set up empty plot
+plot(mid2001,col="white",breaks=breaks, lab.breaks=breaks.lab, zlim=c(br1,br2),axes=FALSE,xlab=" ", ylab=" ")
+#color background
+polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000),
+			border=NA, col=rgb(180/255,205/255,205/255,.5))
+#boundaries
+points(world, type="l", lwd=2, col="grey65")
+#continent color
+polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col="cornsilk2",border=NA)	
+plot(mid2001,col=cols,breaks=breaks, lab.breaks=breaks,add=TRUE)	
+mtext("2001", outer=TRUE,side=3,line=-3,cex=tx)
+dev.off()
+#2002
+png(paste0(plotDir,"\\map_mid\\mid2002.png"),width = 480, height = 480, units = "px")
+#set up empty plot
+plot(mid2002,col="white",breaks=breaks, lab.breaks=breaks, zlim=c(br1,br2),axes=FALSE,xlab=" ", ylab=" ")
+#color background
+polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000),
+			border=NA, col=rgb(180/255,205/255,205/255,.5))
+#boundaries
+points(world, type="l", lwd=2, col="grey65")
+#continent color
+polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col="cornsilk2",border=NA)	
+plot(mid2002,,col=cols,breaks=breaks, lab.breaks=breaks, zlim=c(br1,br2),add=TRUE)	
+mtext("2002", outer=TRUE,side=3,line=-3,cex=tx)
+dev.off()
+#2003
+png(paste0(plotDir,"\\map_mid\\mid2003.png"),width = 480, height = 480, units = "px")
+#set up empty plot
+plot(mid2003,col="white",breaks=breaks, lab.breaks=breaks, zlim=c(br1,br2),axes=FALSE,xlab=" ", ylab=" ")
+#color background
+polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000),
+			border=NA, col=rgb(180/255,205/255,205/255,.5))
+#boundaries
+points(world, type="l", lwd=2, col="grey65")
+#continent color
+polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col="cornsilk2",border=NA)	
+plot(mid2003,,col=cols,breaks=breaks, lab.breaks=breaks, zlim=c(br1,br2),add=TRUE)	
+mtext("2003", outer=TRUE,side=3,line=-3,cex=tx)
+dev.off()
+#2004
+png(paste0(plotDir,"\\map_mid\\mid2004.png"),width = 480, height = 480, units = "px")
+#set up empty plot
+plot(mid2004,col="white",breaks=breaks, lab.breaks=breaks, zlim=c(br1,br2),axes=FALSE,xlab=" ", ylab=" ")
+#color background
+polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000),
+			border=NA, col=rgb(180/255,205/255,205/255,.5))
+#boundaries
+points(world, type="l", lwd=2, col="grey65")
+#continent color
+polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col="cornsilk2",border=NA)	
+plot(mid2004,,col=cols,breaks=breaks, lab.breaks=breaks, zlim=c(br1,br2),add=TRUE)	
+mtext("2004", outer=TRUE,side=3,line=-3,cex=tx)
+dev.off()
+#2005
+png(paste0(plotDir,"\\map_mid\\mid2005.png"),width = 480, height = 480, units = "px")
+#set up empty plot
+plot(mid2005,col="white",breaks=breaks, lab.breaks=breaks, zlim=c(br1,br2),axes=FALSE,xlab=" ", ylab=" ")
+#color background
+polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000),
+			border=NA, col=rgb(180/255,205/255,205/255,.5))
+#boundaries
+points(world, type="l", lwd=2, col="grey65")
+#continent color
+polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col="cornsilk2",border=NA)	
+plot(mid2005,,col=cols,breaks=breaks, lab.breaks=breaks, zlim=c(br1,br2),add=TRUE)	
+mtext("2005", outer=TRUE,side=3,line=-3,cex=tx)
+
+dev.off()
+#2006
+png(paste0(plotDir,"\\map_mid\\mid2006.png"),width = 480, height = 480, units = "px")
+#set up empty plot
+plot(mid2006,col="white",breaks=breaks, lab.breaks=breaks, zlim=c(br1,br2),axes=FALSE,xlab=" ", ylab=" ")
+#color background
+polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000),
+			border=NA, col=rgb(180/255,205/255,205/255,.5))
+#boundaries
+points(world, type="l", lwd=2, col="grey65")
+#continent color
+polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col="cornsilk2",border=NA)	
+plot(mid2006,,col=cols,breaks=breaks, lab.breaks=breaks, zlim=c(br1,br2),add=TRUE)	
+mtext("2006", outer=TRUE,side=3,line=-3,cex=tx)
+dev.off()
+#2007
+png(paste0(plotDir,"\\map_mid\\mid2007.png"),width = 480, height = 480, units = "px")
+#set up empty plot
+plot(mid2007,col="white",breaks=breaks, lab.breaks=breaks, zlim=c(br1,br2),axes=FALSE,xlab=" ", ylab=" ")
+#color background
+polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000),
+			border=NA, col=rgb(180/255,205/255,205/255,.5))
+#boundaries
+points(world, type="l", lwd=2, col="grey65")
+#continent color
+polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col="cornsilk2",border=NA)	
+plot(mid2007,,col=cols,breaks=breaks, lab.breaks=breaks, zlim=c(br1,br2),add=TRUE)	
+mtext("2007", outer=TRUE,side=3,line=-3,cex=tx)
+dev.off()
+#2008
+png(paste0(plotDir,"\\map_mid\\mid2008.png"),width = 480, height = 480, units = "px")
+#set up empty plot
+plot(mid2008,col="white",breaks=breaks, lab.breaks=breaks, zlim=c(br1,br2),axes=FALSE,xlab=" ", ylab=" ")
+#color background
+polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000),
+			border=NA, col=rgb(180/255,205/255,205/255,.5))
+#boundaries
+points(world, type="l", lwd=2, col="grey65")
+#continent color
+polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col="cornsilk2",border=NA)	
+plot(mid2008,,col=cols,breaks=breaks, lab.breaks=breaks, zlim=c(br1,br2),add=TRUE)	
+mtext("2008", outer=TRUE,side=3,line=-3,cex=tx)
+dev.off()
+#2009
+png(paste0(plotDir,"\\map_mid\\mid2009.png"),width = 480, height = 480, units = "px")
+#set up empty plot
+plot(mid2009,col="white",breaks=breaks, lab.breaks=breaks, zlim=c(br1,br2),axes=FALSE,xlab=" ", ylab=" ")
+#color background
+polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000),
+			border=NA, col=rgb(180/255,205/255,205/255,.5))
+#boundaries
+points(world, type="l", lwd=2, col="grey65")
+#continent color
+polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col="cornsilk2",border=NA)	
+plot(mid2009,col=cols,breaks=breaks, lab.breaks=breaks, zlim=c(br1,br2),add=TRUE)	
+mtext("2009", outer=TRUE,side=3,line=-3,cex=tx)
+dev.off()
+
+
+
+#plot all images
+#read in all images
+
+png(paste0(plotDir,"\\all_mid.png"),width=6000,height=2000)
+
+	layout(matrix(seq(1,10),ncol=5,byrow=TRUE))
+	for(i in 1:10){
+		par(mai=c(0,0,0,0))
+		plot(load.image(paste0(plotDir,"\\map_mid\\mid",i+1999,".png")),axes=FALSE)
+	}	
+	
+		
+dev.off()	
