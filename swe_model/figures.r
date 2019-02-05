@@ -163,24 +163,32 @@ worldPR <- project(matrix(c(worldmap$x,worldmap$y), ncol=2,byrow=FALSE),laea)
 tx <- 3
 br1 <- 30
 br2 <- 170
+axisC <- 1.5
 #set up breaks
 breaks <- seq(br1,br2,by=5)
-breaks.lab <- seq(br1,br2,by=10)
+breaks.lab <- seq(br1,br2,by=20)
 cols <- heat.colors(breaks)
 
 #2000
 #set up empty plot
 png(paste0(plotDir,"\\map_mid\\mid2000.png"),width = 480, height = 480, units = "px")
-plot(mid2000,col="white",breaks=breaks, lab.breaks=breaks.lab, zlim=c(br1,br2), axes=FALSE,xlab=" ", ylab=" ")
+plot(mid2000,col="white",breaks=breaks,  zlim=c(br1,br2), 
+		axes=FALSE,xlab=" ", ylab=" ",
+		axis.args=list(at=breaks.lab,
+						labels=breaks.lab,
+						cex.axis=axisC))
 #color background
 polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000),
 			border=NA, col=rgb(180/255,205/255,205/255,.5))
 #boundaries
-points(world, type="l", lwd=2, col="grey65")
+points(worldPR, type="l", lwd=2, col="grey65")
 #continent color
-polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col="cornsilk2",border=NA)	
-plot(mid2000,col=cols,breaks=breaks, lab.breaks=breaks.lab, zlim=c(br1,br2),cex.lab=2,add=TRUE)		
-mtext("2000", outer=TRUE,side=3,line=-3,cex=tx)
+polygon(c(worldPR[,1],rev(worldPR[,1])), c(worldPR[,2],rev(worldPR[,2])),col="cornsilk2",border=NA)	
+plot(mid2000,col=cols,breaks=breaks, lab.breaks=breaks.lab, zlim=c(br1,br2),
+		axis.args=list(at=breaks.lab,
+						labels=breaks.lab,
+						cex.axis=axisC),add=TRUE)		
+mtext("2000", outer=TRUE,side=3,line=-3,cex=2)
 dev.off()
 
 #2001

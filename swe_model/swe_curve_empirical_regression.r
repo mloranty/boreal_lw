@@ -9,8 +9,9 @@ model{
 		mu.mid[i] <- betaM0[glcIDM[i]] + betaM1[glcIDM[i]]*TempAM[i] + betaM2[glcIDM[i]]*CanopyM[i] +
 						 betaM3[glcIDM[i]]*(yearM[i]-2000)
 		#error model and standard deviation
-		tau.mid[i] <- tau.modM[i] + tau.vM[glcIDM[i]]
-		tau.modM[i] <- pow(sig.modM[i],-2)
+		tau.mid[i] <- pow(sig.mid[i],-2)
+		sig.mid[i] <- sig.modM[i] + sig.vM
+
 		
 		#slope of curve
 		b0[i] ~ dnorm(mu.b0[i],tau.b0[i])
@@ -19,8 +20,9 @@ model{
 		mu.b0[i] <- betaB0[glcIDB[i]] + betaB1[glcIDB[i]]*TempAB[i] + betaB2[glcIDB[i]]*CanopyB[i] +
 						 betaB3[glcIDB[i]]*(yearB[i]-2000)
 		#error model 
-		tau.b0[i] <- tau.modB[i] + tau.vB[glcIDB[i]]
-		tau.modB[i] <- pow(sig.modB[i],-2)
+		tau.b0[i] <- pow(sig.b0[i],-2)
+		sig.b0[i] <- sig.modB[i] + sig.vB
+
 
 	}
 	#priors
@@ -36,14 +38,13 @@ model{
 		betaB1[i] ~ dnorm(mu.betaB1,tau.betaB1)
 		betaB2[i] ~ dnorm(mu.betaB2,tau.betaB2)
 		betaB3[i] ~ dnorm(mu.betaB3,tau.betaB3)
-
-		# variance parameters midpoint
-		tau.vM[i] <- pow(sig.vM[i],-2)
-		sig.vM[i] ~ dgamma(0.0001,0.0001)
-		# variance parameters slope
-		tau.vB[i] <- pow(sig.vB[i],-2)
-		sig.vB[i] ~ dgamma(0.0001,0.0001)		
 	}
+		# variance parameters midpoint
+
+		sig.vM ~ dgamma(0.0001,0.0001)
+		# variance parameters slope
+		sig.vB ~ dgamma(0.0001,0.0001)		
+	
 	#hyper priors
 	#means
 	mu.betaM0 ~ dnorm(0,0.00001)

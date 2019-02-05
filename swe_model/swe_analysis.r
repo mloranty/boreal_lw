@@ -199,9 +199,9 @@ datalist <- list(Nobs= dim(b0All2)[1],
 					sig.modM=midAll2$SD,
 					Nglc=dim(IDSglc)[1])
 
-inits <- list(list(sig.vM=rep(2,dim(IDSglc)[1]),sig.vB=rep(2,dim(IDSglc)[1])),
-				list(sig.vM=rep(10,dim(IDSglc)[1]),sig.vB=rep(1,dim(IDSglc)[1])),
-				list(sig.vM=rep(5,dim(IDSglc)[1]),sig.vB=rep(.5,dim(IDSglc)[1])))
+inits <- list(list(sig.vM=2,sig.vB=2),
+				list(sig.vM=10,sig.vB=10),
+				list(sig.vM=5,sig.vB=5))
 parms <- c("betaM0","betaM1","betaM2","betaM3",
 			"betaB0","betaB1","betaB2","betaB3",
 			"mu.betaM0","mu.betaM1","mu.betaM2","mu.betaM3",
@@ -241,4 +241,8 @@ chain2<-as.matrix(curve.sample[[2]])
 write.table(chain2,paste0(modDir,"\\chain2_coda.csv"), sep=",")
 chain3<-as.matrix(curve.sample[[3]])
 write.table(chain3,paste0(modDir,"\\chain3_coda.csv"), sep=",")					
+			
+			
+			
+			
 			
