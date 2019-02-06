@@ -31,7 +31,7 @@ library(mcmcplots)
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run4"
+modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run5"
 
 ###############################################
 ### set up a dataframe with all of the      ###
@@ -180,49 +180,58 @@ cor(b0All2$vcf[b0All2$gcID==3],b0All2$tempC[b0All2$gcID==3])
 cor(b0All2$vcf[b0All2$gcID==4],b0All2$tempC[b0All2$gcID==4])
 cor(b0All2$vcf[b0All2$gcID==5],b0All2$tempC[b0All2$gcID==5])
 
-#
+#get unique swe max
+swemax <- unique(data.frame(gcID=datSwe$gcID,cell=datSwe$cell,year=datSwe$year,sweMax=datSwe$sweMax))
+
+#join
+midAll3 <- join(midAll2,swemax,by=c("gcID","cell","year"),type="left")
+b0All3 <- join(b0All2,swemax,by=c("gcID","cell","year"),type="left")
+
 plot(b0All2$Mean,midAll2$Mean)
 cor(b0All2$Mean,midAll2$Mean)
 #jags regression
-datalist <- list(Nobs= dim(b0All2)[1],
-					mid=midAll2$Mean,
-					b0=b0All2$Mean,
+datalist <- list(Nobs= dim(b0All3)[1],
+					mid=midAll3$Mean,
+					b0=b0All3$Mean,
 					glcIDM=midAll2$gcID,
-					glcIDB=b0All2$gcID,
-					TempAB=b0All2$tempC,
-					CanopyB=b0All2$vcf,
-					TempAM=midAll2$tempC,
-					CanopyM=midAll2$vcf,
-					yearM=midAll2$year,
-					yearB=b0All2$year,
-					sig.modB=b0All2$SD,
-					sig.modM=midAll2$SD,
+					glcIDB=b0All3$gcID,
+					TempAB=b0All3$tempC,
+					CanopyB=b0All3$vcf,
+					sweMaxB=b0All3$sweMax,
+					TempAM=midAll3$tempC,
+					CanopyM=midAll3$vcf,
+					yearM=midAll3$year,
+					sweMaxM=midAll3$sweMax,
+					yearB=b0All3$year,
+					sig.modB=b0All3$SD,
+					sig.modM=midAll3$SD,
 					Nglc=dim(IDSglc)[1])
 
 inits <- list(list(sig.vM=2,sig.vB=2),
 				list(sig.vM=10,sig.vB=10),
 				list(sig.vM=5,sig.vB=5))
-parms <- c("betaM0","betaM1","betaM2","betaM3",
-			"betaB0","betaB1","betaB2","betaB3",
-			"mu.betaM0","mu.betaM1","mu.betaM2","mu.betaM3",
-			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
-			"sig.M0","sig.M1","sig.M2","sig.M3",
-			"sig.B0","sig.B1","sig.B2","sig.B3",
+				
+parms <- c("betaM0","betaM1","betaM2","betaM3","betaM4",
+			"betaB0","betaB1","betaB2","betaB3","betaB4",
+			"mu.betaM0","mu.betaM1","mu.betaM2","mu.betaM3","mu.betaM4",
+			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3","mu.betaB4",
+			"sig.M0","sig.M1","sig.M2","sig.M3","sig.M4",
+			"sig.B0","sig.B1","sig.B2","sig.B3","sig.B4",
 			"sig.vB","sig.vM", "rep.mid","rep.b0")
 			
 	
 curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_curve_empirical_regression.r",
 						data=datalist,n.adapt=5000,n.chains=3,inits=inits)
 						
-curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=60000,thin=20)						
+curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=90000,thin=30)						
 			
-mcmcplot(curve.sample, parms=c("betaM0","betaM1","betaM2","betaM3",
-			"betaB0","betaB1","betaB2","betaB3",
-			"mu.betaM0","mu.betaM1","mu.betaM2","mu.betaM3",
-			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
-			"sig.M0","sig.M1","sig.M2","sig.M3",
-			"sig.B0","sig.B1","sig.B2","sig.B3",
-			"sig.vB","sig.vM"),dir=paste0(modDir,"\\history"))		
+mcmcplot(curve.sample, parms=c("betaM0","betaM1","betaM2","betaM3","betaM4",
+			"betaB0","betaB1","betaB2","betaB3","betaB4",
+			"mu.betaM0","mu.betaM1","mu.betaM2","mu.betaM3","mu.betaM4",
+			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3","mu.betaB4",
+			"sig.M0","sig.M1","sig.M2","sig.M3","sig.M4",
+			"sig.B0","sig.B1","sig.B2","sig.B3","sig.B4",
+			"sig.vB","sig.vM",),dir=paste0(modDir,"\\history"))		
 
 
 #model output							   
