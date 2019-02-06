@@ -31,7 +31,7 @@ library(mcmcplots)
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run3"
+modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run4"
 
 ###############################################
 ### set up a dataframe with all of the      ###
@@ -214,7 +214,7 @@ parms <- c("betaM0","betaM1","betaM2","betaM3",
 curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_curve_empirical_regression.r",
 						data=datalist,n.adapt=5000,n.chains=3,inits=inits)
 						
-curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=30000,thin=10)						
+curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=60000,thin=20)						
 			
 mcmcplot(curve.sample, parms=c("betaM0","betaM1","betaM2","betaM3",
 			"betaB0","betaB1","betaB2","betaB3",
