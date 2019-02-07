@@ -190,7 +190,7 @@ axisC <- 1.5
 #set up breaks
 breaks <- seq(br1,br2,by=5)
 breaks.lab <- seq(br1,br2,by=20)
-cols <- heat.colors(breaks)
+cols <- rev(blue2red(length(breaks)))
 
 #2000
 #set up empty plot
@@ -424,7 +424,7 @@ axisC <- 1.5
 #set up breaks
 breaks <- seq(br1,br2,by=.1)
 breaks.lab <- seq(br1,br2,by=.2)
-cols <- heat.colors(length(breaks))
+cols <- blue2red(length(breaks))
 
 #2000
 #set up empty plot
@@ -656,7 +656,7 @@ axisC <- 1.5
 #set up breaks
 breaks <- seq(br1,br2,by=.05)
 breaks.lab <- seq(br1,br2,by=.1)
-cols <- topo.colors(length(breaks))
+cols <- rev(blue2red(length(breaks)))
 
 #2000
 #set up empty plot

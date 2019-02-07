@@ -231,7 +231,7 @@ mcmcplot(curve.sample, parms=c("betaM0","betaM1","betaM2","betaM3","betaM4",
 			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3","mu.betaB4",
 			"sig.M0","sig.M1","sig.M2","sig.M3","sig.M4",
 			"sig.B0","sig.B1","sig.B2","sig.B3","sig.B4",
-			"sig.vB","sig.vM",),dir=paste0(modDir,"\\history"))		
+			"sig.vB","sig.vM"),dir=paste0(modDir,"\\history"))		
 
 
 #model output							   
