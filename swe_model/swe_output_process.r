@@ -405,5 +405,7 @@ dat.swe10 <- join(dat.swe9,pixJ4, by=c("cell","year","gcID","pixID","gcYearID"),
 dat.swe11<- dat.swe10[dat.swe10$doyN>10,]	
 
 datSwe <- dat.swe11
+#swe for entire melt period
+sweAll <- dat.swe5 
 #clear out files that aren't needed
-rm(list=setdiff(ls(), c("datSwe","b0Out","midOut","muB0Out","muMidOut","IDSglc")))
+rm(list=setdiff(ls(), c("datSwe","b0Out","midOut","muB0Out","muMidOut","IDSglc","sweAll")))

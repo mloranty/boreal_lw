@@ -54,15 +54,15 @@ sweCell2 <- join(sweCell,tempMelt, by=c("gcID","pixID","year"),type="left")
 
 #now join to each output
 b0All <- join(b0Out,sweCell2,by=c("year","gcID","pixID"),type="inner")
-midAll <- join(midOut,sweCell2,by=c("year","gcID","pixID"),type="inner")
+
 
 #organize output by year
 yearDF <- data.frame(year=unique(sweCell$year))
 bOutL <- list()
-midOutL <- list()
+
 for(i in 1:dim(yearDF)[1]){
 	bOutL[[i]] <- b0All[b0All$year==yearDF$year[i],]
-	midOutL[[i]] <- midAll[midAll$year==yearDF$year[i],]
+
 }
 
 

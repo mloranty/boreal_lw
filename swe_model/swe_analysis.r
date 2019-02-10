@@ -31,7 +31,7 @@ library(mcmcplots)
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run5"
+modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run6"
 
 ###############################################
 ### set up a dataframe with all of the      ###
@@ -40,25 +40,48 @@ modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run5"
 sweCell <- unique(data.frame(cell=datSwe$cell,gcID=datSwe$gcID,pixID=datSwe$pixID,year=datSwe$year,
 								y=datSwe$y.coord,x=datSwe$x.coord,
 								vcf=datSwe$vcf,zone=datSwe$zone,dayMax=datSwe$dayMax))
+								
+								
+#calculate the melt period		
+#join midpoint into swe cell
 
-#calculate the average air temp during the melt period
-tempMelt <- aggregate(datSwe$t.air, by=list(datSwe$gcID,datSwe$pixID,datSwe$year), FUN="mean")
-colnames(tempMelt) <- c("gcID","pixID","year","tempK")
-tempMelt$tempC <- tempMelt$tempK-273.15
-#combine back into sweCell
-sweCell2 <- join(sweCell,tempMelt, by=c("gcID","pixID","year"),type="left")
+sweCell2 <- join(sweCell,midOut,by=c("pixID","gcID","year"),type="left")
+
+sweCell2$Mlength <- (round(sweCell2$Mean)-sweCell2$dayMax)*2
+#calculate the end day
+sweCell2$dayEnd <- sweCell2$dayMax+sweCell2$Mlength
+
+
+#calculate average temperature to only be within the melt period
+#and calculate the temperature in the three weeks before the melt period
+meltTemp <- numeric(0)
+onsetTemp <- numeric(0)
+
+
+for(i in 1:dim(sweCell2)[1]){
+	meltTemp[i] <- mean(sweAll$t.air[sweAll$pixID==sweCell2$pixID[i]&sweAll$gcID==sweCell2$gcID[i]&
+						sweAll$year==sweCell2$year[i]&sweAll$jday>=sweCell2$dayMax[i]&sweAll$jday<=sweCell2$dayEnd[i]]-273.15)
+	onsetTemp[i] <- mean(sweAll$t.air[sweAll$pixID==sweCell2$pixID[i]&sweAll$gcID==sweCell2$gcID[i]&
+						sweAll$year==sweCell2$year[i]&sweAll$jday>=(sweCell2$dayMax[i]-7)&sweAll$jday<=sweCell2$dayMax[i]]-273.15)								
+}
+
+#create a data frame  to combine back into slope output
+sweCell3 <- data.frame(pixID=sweCell2$pixID,cell=sweCell2$cell,gcID=sweCell2$gcID,year=sweCell2$year,
+							vcf=sweCell2$vcf,zone=sweCell2$zone,dayMax=sweCell2$dayMax,Mlength=sweCell2$Mlength,
+							dayEnd=sweCell2$dayEnd,meltTemp=meltTemp,onsetTemp=onsetTemp,
+							x=sweCell2$x,y=sweCell2$y)
 
 #now join to each output
-b0All <- join(b0Out,sweCell2,by=c("year","gcID","pixID"),type="inner")
-midAll <- join(midOut,sweCell2,by=c("year","gcID","pixID"),type="inner")
+b0All <- join(b0Out,sweCell3,by=c("year","gcID","pixID"),type="inner")
+
 
 #organize output by year
 yearDF <- data.frame(year=unique(sweCell$year))
 bOutL <- list()
-midOutL <- list()
+
 for(i in 1:dim(yearDF)[1]){
 	bOutL[[i]] <- b0All[b0All$year==yearDF$year[i],]
-	midOutL[[i]] <- midAll[midAll$year==yearDF$year[i],]
+
 }
 
 
@@ -93,24 +116,15 @@ sweCellDF <- data.frame(cell=seq(1,sweCells))
 
 #join back to the swe cell id allowing others to turn to NA
 bSwe <- list()
-midSwe <- list()
+
 for(i in 1:dim(yearDF)[1]){
 	bSwe[[i]] <- join(sweCellDF,bOutL[[i]], by="cell",type="left")
-	midSwe[[i]] <- join(sweCellDF,midOutL[[i]], by="cell",type="left")
+
 }
 ###############################################
 ### map results                             ###
 ###############################################
-mid2000 <- setValues(swe,midSwe[[1]]$Mean)
-mid2001 <- setValues(swe,midSwe[[2]]$Mean)
-mid2002 <- setValues(swe,midSwe[[3]]$Mean)
-mid2003 <- setValues(swe,midSwe[[4]]$Mean)
-mid2004 <- setValues(swe,midSwe[[5]]$Mean)
-mid2005 <- setValues(swe,midSwe[[6]]$Mean)
-mid2006 <- setValues(swe,midSwe[[7]]$Mean)
-mid2007 <- setValues(swe,midSwe[[8]]$Mean)
-mid2008 <- setValues(swe,midSwe[[9]]$Mean)
-mid2009 <- setValues(swe,midSwe[[10]]$Mean)
+
 
 b2000 <- setValues(swe,bSwe[[1]]$Mean)
 b2001 <- setValues(swe,bSwe[[2]]$Mean)
@@ -123,16 +137,6 @@ b2007 <- setValues(swe,bSwe[[8]]$Mean)
 b2008 <- setValues(swe,bSwe[[9]]$Mean)
 b2009 <- setValues(swe,bSwe[[10]]$Mean)
 #plot each years curve on the map
-plot(mid2000)
-plot(mid2001)
-plot(mid2002)
-plot(mid2003)
-plot(mid2004)
-plot(mid2005)
-plot(mid2006)
-plot(mid2007)
-plot(mid2008)
-plot(mid2009)
 
 plot(b2000)
 plot(b2001)
@@ -146,6 +150,30 @@ plot(b2008)
 plot(b2009)
 
 
+#onset of melt
+m2000 <- setValues(swe,bSwe[[1]]$dayMax)
+m2001 <- setValues(swe,bSwe[[2]]$dayMax)
+m2002 <- setValues(swe,bSwe[[3]]$dayMax)
+m2003 <- setValues(swe,bSwe[[4]]$dayMax)
+m2004 <- setValues(swe,bSwe[[5]]$dayMax)
+m2005 <- setValues(swe,bSwe[[6]]$dayMax)
+m2006 <- setValues(swe,bSwe[[7]]$dayMax)
+m2007 <- setValues(swe,bSwe[[8]]$dayMax)
+m2008 <- setValues(swe,bSwe[[9]]$dayMax)
+m2009 <- setValues(swe,bSwe[[10]]$dayMax)
+#plot each years curve on the map
+
+plot(m2000)
+plot(m2001)
+plot(m2002)
+plot(m2003)
+plot(m2004)
+plot(m2005)
+plot(m2006)
+plot(m2007)
+plot(m2008)
+plot(m2009)
+
 #get lat long for each cell
 #create a spatial points
 sweSP <- SpatialPoints(unique(data.frame(x=b0All$x,y=b0All$y,cell=b0All$cell)), CRS(laea))
@@ -156,67 +184,41 @@ sweLL <- data.frame(sweSPr@coords)
 colnames(sweLL) <- c("Lon","Lat","cell")
 #join back into dataframe of results
 b0All2 <- join(b0All,sweLL, by="cell",type="left")
-midAll2 <- join(midAll,sweLL, by="cell",type="left")
 
-#first check correlations between covariates
-plot(~b0All2$Lat[b0All2$gcID==1]+b0All2$vcf[b0All2$gcID==1]+b0All2$tempC[b0All2$gcID==1]+b0All2$year[b0All2$gcID==1])
-plot(~b0All2$Lat[b0All2$gcID==2]+b0All2$vcf[b0All2$gcID==2]+b0All2$tempC[b0All2$gcID==2]+b0All2$year[b0All2$gcID==2])
-plot(~b0All2$Lat[b0All2$gcID==3]+b0All2$vcf[b0All2$gcID==3]+b0All2$tempC[b0All2$gcID==3]+b0All2$year[b0All2$gcID==3])
-plot(~b0All2$Lat[b0All2$gcID==4]+b0All2$vcf[b0All2$gcID==4]+b0All2$tempC[b0All2$gcID==4]+b0All2$year[b0All2$gcID==4])
-plot(~b0All2$Lat[b0All2$gcID==5]+b0All2$vcf[b0All2$gcID==5]+b0All2$tempC[b0All2$gcID==5]+b0All2$year[b0All2$gcID==5])
-cor(b0All2$Lat[b0All2$gcID==1],b0All2$vcf[b0All2$gcID==1])
-cor(b0All2$Lat[b0All2$gcID==2],b0All2$vcf[b0All2$gcID==2])
-cor(b0All2$Lat[b0All2$gcID==3],b0All2$vcf[b0All2$gcID==3])
-cor(b0All2$Lat[b0All2$gcID==4],b0All2$vcf[b0All2$gcID==4])
-cor(b0All2$Lat[b0All2$gcID==5],b0All2$vcf[b0All2$gcID==5])
-cor(b0All2$Lat[b0All2$gcID==1],b0All2$tempC[b0All2$gcID==1])
-cor(b0All2$Lat[b0All2$gcID==2],b0All2$tempC[b0All2$gcID==2])
-cor(b0All2$Lat[b0All2$gcID==3],b0All2$tempC[b0All2$gcID==3])
-cor(b0All2$Lat[b0All2$gcID==4],b0All2$tempC[b0All2$gcID==4])
-cor(b0All2$Lat[b0All2$gcID==5],b0All2$tempC[b0All2$gcID==5])
-cor(b0All2$vcf[b0All2$gcID==1],b0All2$tempC[b0All2$gcID==1])
-cor(b0All2$vcf[b0All2$gcID==2],b0All2$tempC[b0All2$gcID==2])
-cor(b0All2$vcf[b0All2$gcID==3],b0All2$tempC[b0All2$gcID==3])
-cor(b0All2$vcf[b0All2$gcID==4],b0All2$tempC[b0All2$gcID==4])
-cor(b0All2$vcf[b0All2$gcID==5],b0All2$tempC[b0All2$gcID==5])
 
 #get unique swe max
 swemax <- unique(data.frame(gcID=datSwe$gcID,cell=datSwe$cell,year=datSwe$year,sweMax=datSwe$sweMax))
 
 #join
-midAll3 <- join(midAll2,swemax,by=c("gcID","cell","year"),type="left")
+
 b0All3 <- join(b0All2,swemax,by=c("gcID","cell","year"),type="left")
 
-plot(b0All2$Mean,midAll2$Mean)
-cor(b0All2$Mean,midAll2$Mean)
+
 #jags regression
 datalist <- list(Nobs= dim(b0All3)[1],
-					mid=midAll3$Mean,
+					maxD=b0All3$dayMax,
 					b0=b0All3$Mean,
-					glcIDM=midAll2$gcID,
+					glcIDM=b0All3$gcID,
 					glcIDB=b0All3$gcID,
-					TempAB=b0All3$tempC,
+					TempAB=b0All3$meltTemp,
 					CanopyB=b0All3$vcf,
 					sweMaxB=b0All3$sweMax,
-					TempAM=midAll3$tempC,
-					CanopyM=midAll3$vcf,
-					yearM=midAll3$year,
-					sweMaxM=midAll3$sweMax,
-					yearB=b0All3$year,
+					TempAM=b0All3$onsetTemp,
+					CanopyM=b0All3$vcf,
+					Lat=b0All3$Lat,
 					sig.modB=b0All3$SD,
-					sig.modM=midAll3$SD,
 					Nglc=dim(IDSglc)[1])
 
 inits <- list(list(sig.vM=2,sig.vB=2),
 				list(sig.vM=10,sig.vB=10),
 				list(sig.vM=5,sig.vB=5))
 				
-parms <- c("betaM0","betaM1","betaM2","betaM3","betaM4",
-			"betaB0","betaB1","betaB2","betaB3","betaB4",
-			"mu.betaM0","mu.betaM1","mu.betaM2","mu.betaM3","mu.betaM4",
-			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3","mu.betaB4",
-			"sig.M0","sig.M1","sig.M2","sig.M3","sig.M4",
-			"sig.B0","sig.B1","sig.B2","sig.B3","sig.B4",
+parms <- c("betaM0","betaM1","betaM2","betaM3",
+			"betaB0","betaB1","betaB2","betaB3",
+			"mu.betaM0","mu.betaM1","mu.betaM2","mu.betaM3",
+			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
+			"sig.M0","sig.M1","sig.M2","sig.M3",
+			"sig.B0","sig.B1","sig.B2","sig.B3",
 			"sig.vB","sig.vM", "rep.mid","rep.b0")
 			
 	
@@ -225,12 +227,12 @@ curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\s
 						
 curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=90000,thin=30)						
 			
-mcmcplot(curve.sample, parms=c("betaM0","betaM1","betaM2","betaM3","betaM4",
-			"betaB0","betaB1","betaB2","betaB3","betaB4",
-			"mu.betaM0","mu.betaM1","mu.betaM2","mu.betaM3","mu.betaM4",
-			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3","mu.betaB4",
-			"sig.M0","sig.M1","sig.M2","sig.M3","sig.M4",
-			"sig.B0","sig.B1","sig.B2","sig.B3","sig.B4",
+mcmcplot(curve.sample, parms=c("betaM0","betaM1","betaM2","betaM3",
+			"betaB0","betaB1","betaB2","betaB3",
+			"mu.betaM0","mu.betaM1","mu.betaM2","mu.betaM3",
+			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
+			"sig.M0","sig.M1","sig.M2","sig.M3",
+			"sig.B0","sig.B1","sig.B2","sig.B3",
 			"sig.vB","sig.vM"),dir=paste0(modDir,"\\history"))		
 
 
