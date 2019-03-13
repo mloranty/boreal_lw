@@ -31,7 +31,7 @@ library(mcmcplots)
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run6"
+modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run7"
 
 ###############################################
 ### set up a dataframe with all of the      ###
@@ -194,46 +194,74 @@ swemax <- unique(data.frame(gcID=datSwe$gcID,cell=datSwe$cell,year=datSwe$year,s
 b0All3 <- join(b0All2,swemax,by=c("gcID","cell","year"),type="left")
 
 
+#need to organize table for eps ids
+epsTable <- unique(data.frame(gcID=b0All3$gcID,year=b0All3$year))
+#this order will be by GCID
+epsTable$gcyearID <- seq(1,dim(epsTable)[1])
+#join back into b0
+b0All4 <- join(b0All3,epsTable, by=c("gcID","year"),type="left")
+
+#create index for averaging eps
+gcIndT <- unique(data.frame(gcID=epsTable$gcID))
+startID <- numeric(0)
+endID <- numeric(0)
+
+for(i in 1:dim(gcIndT)[1]){
+		startID[i] <- head(which(epsTable$gcID==gcIndT$gcID[i]))[1]
+		endID [i] <- tail(which(epsTable$gcID==gcIndT$gcID[i]))[6]
+}
+
+
+
 #jags regression
-datalist <- list(Nobs= dim(b0All3)[1],
-					maxD=b0All3$dayMax,
-					b0=b0All3$Mean,
-					glcIDM=b0All3$gcID,
-					glcIDB=b0All3$gcID,
-					TempAB=b0All3$meltTemp,
-					CanopyB=b0All3$vcf,
-					sweMaxB=b0All3$sweMax,
-					TempAM=b0All3$onsetTemp,
-					CanopyM=b0All3$vcf,
-					Lat=b0All3$Lat,
-					sig.modB=b0All3$SD,
+datalist <- list(Nobs= dim(b0All4)[1],
+					maxD=b0All4$dayMax,
+					b0=b0All4$Mean,
+					glcIDM=b0All4$gcID,
+					glcIDB=b0All4$gcID,
+					TempAB=b0All4$meltTemp,
+					CanopyB=b0All4$vcf,
+					sweMaxB=b0All4$sweMax,
+					TempAM=b0All4$onsetTemp,
+					CanopyM=b0All4$vcf,
+					Lat=b0All4$Lat,
+					GCyearM=b0All4$gcyearID,
+					GCyearB=b0All4$gcyearID,
+					sig.modB=b0All4$SD,
+					Ngcyear=dim(epsTable)[1],
+					ygcIDM=epsTable$gcID,
+					ygcIDB=epsTable$gcID,
+					startb=startID,
+					endb=endID,
+					startm=startID,
+					endm=endID,
 					Nglc=dim(IDSglc)[1])
 
-inits <- list(list(sig.vM=2,sig.vB=2),
-				list(sig.vM=10,sig.vB=10),
-				list(sig.vM=5,sig.vB=5))
+inits <- list(list(sig.vM=2,sig.vB=2,sig.em=rep(10,dim(gcIndT)[1]),sig.eb=rep(.5,dim(gcIndT)[1])),
+				list(sig.vM=10,sig.vB=10,sig.em=rep(15,dim(gcIndT)[1]),sig.eb=rep(.6,dim(gcIndT)[1])),
+				list(sig.vM=5,sig.vB=5,sig.em=rep(5,dim(gcIndT)[1]),sig.eb=rep(.25,dim(gcIndT)[1])))
 				
-parms <- c("betaM0","betaM1","betaM2","betaM3",
-			"betaB0","betaB1","betaB2","betaB3",
+parms <- c("betaM0S","betaM1","betaM2","betaM3",
+			"betaB0S","betaB1","betaB2","betaB3",
 			"mu.betaM0","mu.betaM1","mu.betaM2","mu.betaM3",
 			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
 			"sig.M0","sig.M1","sig.M2","sig.M3",
 			"sig.B0","sig.B1","sig.B2","sig.B3",
-			"sig.vB","sig.vM", "rep.mid","rep.b0")
+			"sig.vB","sig.vM", "rep.max","rep.b0","eps.maxS","eps.bS","sig.em","sig.eb")
 			
 	
 curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_curve_empirical_regression.r",
-						data=datalist,n.adapt=5000,n.chains=3,inits=inits)
+						data=datalist,n.adapt=10000,n.chains=3,inits=inits)
 						
-curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=90000,thin=30)						
+curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=100000,thin=50)						
 			
-mcmcplot(curve.sample, parms=c("betaM0","betaM1","betaM2","betaM3",
-			"betaB0","betaB1","betaB2","betaB3",
+mcmcplot(curve.sample, parms=c("betaM0S","betaM1","betaM2","betaM3",
+			"betaB0S","betaB1","betaB2","betaB3",
 			"mu.betaM0","mu.betaM1","mu.betaM2","mu.betaM3",
 			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
 			"sig.M0","sig.M1","sig.M2","sig.M3",
 			"sig.B0","sig.B1","sig.B2","sig.B3",
-			"sig.vB","sig.vM"),dir=paste0(modDir,"\\history"))		
+			"sig.vB","sig.vM","eps.maxS","eps.bS","sig.em","sig.eb"),dir=paste0(modDir,"\\history"))		
 
 
 #model output							   
@@ -253,7 +281,28 @@ write.table(chain2,paste0(modDir,"\\chain2_coda.csv"), sep=",")
 chain3<-as.matrix(curve.sample[[3]])
 write.table(chain3,paste0(modDir,"\\chain3_coda.csv"), sep=",")					
 			
+
+###############################################
+### read in regression results              ###
+### check goodness of fit
+###############################################
+
+#read in model output
+datS <- read.csv(paste0(modDir,"\\curve_mod_stats.csv"))
+datQ <- read.csv(paste0(modDir,"\\curve_mod_quant.csv"))
+
+#combine data frames
+datC <- cbind(datS,datQ)
+#pull out parameter names
+dexps<-"\\[*[[:digit:]]*\\]"
+datC$parm <- gsub(dexps,"",rownames(datC))
+
+#pull out betaB2
+betaCov <- datC[datC$parm=="betaB2",] 
+#pull out slope rep
+bRep <- datC[datC$parm=="rep.b0",]			
 			
-			
-			
-			
+plot(b0All4$Mean,bRep$Mean)	
+fit <- lm(bRep$Mean~	b0All4$Mean)	
+summary(fit)			
+abline(0,1,col="red",lwd=2)

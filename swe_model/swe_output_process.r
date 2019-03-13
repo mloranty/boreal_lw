@@ -181,6 +181,8 @@ for(i in 1:dim(chainDF)[1]){
 	mub0Stat[[i]] <- data.frame(Mean=mub0Summ[[i]]$statistics[1],
 									SD=mub0Summ[[i]]$statistics[2],
 									p2.5=mub0Summ[[i]]$quantiles[1],
+									p25=mub0Summ[[i]]$quantiles[2],
+									p75=mub0Summ[[i]]$quantiles[4],
 									p97.5=mub0Summ[[i]]$quantiles[5],
 							gcID=chainDF$glc[i],
 					year=chainDF$year[i])
