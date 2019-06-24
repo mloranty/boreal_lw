@@ -1,7 +1,0 @@
-/var/spool/pbs/mom_priv/jobs/2479.turing.SC: line 3: PBS: command not found
-/var/spool/pbs/mom_priv/jobs/2479.turing.SC: line 5: PBS: command not found
-/var/spool/pbs/mom_priv/jobs/2479.turing.SC: line 7: PBS: command not found
-/var/spool/pbs/mom_priv/jobs/2479.turing.SC: line 9: PBS: command not found
-/var/spool/pbs/mom_priv/jobs/2479.turing.SC: line 11: PBS: command not found
-/var/spool/pbs/mom_priv/jobs/2479.turing.SC: line 13: PBS: command not found
-Fatal error: you must specify '--save', '--no-save' or '--vanilla'
