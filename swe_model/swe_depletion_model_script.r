@@ -262,6 +262,18 @@ datExc$flag <- rep(1, dim(datExc)[1])
 dat.swe12 <- join(dat.swe11,datExc, by=c("gcID","pixID","year"), type="left")
 dat.swe13 <- dat.swe12[is.na(dat.swe12$flag),]
 
+#organize max data for calculation
+maxpixList <- list()
+for(i in 1:dim(gcYearID)[1]){
+	maxpixList[[i]] <- unique(data.frame(dayMax=dat.swe13$dayMax[dat.swe13$gcID==chainDF$glc[i]&dat.swe13$year==chainDF$year[i]],
+						pixID=dat.swe13$pixID[dat.swe13$gcID==chainDF$glc[i]&dat.swe13$year==chainDF$year[i]]))
+	maxpixList[[i]] <-	maxpixList[[i]] [order(maxpixList[[i]]$pixID),] 				
+
+}
+
+
+
+
 #pull out which rows each gc is related
 sweRows <- list()
 sweDims <- numeric(0)
