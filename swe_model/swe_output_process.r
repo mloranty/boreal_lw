@@ -228,20 +228,38 @@ dat.swe10 <- join(dat.swe9,pixJ4, by=c("cell","year","gcID","pixID","gcYearID"),
 
 dat.swe11<- dat.swe10[dat.swe10$doyN>10,]	
 
-datSwe <- dat.swe11
+
 #swe for entire melt period
 sweAll <- dat.swe5 
 #clear out files that aren't needed
+#######################################################
+# Exclude cells with data not appropriate for model   #
+#######################################################
 
+datExc$flag <- rep(1, dim(datExc)[1])
+
+dat.swe12 <- join(dat.swe11,datExc, by=c("gcID","pixID","year"), type="left")
+dat.swe13 <- dat.swe12[is.na(dat.swe12$flag),]
+
+#######################################################
+# Need to change the pixel ID since some of the data  #
+# is now subsetted and pixels are removed also need   # 
+# day of maximum for a calculations                   #  
+#######################################################
 #organize max data for calculation
 maxpixList <- list()
-for(i in 1:dim(chainDF)[1]){
-	maxpixList[[i]] <- unique(data.frame(dayMax=datSwe$dayMax[datSwe$gcID==chainDF$glc[i]&datSwe$year==chainDF$year[i]],
-						pixID=datSwe$pixID[datSwe$gcID==chainDF$glc[i]&datSwe$year==chainDF$year[i]]))
-	maxpixList[[i]] <-	maxpixList[[i]] [order(maxpixList[[i]]$pixID),] 				
+for(i in 1:dim(gcYearID)[1]){
+	maxpixList[[i]] <- unique(data.frame(dayMax=dat.swe13$dayMax[dat.swe13$gcID==gcYearID$gcID[i]&dat.swe13$year==gcYearID$year[i]],
+						pixID=dat.swe13$pixID[dat.swe13$gcID==gcYearID$gcID[i]&dat.swe13$year==gcYearID$year[i]]))
+	maxpixList[[i]] <-	maxpixList[[i]] [order(maxpixList[[i]]$pixID),] 		
+	maxpixList[[i]]$newpixID <- seq(1,dim(maxpixList[[i]])[1])
+	maxpixList[[i]]$gcYearID <- rep(gcYearID$gcYearID[i],dim(maxpixList[[i]])[1])
+	#also add cell new count back into gcYearID
+	gcYearID$newpixCount[i] <- dim(maxpixList[[i]])[1]
 
 }
-
+#rename final swe data
+datSwe <- dat.swe13
 #######################################################
 # file name information                               #
 #######################################################
@@ -250,9 +268,9 @@ for(i in 1:dim(chainDF)[1]){
 
 
 #create a vector with all of the parent directories
-dirP <- c("z:\\projects\\boreal_swe_depletion\\model\\run13\\run1")
+dirP <- c("z:\\projects\\boreal_swe_depletion\\model\\run14\\run1")
 
-outD <- "z:\\projects\\boreal_swe_depletion\\model\\run13\\eval"
+outD <- "z:\\projects\\boreal_swe_depletion\\model\\run14\\eval"
 #get a list of all of the files
 
 
