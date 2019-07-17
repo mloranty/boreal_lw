@@ -210,7 +210,7 @@ dat.swe9 <- dat.swe8[dat.swe8$filterID==1,]
 ################################################
 ####omit sites with a lot of missing data   ####
 ################################################
-#get the maximum day of year
+#get the number of days in the observation
 nDOY <- numeric(0)
 #get the final swe max time
 for(i in 1:dim(gcYearID)[1]){
@@ -229,9 +229,7 @@ dat.swe10 <- join(dat.swe9,pixJ4, by=c("cell","year","gcID","pixID","gcYearID"),
 dat.swe11<- dat.swe10[dat.swe10$doyN>10,]	
 
 
-#swe for entire melt period
-sweAll <- dat.swe5 
-#clear out files that aren't needed
+
 #######################################################
 # Exclude cells with data not appropriate for model   #
 #######################################################
@@ -260,6 +258,9 @@ for(i in 1:dim(gcYearID)[1]){
 }
 #rename final swe data
 datSwe <- dat.swe13
+#swe for entire melt period
+sweAll <- dat.swe5 
+
 #######################################################
 # file name information                               #
 #######################################################
@@ -306,8 +307,13 @@ colnames(chain3)[1:2] <- paste0(colnames(chain3)[1:2],"3")
 chains <- list(chain1,chain2,chain3)
 
 chainDF <- join_all(chains,by=c("glc","year"),type="inner")
+#gcID is the correct name not gcID
+colnames(chainDF)[3] <- "gcID"
 
-
+#join chainDF and gcYearID
+chainDF <- join(chainDF,gcYearID, by=c("gcID","year"), type="left")
+#order chainDF by gcYearID
+chainDF <- chainDF[order(chainDF$gcYearID),]
 
 #get a list of all of the names of the variables
 parms <- list.files(paste0(chainDF$dirP1[1],"\\",chainDF$files1[1]))
@@ -351,6 +357,8 @@ midmcmc <- mcmc.list()
 mid.diag <- list()
 midSumm <- list()
 midStat <- list()
+daysHalf1 <- list()
+outHalf1 <- matrix()
 for(i in 1:dim(chainDF)[1]){
 
 	#read in output
@@ -370,6 +378,12 @@ for(i in 1:dim(chainDF)[1]){
 	midSumm[[i]] <- summary(midmcmc)
 	midStat[[i]] <- data.frame(midSumm[[i]]$statistics,midSumm[[i]]$quantiles,gcID=rep(chainDF$glc[i],dim(midSumm[[i]]$statistics)[1]),
 					year=rep(chainDF$year[i],dim(midSumm[[i]]$statistics)[1]),pixID=seq(1,dim(midSumm[[i]]$statistics)[1]))
+	#add calculation for time between midpoint and onset
+	for(j in 1:dim(midOut1)[2]){
+		daysHalf1[[j]] <- midOut1[,j]-maxpixList[[i]]$dayMax[j]
+	
+	}
+	outHalf1 <- matrix(unlist(Qftemp),byrow=FALSE,ncol=16)
 }
 
 midOut <- ldply(midStat, data.frame)
