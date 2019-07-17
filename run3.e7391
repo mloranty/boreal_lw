@@ -1,0 +1,54 @@
+Loading required package: ggplot2
+Loading required package: StanHeaders
+rstan (Version 2.17.3, GitRev: 2e1f913d3ca3)
+For execution on a local, multicore CPU with excess RAM we recommend calling
+options(mc.cores = parallel::detectCores()).
+To avoid recompilation of unchanged Stan programs, we recommend calling
+rstan_options(auto_write = TRUE)
+
+Attaching package: ‘rstan’
+
+The following object is masked from ‘package:coda’:
+
+    traceplot
+
+snowfall 1.84-6.1 initialized (using snow 0.4-2): parallel execution on 30 CPUs.
+
+Warning message:
+In searchCommandline(parallel, cpus = cpus, type = type, socketHosts = socketHosts,  :
+  Unknown option on commandline: --file
+Library rstan loaded in cluster.
+
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+error occurred during calling the sampler; sampling not done
+
+Stopping cluster
+
