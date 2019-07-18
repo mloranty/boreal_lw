@@ -44,14 +44,14 @@ outdir <- "/home/hkropp/boreal/model/run1/"
 if(runOS==1){
 	dat.swe <- read.csv(paste0(DDdir[1], "/swe_depletion_model_data_vcf_no_topo.csv"))
 	dat.glc <- read.csv(paste0(DDdir[1], "/glc50_table.csv"))
-	whichrep <- read.csv(paste0(DDdir[1],"/rep_subID.csv"))
+	whichrep <- read.csv(paste0(DDdir[1],"/rep_subID_new.csv"))
 	datExc <- read.csv(paste0(DDdir[1],"/prob_pix.csv"))
 
 }else{
 
 	dat.swe <- read.csv(paste0(DDdir[2],"\\swe_depletion_model_data_vcf_no_topo.csv"))
 	dat.glc <- read.csv(paste0(DDdir[2], "/glc50_table.csv"))
-	whichrep <- read.csv(paste0(DDdir[2],"\\rep_subID.csv"))
+	whichrep <- read.csv(paste0(DDdir[2],"\\rep_subID_new.csv"))
 	datExc <- read.csv(paste0(DDdir[2],"\\prob_pix.csv"))
 }
 
@@ -300,7 +300,7 @@ for(i in 1:dim(gcYearID)[1]){
 #	}
 #}
 #whichrep <- ldply(whichrep,data.frame)
-#write.table(whichrep,"z:\\projects\\boreal_swe_depletion\\data\\rep_subID.csv",sep=",",row.names=FALSE)
+#write.table(whichrep,"z:\\projects\\boreal_swe_depletion\\data\\rep_subID_new.csv",sep=",",row.names=FALSE)
 
 datRep <- dat.swe14[whichrep$rows,]
 

@@ -44,14 +44,14 @@ outdir <- "/home/hkropp/boreal/model/run1/"
 if(runOS==1){
 	dat.swe <- read.csv(paste0(DDdir[1], "/swe_depletion_model_data_vcf_no_topo.csv"))
 	dat.glc <- read.csv(paste0(DDdir[1], "/glc50_table.csv"))
-	whichrep <- read.csv(paste0(DDdir[1],"/rep_subID.csv"))
+	whichrep <- read.csv(paste0(DDdir[1],"/rep_subID_new.csv"))
 	datExc <- read.csv(paste0(DDdir[1],"/prob_pix.csv"))
 
 }else{
 
 	dat.swe <- read.csv(paste0(DDdir[2],"\\swe_depletion_model_data_vcf_no_topo.csv"))
 	dat.glc <- read.csv(paste0(DDdir[2], "/glc50_table.csv"))
-	whichrep <- read.csv(paste0(DDdir[2],"\\rep_subID.csv"))
+	whichrep <- read.csv(paste0(DDdir[2],"\\rep_subID_new.csv"))
 	datExc <- read.csv(paste0(DDdir[2],"\\prob_pix.csv"))
 }
 
@@ -287,7 +287,7 @@ dat.swe14 <- join(dat.swe13, maxpixDF, by=c("pixID","gcYearID"), type="left")
 sweRows <- list()
 sweDims <- numeric(0)
 for(i in 1:dim(gcYearID)[1]){
-	sweRows[[i]] <- which(dat.swe13$gcID==gcYearID$gcID[i]&dat.swe13$year==gcYearID$year[i])
+	sweRows[[i]] <- which(dat.swe14$gcID==gcYearID$gcID[i]&dat.swe14$year==gcYearID$year[i])
 	sweDims[i] <- length(sweRows[[i]])
 }
 #find out which 
@@ -300,7 +300,7 @@ for(i in 1:dim(gcYearID)[1]){
 #	}
 #}
 #whichrep <- ldply(whichrep,data.frame)
-#write.table(whichrep,"z:\\projects\\boreal_swe_depletion\\data\\rep_subID.csv",sep=",",row.names=FALSE)
+#write.table(whichrep,"z:\\projects\\boreal_swe_depletion\\data\\rep_subID_new.csv",sep=",",row.names=FALSE)
 
 datRep <- dat.swe14[whichrep$rows,]
 
@@ -319,7 +319,7 @@ if(rn==1){
 				Npixel=dim(maxpixList[[i]])[1], 
 				Rday=(datRep$jday[datRep$gcID==gcYearID$gcID[i]&datRep$year==gcYearID$year[i]]-32)/(182-32),
 				Nrep=dim(datRep[datRep$gcID==gcYearID$gcID[i]&datRep$year==gcYearID$year[i],])[1],
-				RpixID=datRep$pixID[datRep$gcID==gcYearID$gcID[i]&datRep$year==gcYearID$year[i]])
+				RpixID=datRep$newpixID[datRep$gcID==gcYearID$gcID[i]&datRep$year==gcYearID$year[i]])
 	}
 }
 
@@ -332,7 +332,7 @@ if(rn==2){
 				Npixel=dim(maxpixList[[i+30]])[1],  
 				Rday=(datRep$jday[datRep$gcID==gcYearID$gcID[i+30]&datRep$year==gcYearID$year[i+30]]-32)/(182-32),
 				Nrep=dim(datRep[datRep$gcID==gcYearID$gcID[i+30]&datRep$year==gcYearID$year[i+30],])[1],
-				RpixID=datRep$pixID[datRep$gcID==gcYearID$gcID[i+30]&datRep$year==gcYearID$year[i+30]])
+				RpixID=datRep$newpixID[datRep$gcID==gcYearID$gcID[i+30]&datRep$year==gcYearID$year[i+30]])
 	}
 }
 
