@@ -287,7 +287,7 @@ dat.swe14 <- join(dat.swe13, maxpixDF, by=c("pixID","gcYearID"), type="left")
 sweRows <- list()
 sweDims <- numeric(0)
 for(i in 1:dim(gcYearID)[1]){
-	sweRows[[i]] <- which(dat.swe13$gcID==gcYearID$gcID[i]&dat.swe13$year==gcYearID$year[i])
+	sweRows[[i]] <- which(dat.swe14$gcID==gcYearID$gcID[i]&dat.swe14$year==gcYearID$year[i])
 	sweDims[i] <- length(sweRows[[i]])
 }
 #find out which 
@@ -319,7 +319,7 @@ if(rn==1){
 				Npixel=dim(maxpixList[[i]])[1], 
 				Rday=(datRep$jday[datRep$gcID==gcYearID$gcID[i]&datRep$year==gcYearID$year[i]]-32)/(182-32),
 				Nrep=dim(datRep[datRep$gcID==gcYearID$gcID[i]&datRep$year==gcYearID$year[i],])[1],
-				RpixID=datRep$pixID[datRep$gcID==gcYearID$gcID[i]&datRep$year==gcYearID$year[i]])
+				RpixID=datRep$newpixID[datRep$gcID==gcYearID$gcID[i]&datRep$year==gcYearID$year[i]])
 	}
 }
 
@@ -332,7 +332,7 @@ if(rn==2){
 				Npixel=dim(maxpixList[[i+30]])[1],  
 				Rday=(datRep$jday[datRep$gcID==gcYearID$gcID[i+30]&datRep$year==gcYearID$year[i+30]]-32)/(182-32),
 				Nrep=dim(datRep[datRep$gcID==gcYearID$gcID[i+30]&datRep$year==gcYearID$year[i+30],])[1],
-				RpixID=datRep$pixID[datRep$gcID==gcYearID$gcID[i+30]&datRep$year==gcYearID$year[i+30]])
+				RpixID=datRep$newpixID[datRep$gcID==gcYearID$gcID[i+30]&datRep$year==gcYearID$year[i+30]])
 	}
 }
 
