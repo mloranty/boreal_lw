@@ -10,6 +10,7 @@ runOS <- 2
 #linux data directory first option, windows second optioon
 DDdir <- c("/home/hkropp/boreal/data",
 				"z:\\projects\\boreal_swe_depletion\\data")
+
 #######################################################
 # read in and filter data                             #
 #######################################################
@@ -17,14 +18,14 @@ DDdir <- c("/home/hkropp/boreal/data",
 if(runOS==1){
 	dat.swe <- read.csv(paste0(DDdir[1], "/swe_depletion_model_data_vcf_no_topo.csv"))
 	dat.glc <- read.csv(paste0(DDdir[1], "/glc50_table.csv"))
-	whichrep <- read.csv(paste0(DDdir[1],"/rep_subID.csv"))
+	whichrep <- read.csv(paste0(DDdir[1],"/rep_subID_new.csv"))
 	datExc <- read.csv(paste0(DDdir[1],"/prob_pix.csv"))
 
 }else{
 
 	dat.swe <- read.csv(paste0(DDdir[2],"\\swe_depletion_model_data_vcf_no_topo.csv"))
 	dat.glc <- read.csv(paste0(DDdir[2], "/glc50_table.csv"))
-	whichrep <- read.csv(paste0(DDdir[2],"\\rep_subID.csv"))
+	whichrep <- read.csv(paste0(DDdir[2],"\\rep_subID_new.csv"))
 	datExc <- read.csv(paste0(DDdir[2],"\\prob_pix.csv"))
 }
 
@@ -95,8 +96,6 @@ dat.swe3 <- join(dat.swe2, sweMaxF, by=c("cell","year"), type="inner")
 IDSglc <- unique(data.frame(zone=dat.swe3$zone))
 IDSglc <- join(IDSglc, dat.glc[,1:2], by="zone", type="left")
 IDSglc$gcID <- seq(1,dim(IDSglc)[1])
-
-
 
 
 #join glc ID into dataframe
@@ -210,7 +209,7 @@ dat.swe9 <- dat.swe8[dat.swe8$filterID==1,]
 ################################################
 ####omit sites with a lot of missing data   ####
 ################################################
-#get the number of days in the observation
+#get the maximum day of year
 nDOY <- numeric(0)
 #get the final swe max time
 for(i in 1:dim(gcYearID)[1]){
@@ -227,8 +226,6 @@ dat.swe10 <- join(dat.swe9,pixJ4, by=c("cell","year","gcID","pixID","gcYearID"),
 
 
 dat.swe11<- dat.swe10[dat.swe10$doyN>10,]	
-
-
 
 #######################################################
 # Exclude cells with data not appropriate for model   #
@@ -256,8 +253,24 @@ for(i in 1:dim(gcYearID)[1]){
 	gcYearID$newpixCount[i] <- dim(maxpixList[[i]])[1]
 
 }
+
+#join back into swe to have new pixel id
+maxpixDF <- ldply(maxpixList,data.frame)[,-1]
+dat.swe14 <- join(dat.swe13, maxpixDF, by=c("pixID","gcYearID"), type="left")
+#pull out which rows each gc is related
+sweRows <- list()
+sweDims <- numeric(0)
+for(i in 1:dim(gcYearID)[1]){
+	sweRows[[i]] <- which(dat.swe14$gcID==gcYearID$gcID[i]&dat.swe14$year==gcYearID$year[i])
+	sweDims[i] <- length(sweRows[[i]])
+}
+
+
+datRep <- dat.swe14[whichrep$rows,]
+
+
 #rename final swe data
-datSwe <- dat.swe13
+datSwe <- dat.swe14
 #swe for entire melt period
 sweAll <- dat.swe5 
 
@@ -345,8 +358,8 @@ for(i in 1:dim(chainDF)[1]){
 	b0Out3 <- as.mcmc(apply(b0Out3,c(1,2),function(X){X/(182-32)}))
 	b0mcmc <- mcmc.list(b0Out1,b0Out2,b0Out3)
 	b0Summ[[i]] <- summary(b0mcmc)
-	b0Stat[[i]] <- data.frame(b0Summ[[i]]$statistics,b0Summ[[i]]$quantiles,gcID=rep(chainDF$glc[i],dim(b0Summ[[i]]$statistics)[1]),
-					year=rep(chainDF$year[i],dim(b0Summ[[i]]$statistics)[1]),pixID=seq(1,dim(b0Summ[[i]]$statistics)[1]))
+	b0Stat[[i]] <- data.frame(b0Summ[[i]]$statistics,b0Summ[[i]]$quantiles,gcID=rep(chainDF$gcID[i],dim(b0Summ[[i]]$statistics)[1]),
+					year=rep(chainDF$year[i],dim(b0Summ[[i]]$statistics)[1]),newpixID=seq(1,dim(b0Summ[[i]]$statistics)[1]))
 }
 	
 
@@ -359,6 +372,11 @@ midSumm <- list()
 midStat <- list()
 daysHalf1 <- list()
 outHalf1 <- matrix()
+daysHalf2 <- list()
+outHalf2 <- matrix()
+daysHalf3 <- list()
+outHalf3 <- matrix()
+halfStat <- list()
 for(i in 1:dim(chainDF)[1]){
 
 	#read in output
@@ -376,14 +394,24 @@ for(i in 1:dim(chainDF)[1]){
 	midOut3 <- as.mcmc(apply(midOut3,c(1,2),function(X){(X*(182-32))+32}))
 	midmcmc <- mcmc.list(midOut1,midOut2,midOut3)
 	midSumm[[i]] <- summary(midmcmc)
-	midStat[[i]] <- data.frame(midSumm[[i]]$statistics,midSumm[[i]]$quantiles,gcID=rep(chainDF$glc[i],dim(midSumm[[i]]$statistics)[1]),
+	midStat[[i]] <- data.frame(midSumm[[i]]$statistics,midSumm[[i]]$quantiles,gcID=rep(chainDF$gcID[i],dim(midSumm[[i]]$statistics)[1]),
 					year=rep(chainDF$year[i],dim(midSumm[[i]]$statistics)[1]),pixID=seq(1,dim(midSumm[[i]]$statistics)[1]))
 	#add calculation for time between midpoint and onset
 	for(j in 1:dim(midOut1)[2]){
-		daysHalf1[[j]] <- midOut1[,j]-maxpixList[[i]]$dayMax[j]
-	
+		daysHalf1[[j]] <- as.vector(midOut1[,j])-maxpixList[[i]]$dayMax[j]
+		daysHalf2[[j]] <- as.vector(midOut2[,j])-maxpixList[[i]]$dayMax[j]
+		daysHalf3[[j]] <- as.vector(midOut3[,j])-maxpixList[[i]]$dayMax[j]
 	}
-	outHalf1 <- matrix(unlist(Qftemp),byrow=FALSE,ncol=16)
+	outHalf1 <- matrix(unlist(daysHalf1),byrow=FALSE,ncol=dim(midOut1)[2])
+	outHalf2 <- matrix(unlist(daysHalf2),byrow=FALSE,ncol=dim(midOut1)[2])
+	outHalf3 <- matrix(unlist(daysHalf3),byrow=FALSE,ncol=dim(midOut1)[2])
+	#combine all chains
+	outAll <- rbind(outHalf1,outHalf2,outHalf3)
+	#summarize
+	halfStat[[i]] <- data.frame(Mean=apply(outAll,2,"mean"),SD=apply(outAll,2,"sd"),p2.5=apply(outAll,2,"quantile",prob=0.025),
+								p25=apply(outAll,2,"quantile",prob=0.25),p50=apply(outAll,2,"quantile",prob=0.5),p75=apply(outAll,2,"quantile",prob=0.75),
+								p97.5=apply(outAll,2,"quantile",prob=0.975),gcID=rep(chainDF$gcID[i],dim(midOut1)[2]),
+					year=rep(chainDF$year[i],dim(midOut1)[2]),newpixID=seq(1,dim(midOut1)[2]))
 }
 
 midOut <- ldply(midStat, data.frame)
