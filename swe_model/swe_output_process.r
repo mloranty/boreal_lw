@@ -379,6 +379,7 @@ outHalf3 <- matrix()
 halfStat <- list()
 for(i in 1:dim(chainDF)[1]){
 
+
 	#read in output
 	midOut1 <- read.csv(paste0(chainDF$dirP1[i],"\\",chainDF$files1[i],"\\mid0_out.csv"))
 	midOut2 <- read.csv(paste0(chainDF$dirP2[i],"\\",chainDF$files2[i],"\\mid0_out.csv"))
@@ -397,6 +398,9 @@ for(i in 1:dim(chainDF)[1]){
 	midStat[[i]] <- data.frame(midSumm[[i]]$statistics,midSumm[[i]]$quantiles,gcID=rep(chainDF$gcID[i],dim(midSumm[[i]]$statistics)[1]),
 					year=rep(chainDF$year[i],dim(midSumm[[i]]$statistics)[1]),pixID=seq(1,dim(midSumm[[i]]$statistics)[1]))
 	#add calculation for time between midpoint and onset
+	daysHalf1 <- list()
+	daysHalf2 <- list()
+	daysHalf3 <- list()
 	for(j in 1:dim(midOut1)[2]){
 		daysHalf1[[j]] <- as.vector(midOut1[,j])-maxpixList[[i]]$dayMax[j]
 		daysHalf2[[j]] <- as.vector(midOut2[,j])-maxpixList[[i]]$dayMax[j]
@@ -416,7 +420,7 @@ for(i in 1:dim(chainDF)[1]){
 
 midOut <- ldply(midStat, data.frame)
 b0Out <- ldply(b0Stat, data.frame)
-
+halfOut <- ldply(halfStat, data.frame)
 ###
 #read in means
 mumidOut1 <- data.frame()
@@ -481,4 +485,4 @@ for(i in 1:dim(chainDF)[1]){
 }
 muB0Out <- ldply(mub0Stat,data.frame)
 
-rm(list=setdiff(ls(), c("datSwe","b0Out","midOut","muB0Out","muMidOut","IDSglc","sweAll")))
+rm(list=setdiff(ls(), c("datSwe","b0Out","midOut","muB0Out","muMidOut","IDSglc","sweAll", "halfOut")))
