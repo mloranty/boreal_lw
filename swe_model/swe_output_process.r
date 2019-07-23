@@ -446,7 +446,7 @@ for(i in 1:dim(chainDF)[1]){
 	mumidStat[[i]] <- data.frame(Mean=mumidSumm[[i]]$statistics[1],
 									SD=mumidSumm[[i]]$statistics[2],
 									p2.5=mumidSumm[[i]]$quantiles[1],
-									p97.5=mumidSumm[[i]]$quantiles[5],gcID=chainDF$glc[i],
+									p97.5=mumidSumm[[i]]$quantiles[5],gcID=chainDF$gcID[i],
 					year=chainDF$year[i])
 }
 
@@ -480,7 +480,7 @@ for(i in 1:dim(chainDF)[1]){
 									p25=mub0Summ[[i]]$quantiles[2],
 									p75=mub0Summ[[i]]$quantiles[4],
 									p97.5=mub0Summ[[i]]$quantiles[5],
-							gcID=chainDF$glc[i],
+							gcID=chainDF$gcID[i],
 					year=chainDF$year[i])
 }
 muB0Out <- ldply(mub0Stat,data.frame)
