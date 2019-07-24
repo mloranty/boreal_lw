@@ -48,7 +48,7 @@ for(i in 1:dim(datA)[1]){
 		#chain
 		datA$chain[i] <- as.numeric(strsplit(as.character(datA$files[i]),"_")[[1]][6])
 }	
-whichrep <- read.csv("z:\\projects\\boreal_swe_depletion\\data\\rep_subID.csv")
+whichrep <- read.csv("z:\\projects\\boreal_swe_depletion\\data\\rep_subID_new.csv")
 #turn chains into a list
 chain1 <- datA[datA$chain==1,1:4]
 colnames(chain1)[1:2] <- paste0(colnames(chain1)[1:2],"1") 
@@ -170,7 +170,7 @@ for(i in 1:dim(chainDF)[1]){
 #need to subset datrep
 datRepL <- list()
 for(i in 1:dim(chainDF)[1]){
-		datRepL[[i]] <- datRep[datRep$gcID==chainDF$glc[i]&datRep$year==chainDF$year[i],]
+		datRepL[[i]] <- whichrep[whichrep$gcID==chainDF$glc[i]&whichrep$year==chainDF$year[i],]
 }
 
 #add rep data and ID	
@@ -189,8 +189,8 @@ colnames(b0Conv)[1] <- "b0conv"
 colnames(b0Conv)[2] <- "pixID"
 colnames(midConv)[2] <- "pixID"
 #merge convergence info
-repDF1 <- join(repDF,midConv,by=c("pixID","gcID","year"),type="left")
-repDF2 <- join(repDF1,b0Conv,by=c("pixID","gcID","year"),type="left")
+repDF1 <- join(repDF,midConv,by=c("gcID","year"),type="left")
+repDF2 <- join(repDF1,b0Conv,by=c("gcID","year"),type="left")
 
 
 
@@ -210,9 +210,9 @@ legend("topleft",c("1:1 line","regression line"),col=c("red","cornflowerblue"),l
 probMid <- midConv[midConv$conv==1,]
 probB0 <- b0Conv[b0Conv$conv==1,]
 
-probAll <- join(probMid,probB0, by=c("gridID","glc","year"),type="full")
+probAll <- join(probMid,probB0, by=c("pixID","gcID","year"),type="full")
 
-probOut <- data.frame(pixID=probAll$gridID, gcID=probAll$glc,year=probAll$year)
+probOut <- data.frame(pixID=probAll$pixID, gcID=probAll$gcID,year=probAll$year)
 
 #write.table (probOut, "z:\\projects\\boreal_swe_depletion\\data\\prob_pix.csv",sep=",", row.names=FALSE)
 #note three sites show up as marginally not making the gelman metric but they have output chains that converged
