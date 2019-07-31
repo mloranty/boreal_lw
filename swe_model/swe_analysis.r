@@ -31,7 +31,7 @@ library(mcmcplots)
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run7"
+modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run8"
 
 ###############################################
 ### set up a dataframe with all of the      ###
