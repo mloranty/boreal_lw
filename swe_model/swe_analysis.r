@@ -6,6 +6,7 @@
 #### b0Out: the rate of swe decline and midOut: the   ####
 #### timing of half swe,muB0Out=glc mean slope        ####
 #### muMidOut= glc mean midpoint                      ####
+#### halfOut= #of days between last Max day and mid   ####
 ##########################################################
 
 
@@ -39,17 +40,19 @@ modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run8"
 ###############################################
 sweCell <- unique(data.frame(cell=datSwe$cell,gcID=datSwe$gcID,pixID=datSwe$pixID,year=datSwe$year,
 								y=datSwe$y.coord,x=datSwe$x.coord,
-								vcf=datSwe$vcf,zone=datSwe$zone,dayMax=datSwe$dayMax))
+								vcf=datSwe$vcf,zone=datSwe$zone,dayMax=datSwe$dayMax, newpixID=datSwe$newpixID))
 								
 								
 #calculate the melt period		
 #join midpoint into swe cell
 
 sweCell2 <- join(sweCell,midOut,by=c("pixID","gcID","year"),type="left")
+colnames(halfOut)[1:7] <- paste0(colnames(halfOut)[1:7],"H")
+sweCell3 <- join(sweCell2,halfOut,by=c("newpixID","gcID","year"),type="left")
 
-sweCell2$Mlength <- (round(sweCell2$Mean)-sweCell2$dayMax)*2
 #calculate the end day
-sweCell2$dayEnd <- sweCell2$dayMax+sweCell2$Mlength
+sweCell3$dayEnd <- ifelse(round(sweCell3$Mean)+round(sweCell3$MeanH) > 182,
+					182,round(sweCell3$Mean)+round(sweCell3$MeanH))
 
 
 #calculate average temperature to only be within the melt period
@@ -58,21 +61,21 @@ meltTemp <- numeric(0)
 onsetTemp <- numeric(0)
 
 
-for(i in 1:dim(sweCell2)[1]){
-	meltTemp[i] <- mean(sweAll$t.air[sweAll$pixID==sweCell2$pixID[i]&sweAll$gcID==sweCell2$gcID[i]&
-						sweAll$year==sweCell2$year[i]&sweAll$jday>=sweCell2$dayMax[i]&sweAll$jday<=sweCell2$dayEnd[i]]-273.15)
-	onsetTemp[i] <- mean(sweAll$t.air[sweAll$pixID==sweCell2$pixID[i]&sweAll$gcID==sweCell2$gcID[i]&
-						sweAll$year==sweCell2$year[i]&sweAll$jday>=(sweCell2$dayMax[i]-7)&sweAll$jday<=sweCell2$dayMax[i]]-273.15)								
+for(i in 1:dim(sweCell3)[1]){
+	meltTemp[i] <- mean(sweAll$t.air[sweAll$pixID==sweCell3$pixID[i]&sweAll$gcID==sweCell3$gcID[i]&
+						sweAll$year==sweCell3$year[i]&sweAll$jday>=sweCell3$dayMax[i]&sweAll$jday<=sweCell3$dayEnd[i]]-273.15,na.rm=TRUE)
+	onsetTemp[i] <- mean(sweAll$t.air[sweAll$pixID==sweCell3$pixID[i]&sweAll$gcID==sweCell3$gcID[i]&
+						sweAll$year==sweCell3$year[i]&sweAll$jday>=(sweCell3$dayMax[i]-7)&sweAll$jday<=sweCell3$dayMax[i]]-273.15,na.rm=TRUE)								
 }
 
 #create a data frame  to combine back into slope output
-sweCell3 <- data.frame(pixID=sweCell2$pixID,cell=sweCell2$cell,gcID=sweCell2$gcID,year=sweCell2$year,
-							vcf=sweCell2$vcf,zone=sweCell2$zone,dayMax=sweCell2$dayMax,Mlength=sweCell2$Mlength,
-							dayEnd=sweCell2$dayEnd,meltTemp=meltTemp,onsetTemp=onsetTemp,
-							x=sweCell2$x,y=sweCell2$y)
+sweCell4 <- data.frame(pixID=sweCell3$pixID,newpixID=sweCell3$newpixID,cell=sweCell3$cell,gcID=sweCell3$gcID,year=sweCell3$year,
+							vcf=sweCell3$vcf,zone=sweCell3$zone,dayMax=sweCell3$dayMax,
+							dayEnd=sweCell3$dayEnd,meltTemp=meltTemp,onsetTemp=onsetTemp,
+							x=sweCell3$x,y=sweCell3$y)
 
 #now join to each output
-b0All <- join(b0Out,sweCell3,by=c("year","gcID","pixID"),type="inner")
+b0All <- join(b0Out,sweCell4,by=c("year","gcID","newpixID"),type="inner")
 
 
 #organize output by year
