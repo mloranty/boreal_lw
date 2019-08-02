@@ -30,3 +30,28 @@ library(sp)
 swepath <- "z:\\data_repo\\gis_data"
 
 modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run8"
+
+
+###############################################
+### organize all data                       ###
+###############################################
+sweCell <- unique(data.frame(cell=datSwe$cell,gcID=datSwe$gcID,pixID=datSwe$pixID,year=datSwe$year,
+								y=datSwe$y.coord,x=datSwe$x.coord,
+								vcf=datSwe$vcf,zone=datSwe$zone,dayMax=datSwe$dayMax, newpixID=datSwe$newpixID))
+								
+								
+#calculate the melt period		
+#join midpoint into swe cell
+sweCell2 <- join(sweCell,midOut,by=c("newpixID","gcID","year"),type="left")
+colnames(halfOut)[1:7] <- paste0(colnames(halfOut)[1:7],"H")
+sweCell3 <- join(sweCell2,halfOut,by=c("newpixID","gcID","year"),type="left")
+
+#### data filter #####
+#there are some very fast melt periods
+#where the standard deviation of the midpoint
+#is within the range of the onset. Looking at the
+#melt period won't be reliable. 					
+sweCell3 <- sweCell3[round(sweCell3$Mean-sweCell3$SD)>sweCell3$dayMax,]
+
+#parm all
+parmAll <- join(b0Out,sweCell3,by=c("year","gcID","newpixID"),type="inner")
