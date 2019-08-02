@@ -54,6 +54,12 @@ sweCell3 <- join(sweCell2,halfOut,by=c("newpixID","gcID","year"),type="left")
 sweCell3$dayEnd <- ifelse(round(sweCell3$Mean)+round(sweCell3$MeanH) > 182,
 					182,round(sweCell3$Mean)+round(sweCell3$MeanH))
 
+#### data filter #####
+#there are some very fast melt periods
+#where the standard deviation of the midpoint
+#is within the range of the onset. Looking at the
+#melt period won't be reliable. 					
+sweCell3 <- sweCell3[round(sweCell3$Mean-sweCell3$SD)>sweCell3$dayMax,]
 
 #calculate average temperature to only be within the melt period
 #and calculate the temperature in the  week before the melt period
@@ -63,7 +69,7 @@ daysToJoin <- data.frame(pixID=sweCell3$pixID,year=sweCell3$year,gcID=sweCell3$g
 						dayMax=sweCell3$dayMax,dayEnd=sweCell3$dayEnd)
 
 						
-sweDaysJoin <- join(sweAll,daysToJoin, by=c("pixID","gcID","year"),type="left")
+sweDaysJoin <- join(sweAll,daysToJoin, by=c("pixID","gcID","year"),type="inner")
 
 sweMeltSub <- sweDaysJoin[sweDaysJoin$jday>=sweDaysJoin$dayMax&sweDaysJoin$jday<=sweDaysJoin$dayEnd,]
 sweOnsetSub <- sweDaysJoin[sweDaysJoin$jday>=(sweDaysJoin$dayMax-7)&sweDaysJoin$jday<=sweDaysJoin$dayMax,]		
@@ -224,7 +230,6 @@ for(i in 1:dim(gcIndT)[1]){
 }
 
 
-
 #jags regression
 datalist <- list(Nobs= dim(b0All4)[1],
 					maxD=b0All4$dayMax,
@@ -278,6 +283,7 @@ mcmcplot(curve.sample, parms=c("betaM0S","betaM1","betaM2","betaM3",
 
 #model output							   
 mod.out <- summary(curve.sample)
+
 
 write.table(mod.out$statistics,paste0(modDir,"\\curve_mod_stats.csv"),
 			sep=",",row.names=TRUE)
