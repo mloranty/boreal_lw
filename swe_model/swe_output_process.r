@@ -396,7 +396,7 @@ for(i in 1:dim(chainDF)[1]){
 	midmcmc <- mcmc.list(midOut1,midOut2,midOut3)
 	midSumm[[i]] <- summary(midmcmc)
 	midStat[[i]] <- data.frame(midSumm[[i]]$statistics,midSumm[[i]]$quantiles,gcID=rep(chainDF$gcID[i],dim(midSumm[[i]]$statistics)[1]),
-					year=rep(chainDF$year[i],dim(midSumm[[i]]$statistics)[1]),pixID=seq(1,dim(midSumm[[i]]$statistics)[1]))
+					year=rep(chainDF$year[i],dim(midSumm[[i]]$statistics)[1]),newpixID=seq(1,dim(midSumm[[i]]$statistics)[1]))
 	#add calculation for time between midpoint and onset
 	daysHalf1 <- list()
 	daysHalf2 <- list()

@@ -45,8 +45,8 @@ sweCell <- unique(data.frame(cell=datSwe$cell,gcID=datSwe$gcID,pixID=datSwe$pixI
 								
 #calculate the melt period		
 #join midpoint into swe cell
-
-sweCell2 <- join(sweCell,midOut,by=c("pixID","gcID","year"),type="left")
+midOut$newpixID <- midOut$pixID
+sweCell2 <- join(sweCell,midOut,by=c("newpixID","gcID","year"),type="left")
 colnames(halfOut)[1:7] <- paste0(colnames(halfOut)[1:7],"H")
 sweCell3 <- join(sweCell2,halfOut,by=c("newpixID","gcID","year"),type="left")
 
