@@ -56,23 +56,32 @@ sweCell3$dayEnd <- ifelse(round(sweCell3$Mean)+round(sweCell3$MeanH) > 182,
 
 
 #calculate average temperature to only be within the melt period
-#and calculate the temperature in the three weeks before the melt period
-meltTemp <- numeric(0)
-onsetTemp <- numeric(0)
+#and calculate the temperature in the  week before the melt period
 
+#subset swe cell3 info
+daysToJoin <- data.frame(pixID=sweCell3$pixID,year=sweCell3$year,gcID=sweCell3$gcID,
+						dayMax=sweCell3$dayMax,dayEnd=sweCell3$dayEnd)
 
-for(i in 1:dim(sweCell3)[1]){
-	meltTemp[i] <- mean(sweAll$t.air[sweAll$pixID==sweCell3$pixID[i]&sweAll$gcID==sweCell3$gcID[i]&
-						sweAll$year==sweCell3$year[i]&sweAll$jday>=sweCell3$dayMax[i]&sweAll$jday<=sweCell3$dayEnd[i]]-273.15,na.rm=TRUE)
-	onsetTemp[i] <- mean(sweAll$t.air[sweAll$pixID==sweCell3$pixID[i]&sweAll$gcID==sweCell3$gcID[i]&
-						sweAll$year==sweCell3$year[i]&sweAll$jday>=(sweCell3$dayMax[i]-7)&sweAll$jday<=sweCell3$dayMax[i]]-273.15,na.rm=TRUE)								
-}
+						
+sweDaysJoin <- join(sweAll,daysToJoin, by=c("pixID","gcID","year"),type="left")
+
+sweMeltSub <- sweDaysJoin[sweDaysJoin$jday>=sweDaysJoin$dayMax&sweDaysJoin$jday<=sweDaysJoin$dayEnd,]
+sweOnsetSub <- sweDaysJoin[sweDaysJoin$jday>=(sweDaysJoin$dayMax-7)&sweDaysJoin$jday<=sweDaysJoin$dayMax,]		
+
+#now aggregate temperature
+meltTempDF <- aggregate(sweMeltSub$t.air-273.15, by=list(sweMeltSub$pixID,sweMeltSub$gcID,sweMeltSub$year),FUN="mean",na.rm=TRUE)
+colnames(meltTempDF) <- c("pixID","gcID","year","meltTemp")
+onsetTempDF <- aggregate(sweOnsetSub$t.air-273.15, by=list(sweOnsetSub$pixID,sweOnsetSub$gcID,sweOnsetSub$year),FUN="mean",na.rm=TRUE)
+colnames(onsetTempDF) <- c("pixID","gcID","year","onsetTemp")
+#join back into sweCell3
+sweCell3a <- join(sweCell3, meltTempDF, by=c("pixID","gcID","year"),type="left")	
+sweCell3b <- join(sweCell3a, onsetTempDF, by=c("pixID","gcID","year"),type="left")	
 
 #create a data frame  to combine back into slope output
-sweCell4 <- data.frame(pixID=sweCell3$pixID,newpixID=sweCell3$newpixID,cell=sweCell3$cell,gcID=sweCell3$gcID,year=sweCell3$year,
-							vcf=sweCell3$vcf,zone=sweCell3$zone,dayMax=sweCell3$dayMax,
-							dayEnd=sweCell3$dayEnd,meltTemp=meltTemp,onsetTemp=onsetTemp,
-							x=sweCell3$x,y=sweCell3$y)
+sweCell4 <- data.frame(pixID=sweCell3b$pixID,newpixID=sweCell3b$newpixID,cell=sweCell3b$cell,gcID=sweCell3b$gcID,year=sweCell3b$year,
+							vcf=sweCell3b$vcf,zone=sweCell3b$zone,dayMax=sweCell3b$dayMax,
+							dayEnd=sweCell3b$dayEnd,meltTemp=sweCell3b$meltTemp,onsetTemp=sweCell3b$onsetTemp,
+							x=sweCell3b$x,y=sweCell3b$y)
 
 #now join to each output
 b0All <- join(b0Out,sweCell4,by=c("year","gcID","newpixID"),type="inner")
