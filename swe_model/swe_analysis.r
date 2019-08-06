@@ -267,7 +267,7 @@ parms <- c("betaM0S","betaM1","betaM2","betaM3",
 			
 	
 curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_curve_empirical_regression.r",
-						data=datalist,n.adapt=10000,n.chains=3,inits=inits)
+						data=datalist,n.adapt=100000,n.chains=3,inits=inits)
 						
 curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=100000,thin=50)						
 			

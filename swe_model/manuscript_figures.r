@@ -42,6 +42,7 @@ sweCell <- unique(data.frame(cell=datSwe$cell,gcID=datSwe$gcID,pixID=datSwe$pixI
 								
 #calculate the melt period		
 #join midpoint into swe cell
+colnames(midOut)[1:7] <-  paste0(colnames(midOut)[1:7],"M")
 sweCell2 <- join(sweCell,midOut,by=c("newpixID","gcID","year"),type="left")
 colnames(halfOut)[1:7] <- paste0(colnames(halfOut)[1:7],"H")
 sweCell3 <- join(sweCell2,halfOut,by=c("newpixID","gcID","year"),type="left")
@@ -51,7 +52,7 @@ sweCell3 <- join(sweCell2,halfOut,by=c("newpixID","gcID","year"),type="left")
 #where the standard deviation of the midpoint
 #is within the range of the onset. Looking at the
 #melt period won't be reliable. 					
-sweCell3 <- sweCell3[round(sweCell3$Mean-sweCell3$SD)>sweCell3$dayMax,]
+sweCell3 <- sweCell3[round(sweCell3$MeanM-sweCell3$SDM)>sweCell3$dayMax,]
 
 #parm all
 parmAll <- join(b0Out,sweCell3,by=c("year","gcID","newpixID"),type="inner")
