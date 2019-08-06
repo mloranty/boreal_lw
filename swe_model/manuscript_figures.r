@@ -56,3 +56,59 @@ sweCell3 <- sweCell3[round(sweCell3$MeanM-sweCell3$SDM)>sweCell3$dayMax,]
 
 #parm all
 parmAll <- join(b0Out,sweCell3,by=c("year","gcID","newpixID"),type="inner")
+
+
+################################################################################
+################################################################################
+############### Figure 1. Map of data inputs                     ############### 
+###############including % tree cover, vegetation class          ###############
+############### and average maximum swe during period            ###############
+################################################################################
+################################################################################
+###############################################
+### organize descriptive data               ###
+###############################################
+
+#aggregate swe max, but first need to pull it out from join to full data
+sweMaxDF <- unique(data.frame(cell=sweAll$cell, year=sweAll$year,sweMax=sweAll$sweMax))
+#aggregate by each cell
+sweMaxSumm <- aggregate(sweMaxDF$sweMax, by=list(sweMaxDF$cell), FUN="mean")
+colnames(sweMaxSumm) <- c("cell","sweMax")
+sweMaxSumm$sweMaxSD <- aggregate(sweMaxDF$sweMax, by=list(sweMaxDF$cell), FUN="sd")$x
+sweMaxSumm$sweMaxN <- aggregate(sweMaxDF$sweMax, by=list(sweMaxDF$cell), FUN="length")$x
+sweMaxSumm$sweMaxExc <- 10 - sweMaxSumm$sweMaxN 
+#get canopy cover and gcID 
+
+canopyCov <- unique(data.frame(cell=sweAll$cell, vcf=sweAll$vcf))
+#organize vege type
+gcIDSumm <- unique(data.frame(cell=sweAll$cell, gcID=sweAll$gcID))
+#get names for plot
+gcNames <- unique(data.frame(names=sweAll$names, gcID=sweAll$gcID))
+###############################################
+### set up information for mapping          ###
+###############################################
+# define the projection - EASE2.0 equal area grid - will use 50km resolution
+# https://epsg.io/6931
+laea <- "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs" 
+
+swe.files <- list.files(pattern =".nc",path =paste0(swepath,"\\swe_mudryk_blended"),full.names=T)
+
+# read one file in to use for reprojecting
+pr <- raster(swe.files[1])
+# crop to boreal region
+pr <- crop(pr,c(-180,180,50,90))
+# reproject to 50km EASE2.0 gird
+pr <- projectRaster(pr,res=50000,crs=laea,progress='text')
+
+
+## read in file from first year
+swe <- raster(swe.files[3])
+
+# crop to boreal region
+swe <- crop(swe,c(-180,180,50,90))
+# reproject
+swe <- projectRaster(swe,pr)
+
+#get the cell to match up to
+sweCells <- ncell(swe)
+sweCellDF <- data.frame(cell=seq(1,sweCells))
