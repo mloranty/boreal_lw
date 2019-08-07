@@ -138,33 +138,50 @@ world2 <- project(matrix(c(worldmap2$x,worldmap2$y), ncol=2,byrow=FALSE),laea)
 ###############################################
 ### map results                             ###
 ###############################################
-treePallete <- c(rgb(237,248,233,max=255),
+namesI <- c("Deciduous needleleaf boreal","Deciduous shrub tundra","Herbaceous tundra", "Evergreen needleleaf  boreal","Mixed leaf boreal" )
+
+
+treePallete <- c(rgb(229,245,224,max=255),
 				rgb(199,233,192,max=255),
 				rgb(161,217,155,max=255),
 				rgb(116,196,118,max=255),
-				rgb(49,163,84,max=255),
-				rgb(0,109,44,max=255))
+				rgb(65,171,93,max=255),
+				rgb(35,139,69,max=255),
+				rgb(0,109,44,max=255),
+				rgb(0,68,27,max=255))
 vegePallete <- c(rgb(170/255,190/255,140/255),	
 				rgb(60/255,60/255,110/255),
 				rgb(130/255,160/255,190/255),
 				rgb(50/255,80/255,10/255),
 				rgb(250/255,120/255,80/255))
 				
-swePallete <- c(rgb(237,248,251,max=255),
-				rgb(191,211,230,max=255),
+swePallete <- c(rgb(247,252,253,max=255),
+				rgb(224,236,244,max=255),
 				rgb(158,188,218,max=255),
 				rgb(140,150,198,max=255),
-				rgb(136,86,167,max=255),
-				rgb(129,15,124,max=255))
+				rgb(140,107,177,max=255),
+				rgb(136,65,157,max=255),
+				rgb(129,15,124,max=255),
+				rgb(77,0,75,max=255))
 
 hd <- 10
 wd1 <- 10
-wd2 <- 3
+wd2 <- 4
 water <- rgb(149/255,218/255,255/255,.3)
 land <- rgb(250,230,190, max=255)
+#size of panel label
+mx <- 2
+#line for panel label
+pll <- .5
+#vege type breaks
+vegeBr <- c(0,1,2,3,4,5)
+canopyBr <- c(0,10,20,30,40,50,60,70,80)
+sweBr <-c(0,0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5)
+#size of axis
+cxa <- 1.25
 
-png(paste0(plotDI,"\\data_maps.png"), width = 17, height = 5, units = "in", res=300)
-	layout(matrix(seq(1,6),ncol=6), width=c(lcm(wd1),lcm(wd2),lcm(wd1),lcm(wd2),lcm(wd1),lcm(wd2)),height=lcm(hd))
+png(paste0(plotDI,"\\data_maps_vege.png"), width = 12, height = 5, units = "in", res=300)
+	layout(matrix(seq(1,2),ncol=2), width=c(lcm(wd1),lcm(wd2)),height=lcm(hd))
 	#set up empty plot
 	### plot 1 vegetation type ###
 	par(mai=c(0,0,0,0))
@@ -176,10 +193,22 @@ png(paste0(plotDI,"\\data_maps.png"), width = 17, height = 5, units = "in", res=
 	#continent color
 	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
 	#plot points
-	image(rasterVege,breaks=c(0,1,2,3,4,5),col=vegePallete,add=TRUE )
+	image(rasterVege,breaks=vegeBr,col=vegePallete,add=TRUE )
+	mtext("A",at=4100000,side=2,line=pll, las=2,cex=mx)
+	
 	### plot 1 legend ###
-	par(mai=c(0,0,0,0))
+	par(mai=c(0,.25,0,1))
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
+	for(i in 1:(length(vegeBr)-1)){
+		polygon(c(0,0,1,1), c(vegeBr[i]/(length(vegeBr)-1),vegeBr[i+1]/(length(vegeBr)-1),vegeBr[i+1]/(length(vegeBr)-1),vegeBr[i]/(length(vegeBr)-1)),col=vegePallete[i],border=NA)
+	}
+	axis(4,(vegeBr[1:5]/5)+.1,namesI,cex.axis=cxa,las=2)
+	
+dev.off()
+
+png(paste0(plotDI,"\\data_maps_canopy.png"), width = 12, height = 5, units = "in", res=300)
+	layout(matrix(seq(1,2),ncol=2), width=c(lcm(wd1),lcm(wd2)),height=lcm(hd))	
+	
 	### plot 2 canopy cover ###
 	par(mai=c(0,0,0,0))
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4100000,4100000),ylim=c(-4100000,4100000))
@@ -190,11 +219,23 @@ png(paste0(plotDI,"\\data_maps.png"), width = 17, height = 5, units = "in", res=
 	#continent color
 	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
 	#plot points
-	image(rasterCanopy, breaks=c(0,5,15,25,35,45,75), col=treePallete, add=TRUE)
-
+	image(rasterCanopy, breaks=canopyBr, col=treePallete, add=TRUE)
+	mtext("B",at=4100000,side=2,line=pll, las=2,cex=mx)
 	### plot 2 legend ###
-	par(mai=c(0,0,0,0))
-	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1))
+	par(mai=c(0,.25,0,1))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
+	for(i in 1:(length(canopyBr)-1)){
+		polygon(c(0,0,1,1), 
+			c(canopyBr[i]/canopyBr[length(canopyBr)],canopyBr[i+1]/canopyBr[length(canopyBr)],canopyBr[i+1]/canopyBr[length(canopyBr)],canopyBr[i]/canopyBr[length(canopyBr)]),
+			col=treePallete[i],border=NA)
+	}
+	axis(4,canopyBr/canopyBr[length(canopyBr)],canopyBr,cex.axis=cxa,las=2)	
+	
+dev.off()
+
+png(paste0(plotDI,"\\data_maps_maxSwe.png"), width = 12, height = 5, units = "in", res=300)
+	layout(matrix(seq(1,2),ncol=2), width=c(lcm(wd1),lcm(wd2)),height=lcm(hd))	
+
 	### plot 3 canopy cover ###
 		par(mai=c(0,0,0,0))
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4100000,4100000),ylim=c(-4100000,4100000))
@@ -205,8 +246,16 @@ png(paste0(plotDI,"\\data_maps.png"), width = 17, height = 5, units = "in", res=
 	#continent color
 	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
 	#plot points
-	image(rasterMaxMean,breaks=c(0,0.05,0.1,0.2,0.3,0.4,0.5), col=swePallete, add=TRUE)
-	### plot 2 legend ###
-	par(mai=c(0,0,0,0))
-	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1))
+	image(rasterMaxMean,breaks=sweBr, col=swePallete, add=TRUE)
+	mtext("C",at=4100000,side=2,line=pll, las=2,cex=mx)
+	### plot 3 legend ###
+	par(mai=c(0,.25,0,1))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
+	for(i in 1:(length(sweBr)-1)){
+		polygon(c(0,0,1,1), 
+			c(sweBr[i]/sweBr[length(sweBr)],sweBr[i+1]/sweBr[length(sweBr)],sweBr[i+1]/sweBr[length(sweBr)],sweBr[i]/sweBr[length(sweBr)]),
+			col=swePallete[i],border=NA)
+	}
+	axis(4,sweBr/sweBr[length(sweBr)],sweBr,cex.axis=cxa,las=2)	
+	
 dev.off()
