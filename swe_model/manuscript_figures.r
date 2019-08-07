@@ -161,6 +161,7 @@ png(paste0(plotDI,"\\data_maps.png"), width = 15, height = 5, units = "in", res=
 	#plot points
 	plot(rasterVege, add=TRUE)
 		
+		
 	### plot 2 canopy cover ###
 	par(mai=c(1,1,1,1))
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-3500000,3500000),ylim=c(-3500000,3500000))
@@ -173,6 +174,7 @@ png(paste0(plotDI,"\\data_maps.png"), width = 15, height = 5, units = "in", res=
 	#plot points
 	plot(rasterVege, add=TRUE)
 
+	
 	### plot 3 canopy cover ###
 		par(mai=c(1,1,1,1))
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-3500000,3500000),ylim=c(-3500000,3500000))
