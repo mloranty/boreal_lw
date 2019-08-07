@@ -126,9 +126,9 @@ rasterVege <- setValues(swe,MapVege$gcID)
 rasterMaxMean <- setValues(swe,MapMax$sweMax)
 rasterMaxMissing <- setValues(swe,MapMax$sweMaxExc)
 #max missing is predominately zero throughout the entire map. Not worth showing
-worldmap <- map("world", ylim=c(50,90), fill=TRUE)
+worldmap <- map("world", ylim=c(40,90), fill=TRUE)
 #focus on a smaller extent
-worldmap2 <- map("world", ylim=c(55,90))
+worldmap2 <- map("world", ylim=c(50,90))
 
 #world map
 world <- project(matrix(c(worldmap$x,worldmap$y), ncol=2,byrow=FALSE),laea)
@@ -138,20 +138,37 @@ world2 <- project(matrix(c(worldmap2$x,worldmap2$y), ncol=2,byrow=FALSE),laea)
 ###############################################
 ### map results                             ###
 ###############################################
-
-
+treePallete <- c(rgb(237,248,233,max=255),
+				rgb(199,233,192,max=255),
+				rgb(161,217,155,max=255),
+				rgb(116,196,118,max=255),
+				rgb(49,163,84,max=255),
+				rgb(0,109,44,max=255))
+vegePallete <- c(rgb(170/255,190/255,140/255),	
+				rgb(60/255,60/255,110/255),
+				rgb(130/255,160/255,190/255),
+				rgb(50/255,80/255,10/255),
+				rgb(250/255,120/255,80/255))
+				
+swePallete <- c(rgb(237,248,251,max=255),
+				rgb(191,211,230,max=255),
+				rgb(158,188,218,max=255),
+				rgb(140,150,198,max=255),
+				rgb(136,86,167,max=255),
+				rgb(129,15,124,max=255))
 
 hd <- 10
-wd <- 10
-water <- rgb(114/255,207/255,252/255,.6)
-land <- rgb(253/255,245/255,208/255)
+wd1 <- 10
+wd2 <- 3
+water <- rgb(149/255,218/255,255/255,.3)
+land <- rgb(250,230,190, max=255)
 
-png(paste0(plotDI,"\\data_maps.png"), width = 15, height = 5, units = "in", res=300)
-	mfrow=c(3,1)
+png(paste0(plotDI,"\\data_maps.png"), width = 17, height = 5, units = "in", res=300)
+	layout(matrix(seq(1,6),ncol=6), width=c(lcm(wd1),lcm(wd2),lcm(wd1),lcm(wd2),lcm(wd1),lcm(wd2)),height=lcm(hd))
 	#set up empty plot
 	### plot 1 vegetation type ###
-	par(mai=c(1,1,1,1))
-	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-3500000,3500000),ylim=c(-3500000,3500000))
+	par(mai=c(0,0,0,0))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4100000,4100000),ylim=c(-4100000,4100000))
 	#color background
 	polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
 	#boundaries
@@ -159,12 +176,13 @@ png(paste0(plotDI,"\\data_maps.png"), width = 15, height = 5, units = "in", res=
 	#continent color
 	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
 	#plot points
-	plot(rasterVege, add=TRUE)
-		
-		
+	image(rasterVege,breaks=c(0,1,2,3,4,5),col=vegePallete,add=TRUE )
+	### plot 1 legend ###
+	par(mai=c(0,0,0,0))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
 	### plot 2 canopy cover ###
-	par(mai=c(1,1,1,1))
-	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-3500000,3500000),ylim=c(-3500000,3500000))
+	par(mai=c(0,0,0,0))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4100000,4100000),ylim=c(-4100000,4100000))
 	#color background
 	polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
 	#boundaries
@@ -172,12 +190,14 @@ png(paste0(plotDI,"\\data_maps.png"), width = 15, height = 5, units = "in", res=
 	#continent color
 	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
 	#plot points
-	plot(rasterVege, add=TRUE)
+	image(rasterCanopy, breaks=c(0,5,15,25,35,45,75), col=treePallete, add=TRUE)
 
-	
+	### plot 2 legend ###
+	par(mai=c(0,0,0,0))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1))
 	### plot 3 canopy cover ###
-		par(mai=c(1,1,1,1))
-	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-3500000,3500000),ylim=c(-3500000,3500000))
+		par(mai=c(0,0,0,0))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4100000,4100000),ylim=c(-4100000,4100000))
 	#color background
 	polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
 	#boundaries
@@ -185,5 +205,8 @@ png(paste0(plotDI,"\\data_maps.png"), width = 15, height = 5, units = "in", res=
 	#continent color
 	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
 	#plot points
-	plot(rasterVege, add=TRUE)
+	image(rasterMaxMean,breaks=c(0,0.05,0.1,0.2,0.3,0.4,0.5), col=swePallete, add=TRUE)
+	### plot 2 legend ###
+	par(mai=c(0,0,0,0))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1))
 dev.off()
