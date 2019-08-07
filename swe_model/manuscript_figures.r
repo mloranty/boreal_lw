@@ -112,3 +112,20 @@ swe <- projectRaster(swe,pr)
 #get the cell to match up to
 sweCells <- ncell(swe)
 sweCellDF <- data.frame(cell=seq(1,sweCells))
+
+
+#join back to the swe cell id allowing others to turn to NA
+MapCanopy <- join(sweCellDF,canopyCov, by="cell",type="left")
+MapVege <- join(sweCellDF,gcIDSumm, by="cell",type="left")
+MapMax <- join(sweCellDF,sweMaxSumm, by="cell",type="left")
+###############################################
+### map results                             ###
+###############################################
+
+
+rasterCanopy <- setValues(swe,MapCanopy$vcf)
+rasterVege <- setValues(swe,MapVege$gcID)
+rasterMaxMean <- setValues(swe,MapMax$sweMax)
+rasterMaxMissing <- setValues(swe,MapMax$sweMaxExc)
+
+
