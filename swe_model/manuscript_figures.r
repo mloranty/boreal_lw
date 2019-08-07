@@ -24,13 +24,14 @@ library(ncdf4)
 library(rgdal)
 library(gdalUtils)
 library(sp)
+library(maps)
 ###############################################
 ### set up file paths                       ###
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
 modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run8"
-
+plotDI <- "c:\\Users\\hkropp\\Google Drive\\Picker17\\figures"
 
 ###############################################
 ### organize all data                       ###
@@ -118,14 +119,69 @@ sweCellDF <- data.frame(cell=seq(1,sweCells))
 MapCanopy <- join(sweCellDF,canopyCov, by="cell",type="left")
 MapVege <- join(sweCellDF,gcIDSumm, by="cell",type="left")
 MapMax <- join(sweCellDF,sweMaxSumm, by="cell",type="left")
+
+#set into raster
+rasterCanopy <- setValues(swe,MapCanopy$vcf)
+rasterVege <- setValues(swe,MapVege$gcID)
+rasterMaxMean <- setValues(swe,MapMax$sweMax)
+rasterMaxMissing <- setValues(swe,MapMax$sweMaxExc)
+#max missing is predominately zero throughout the entire map. Not worth showing
+worldmap <- map("world", ylim=c(50,90), fill=TRUE)
+#focus on a smaller extent
+worldmap2 <- map("world", ylim=c(55,90))
+
+#world map
+world <- project(matrix(c(worldmap$x,worldmap$y), ncol=2,byrow=FALSE),laea)
+world2 <- project(matrix(c(worldmap2$x,worldmap2$y), ncol=2,byrow=FALSE),laea)
+
+
 ###############################################
 ### map results                             ###
 ###############################################
 
 
-rasterCanopy <- setValues(swe,MapCanopy$vcf)
-rasterVege <- setValues(swe,MapVege$gcID)
-rasterMaxMean <- setValues(swe,MapMax$sweMax)
-rasterMaxMissing <- setValues(swe,MapMax$sweMaxExc)
 
+hd <- 10
+wd <- 10
+water <- rgb(114/255,207/255,252/255,.6)
+land <- rgb(253/255,245/255,208/255)
 
+png(paste0(plotDI,"\\data_maps.png"), width = 15, height = 5, units = "in", res=300)
+	mfrow=c(3,1)
+	#set up empty plot
+	### plot 1 vegetation type ###
+	par(mai=c(1,1,1,1))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-3500000,3500000),ylim=c(-3500000,3500000))
+	#color background
+	polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
+	#boundaries
+	points(world, type="l", lwd=2, col="grey65")
+	#continent color
+	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
+	#plot points
+	plot(rasterVege, add=TRUE)
+		
+	### plot 2 canopy cover ###
+	par(mai=c(1,1,1,1))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-3500000,3500000),ylim=c(-3500000,3500000))
+	#color background
+	polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
+	#boundaries
+	points(world, type="l", lwd=2, col="grey65")
+	#continent color
+	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
+	#plot points
+	plot(rasterVege, add=TRUE)
+
+	### plot 3 canopy cover ###
+		par(mai=c(1,1,1,1))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-3500000,3500000),ylim=c(-3500000,3500000))
+	#color background
+	polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
+	#boundaries
+	points(world, type="l", lwd=2, col="grey65")
+	#continent color
+	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
+	#plot points
+	plot(rasterVege, add=TRUE)
+dev.off()
