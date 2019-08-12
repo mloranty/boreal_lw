@@ -58,6 +58,24 @@ sweCell3 <- sweCell3[round(sweCell3$MeanM-sweCell3$SDM)>sweCell3$dayMax,]
 #parm all
 parmAll <- join(b0Out,sweCell3,by=c("year","gcID","newpixID"),type="inner")
 
+###############################################
+### organize model data                     ###
+###############################################
+#read in model output
+datS <- read.csv(paste0(modDir,"\\curve_mod_stats.csv"))
+datQ <- read.csv(paste0(modDir,"\\curve_mod_quant.csv"))
+
+#combine data frames
+datC <- cbind(datS,datQ)
+#pull out parameter names
+dexps<-"\\[*[[:digit:]]*\\]"
+datC$parm <- gsub(dexps,"",rownames(datC))
+
+#pull out betaB2
+betaCov <- datC[datC$parm=="betaB2",] 
+#pull out slope rep
+bRep <- datC[datC$parm=="rep.b0",]	
+
 
 ################################################################################
 ################################################################################
@@ -66,6 +84,7 @@ parmAll <- join(b0Out,sweCell3,by=c("year","gcID","newpixID"),type="inner")
 ############### and average maximum swe during period            ###############
 ################################################################################
 ################################################################################
+
 ###############################################
 ### organize descriptive data               ###
 ###############################################
