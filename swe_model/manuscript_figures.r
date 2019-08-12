@@ -296,11 +296,19 @@ gcYearDF <- unique(data.frame(gcID=parmAll$gcID,year=parmAll$year))
 #order by gcID
 gcYearDF <- gcYearDF[order(gcYearDF$gcID,gcYearDF$year),]
 #turn parmall into a list
-parmL <- list()
+sweL <- list()
 for(i in 1:nrow(gcYearDF)){
-	parmL[[i]] <- parmAll[parmAll$gcID==gcYearDF$gcID[i]&parmAll$year==gcYearDF$year[i],]
+	sweL[[i]] <- datSwe[datSwe$gcID==gcYearDF$gcID[i]&datSwe$year==gcYearDF$year[i],]
 
 }
+
+#get unique cells
+cellL <- list()
+for(i in 1:nrow(gcYearDF)){
+	cellL[[i]] <- unique(sweL[[i]]$cell)
+}
+
+
 wd <- 5
 hd <- 5
 
@@ -309,8 +317,8 @@ png(paste0(plotDI,"\\data_maps_canopy.png"), width = 30, height = 30, units = "i
 	for(i in 1:nrow(gcYearDF)){
 		par(mai=c(0,0,0,0))
 		plot(c(0,1),c(0,1), xlim=c(32,182),ylim=c(0,1), xlab=" ", ylab=" ", xaxs="i",yaxs="i",axes=FALSE)
-		for(j in 1:nrow(parmL[[1]])){
-			points(dayS,sweFunc(parmL[[i]]$Mean[j],parmL[[i]]$MeanM[j],dayS),type="l", col=rgb(0,0,0,.5))
+		for(j in 1:length(cellL[[i]])){
+			points(sweL[[i]]$jday[sweL[[i]]$cell==cellL[[i]][j]],sweL[[i]]$sweN[sweL[[i]]$cell==cellL[[i]][j]]),type="l", col=rgb(0,0,0,.5))
 		}
 	}	
 dev.off()		
