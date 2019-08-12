@@ -278,3 +278,39 @@ png(paste0(plotDI,"\\data_maps_maxSwe.png"), width = 12, height = 5, units = "in
 	axis(4,sweBr/sweBr[length(sweBr)],sweBr,cex.axis=cxa,las=2)	
 	
 dev.off()
+
+
+################################################################################
+################################################################################
+############### Figure 2. All data                               ############### 
+################################################################################
+################################################################################
+
+sweFunc <- function(b0,mid0,day){
+	1/(1+exp(b0*(day-mid0)))
+}
+dayS <- seq(32,182) 
+
+
+gcYearDF <- unique(data.frame(gcID=parmAll$gcID,year=parmAll$year))
+#order by gcID
+gcYearDF <- gcYearDF[order(gcYearDF$gcID,gcYearDF$year),]
+#turn parmall into a list
+parmL <- list()
+for(i in 1:nrow(gcYearDF)){
+	parmL[[i]] <- parmAll[parmAll$gcID==gcYearDF$gcID[i]&parmAll$year==gcYearDF$year[i],]
+
+}
+wd <- 5
+hd <- 5
+
+png(paste0(plotDI,"\\data_maps_canopy.png"), width = 30, height = 30, units = "in", res=300)
+	layout(matrix(seq(1,5*10),ncol=10, byrow=TRUE), height=rep(lcm(hd),5), width=rep(lcm(wd),10))
+	for(i in 1:nrow(gcYearDF)){
+		par(mai=c(0,0,0,0))
+		plot(c(0,1),c(0,1), xlim=c(32,182),ylim=c(0,1), xlab=" ", ylab=" ", xaxs="i",yaxs="i",axes=FALSE)
+		for(j in 1:nrow(parmL[[1]])){
+			points(dayS,sweFunc(parmL[[i]]$Mean[j],parmL[[i]]$MeanM[j],dayS),type="l", col=rgb(0,0,0,.5))
+		}
+	}	
+dev.off()		
