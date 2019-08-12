@@ -16,6 +16,8 @@
 
 
 source("c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_output_process.r")
+colnames(midOut)[1:7] <-  paste0(colnames(midOut)[1:7],"M")
+colnames(halfOut)[1:7] <- paste0(colnames(halfOut)[1:7],"H")
 ###############################################
 ### libraries                               ###
 ###############################################
@@ -43,9 +45,8 @@ sweCell <- unique(data.frame(cell=datSwe$cell,gcID=datSwe$gcID,pixID=datSwe$pixI
 								
 #calculate the melt period		
 #join midpoint into swe cell
-colnames(midOut)[1:7] <-  paste0(colnames(midOut)[1:7],"M")
+
 sweCell2 <- join(sweCell,midOut,by=c("newpixID","gcID","year"),type="left")
-colnames(halfOut)[1:7] <- paste0(colnames(halfOut)[1:7],"H")
 sweCell3 <- join(sweCell2,halfOut,by=c("newpixID","gcID","year"),type="left")
 
 #### data filter #####
@@ -73,6 +74,9 @@ datC$parm <- gsub(dexps,"",rownames(datC))
 
 #pull out betaB2
 betaCov <- datC[datC$parm=="betaB2",] 
+betaMax <- datC[datC$parm=="betaB3",] 
+betaTemp <- datC[datC$parm=="betaB1",] 
+intC <- datC[datC$parm=="betaB0S",] 
 #pull out slope rep
 bRep <- datC[datC$parm=="rep.b0",]	
 
@@ -282,43 +286,232 @@ dev.off()
 
 ################################################################################
 ################################################################################
-############### Figure 2. All data                               ############### 
+############### Figure 2. Plot regression                        ############### 
 ################################################################################
 ################################################################################
 
-sweFunc <- function(b0,mid0,day){
-	1/(1+exp(b0*(day-mid0)))
+
+###############################################
+### organize regression data                ###
+###############################################
+
+sweCell3$dayEnd <- ifelse(round(sweCell3$MeanM)+round(sweCell3$MeanH) > 182,
+					182,round(sweCell3$MeanM)+round(sweCell3$MeanH))
+
+#subset swe cell3 info
+daysToJoin <- data.frame(pixID=sweCell3$pixID,year=sweCell3$year,gcID=sweCell3$gcID,
+						dayMax=sweCell3$dayMax,dayEnd=sweCell3$dayEnd)
+
+						
+sweDaysJoin <- join(sweAll,daysToJoin, by=c("pixID","gcID","year"),type="inner")
+
+sweMeltSub <- sweDaysJoin[sweDaysJoin$jday>=sweDaysJoin$dayMax&sweDaysJoin$jday<=sweDaysJoin$dayEnd,]
+sweOnsetSub <- sweDaysJoin[sweDaysJoin$jday>=(sweDaysJoin$dayMax-7)&sweDaysJoin$jday<=sweDaysJoin$dayMax,]		
+
+#now aggregate temperature
+meltTempDF <- aggregate(sweMeltSub$t.air-273.15, by=list(sweMeltSub$pixID,sweMeltSub$gcID,sweMeltSub$year),FUN="mean",na.rm=TRUE)
+colnames(meltTempDF) <- c("pixID","gcID","year","meltTemp")
+onsetTempDF <- aggregate(sweOnsetSub$t.air-273.15, by=list(sweOnsetSub$pixID,sweOnsetSub$gcID,sweOnsetSub$year),FUN="mean",na.rm=TRUE)
+colnames(onsetTempDF) <- c("pixID","gcID","year","onsetTemp")
+#join back into sweCell3
+sweCell3a <- join(sweCell3, meltTempDF, by=c("pixID","gcID","year"),type="left")	
+sweCell3b <- join(sweCell3a, onsetTempDF, by=c("pixID","gcID","year"),type="left")	
+
+#create a data frame  to combine back into slope output
+sweCell4 <- data.frame(pixID=sweCell3b$pixID,newpixID=sweCell3b$newpixID,cell=sweCell3b$cell,gcID=sweCell3b$gcID,year=sweCell3b$year,
+							vcf=sweCell3b$vcf,zone=sweCell3b$zone,dayMax=sweCell3b$dayMax,
+							dayEnd=sweCell3b$dayEnd,meltTemp=sweCell3b$meltTemp,onsetTemp=sweCell3b$onsetTemp,
+							x=sweCell3b$x,y=sweCell3b$y)
+
+#now join to each output
+b0All <- join(b0Out,sweCell4,by=c("year","gcID","newpixID"),type="inner")
+
+
+#organize output by year
+yearDF <- data.frame(year=unique(sweCell$year))
+bOutL <- list()
+
+for(i in 1:dim(yearDF)[1]){
+	bOutL[[i]] <- b0All[b0All$year==yearDF$year[i],]
+
 }
-dayS <- seq(32,182) 
 
 
-gcYearDF <- unique(data.frame(gcID=parmAll$gcID,year=parmAll$year))
-#order by gcID
-gcYearDF <- gcYearDF[order(gcYearDF$gcID,gcYearDF$year),]
-#turn parmall into a list
-sweL <- list()
-for(i in 1:nrow(gcYearDF)){
-	sweL[[i]] <- datSwe[datSwe$gcID==gcYearDF$gcID[i]&datSwe$year==gcYearDF$year[i],]
+###############################################
+### set up information for mapping          ###
+###############################################
+# define the projection - EASE2.0 equal area grid - will use 50km resolution
+# https://epsg.io/6931
+laea <- "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs" 
+
+swe.files <- list.files(pattern =".nc",path =paste0(swepath,"\\swe_mudryk_blended"),full.names=T)
+
+# read one file in to use for reprojecting
+pr <- raster(swe.files[1])
+# crop to boreal region
+pr <- crop(pr,c(-180,180,50,90))
+# reproject to 50km EASE2.0 gird
+pr <- projectRaster(pr,res=50000,crs=laea,progress='text')
+
+
+## read in file from first year
+swe <- raster(swe.files[3])
+
+# crop to boreal region
+swe <- crop(swe,c(-180,180,50,90))
+# reproject
+swe <- projectRaster(swe,pr)
+
+#get the cell to match up to
+sweCells <- ncell(swe)
+sweCellDF <- data.frame(cell=seq(1,sweCells))
+
+#join back to the swe cell id allowing others to turn to NA
+bSwe <- list()
+
+for(i in 1:dim(yearDF)[1]){
+	bSwe[[i]] <- join(sweCellDF,bOutL[[i]], by="cell",type="left")
+
+}
+#get lat long for each cell
+#create a spatial points
+sweSP <- SpatialPoints(unique(data.frame(x=b0All$x,y=b0All$y,cell=b0All$cell)), CRS(laea))
+#transform for wgs lat long
+sweSPr <- spTransform(sweSP, CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
+
+sweLL <- data.frame(sweSPr@coords)
+colnames(sweLL) <- c("Lon","Lat","cell")
+#join back into dataframe of results
+b0All2 <- join(b0All,sweLL, by="cell",type="left")
+
+
+#get unique swe max
+swemax <- unique(data.frame(gcID=datSwe$gcID,cell=datSwe$cell,year=datSwe$year,sweMax=datSwe$sweMax))
+
+#join
+
+b0All3 <- join(b0All2,swemax,by=c("gcID","cell","year"),type="left")
+
+
+#need to organize table for eps ids
+epsTable <- unique(data.frame(gcID=b0All3$gcID,year=b0All3$year))
+#this order will be by GCID
+epsTable$gcyearID <- seq(1,dim(epsTable)[1])
+#join back into b0
+b0All4 <- join(b0All3,epsTable, by=c("gcID","year"),type="left")
+
+#create index for averaging eps
+gcIndT <- unique(data.frame(gcID=epsTable$gcID))
+startID <- numeric(0)
+endID <- numeric(0)
+
+for(i in 1:dim(gcIndT)[1]){
+		startID[i] <- head(which(epsTable$gcID==gcIndT$gcID[i]))[1]
+		endID [i] <- tail(which(epsTable$gcID==gcIndT$gcID[i]))[6]
+}
+
+
+
+
+plot(b0All4$Mean,bRep$Mean, xlim=c(0,1) , ylim=c(0,1) )
+abline(0,1,col="red")
+
+b0All4$residual <- b0All4$Mean-bRep$Mean
+
+qqnorm(b0All4$residual)
+qqline(b0All4$residual)
+
+
+#check spatial patterns of residuals
+#pull out by year
+years <- seq(2000,2009)
+b0All4L <- list()
+for(i in 1:length(years)){
+	b0All4L [[i]] <- join(sweCellDF,b0All4[b0All4$year==years[i],], by="cell",type="left")
 
 }
 
-#get unique cells
-cellL <- list()
-for(i in 1:nrow(gcYearDF)){
-	cellL[[i]] <- unique(sweL[[i]]$cell)
-}
 
+#set into raster
+rresid2000 <- setValues(swe,b0All4L [[1]]$residual)
+rresid2001 <- setValues(swe,b0All4L [[2]]$residual)
+rresid2002 <- setValues(swe,b0All4L [[3]]$residual)
+rresid2003 <- setValues(swe,b0All4L [[4]]$residual)
+rresid2004 <- setValues(swe,b0All4L [[5]]$residual)
+rresid2005 <- setValues(swe,b0All4L [[6]]$residual)
+rresid2006 <- setValues(swe,b0All4L [[7]]$residual)
+rresid2007 <- setValues(swe,b0All4L [[8]]$residual)
+rresid2008 <- setValues(swe,b0All4L [[9]]$residual)
+rresid2009 <- setValues(swe,b0All4L [[10]]$residual)
 
-wd <- 5
-hd <- 5
+par(mfrow=c(2,5))
+plot(rresid2000)
+plot(rresid2001)
+plot(rresid2002)
+plot(rresid2003)
+plot(rresid2004)
+plot(rresid2005)
+plot(rresid2006)
+plot(rresid2007)
+plot(rresid2008)
+plot(rresid2009)
 
-png(paste0(plotDI,"\\data_maps_canopy.png"), width = 30, height = 30, units = "in", res=300)
-	layout(matrix(seq(1,5*10),ncol=10, byrow=TRUE), height=rep(lcm(hd),5), width=rep(lcm(wd),10))
-	for(i in 1:nrow(gcYearDF)){
-		par(mai=c(0,0,0,0))
-		plot(c(0,1),c(0,1), xlim=c(32,182),ylim=c(0,1), xlab=" ", ylab=" ", xaxs="i",yaxs="i",axes=FALSE)
-		for(j in 1:length(cellL[[i]])){
-			points(sweL[[i]]$jday[sweL[[i]]$cell==cellL[[i]][j]],sweL[[i]]$sweN[sweL[[i]]$cell==cellL[[i]][j]]),type="l", col=rgb(0,0,0,.5))
-		}
-	}	
-dev.off()		
+par(mfrow=c(3,2))
+plot(b0All4$sweMax[b0All4$gcID==1],b0All4$Mean[b0All4$gcID==1],pch=19)
+abline(intC$Mean[1],betaMax$Mean[1], col="red")
+plot(b0All4$sweMax[b0All4$gcID==2],b0All4$Mean[b0All4$gcID==2],pch=19)
+abline(intC$Mean[2],betaMax$Mean[2], col="red")
+plot(b0All4$sweMax[b0All4$gcID==3],b0All4$Mean[b0All4$gcID==3],pch=19)
+abline(intC$Mean[3],betaMax$Mean[3], col="red")
+plot(b0All4$sweMax[b0All4$gcID==4],b0All4$Mean[b0All4$gcID==4],pch=19)
+abline(intC$Mean[4],betaMax$Mean[4], col="red")
+plot(b0All4$sweMax[b0All4$gcID==5],b0All4$Mean[b0All4$gcID==5],pch=19)
+abline(intC$Mean[5],betaMax$Mean[5], col="red")
+plot(seq(1,5), betaMax$Mean, xlab="glc", ylim=c(-0.8,0.1),pch=19)
+arrows(seq(1,5), betaMax$X2.5.,seq(1,5), betaMax$X97.5.,code=0)
+
+par(mfrow=c(3,2))
+plot(b0All4$vcf[b0All4$gcID==1],b0All4$Mean[b0All4$gcID==1],pch=19)
+abline(intC$Mean[1],betaCov$Mean[1], col="red")
+plot(b0All4$vcf[b0All4$gcID==2],b0All4$Mean[b0All4$gcID==2],pch=19)
+abline(intC$Mean[2],betaCov$Mean[2], col="red")
+plot(b0All4$vcf[b0All4$gcID==3],b0All4$Mean[b0All4$gcID==3],pch=19)
+abline(intC$Mean[3],betaCov$Mean[3], col="red")
+plot(b0All4$vcf[b0All4$gcID==4],b0All4$Mean[b0All4$gcID==4],pch=19)
+abline(intC$Mean[4],betaCov$Mean[4], col="red")
+plot(b0All4$vcf[b0All4$gcID==5],b0All4$Mean[b0All4$gcID==5],pch=19)
+abline(intC$Mean[5],betaCov$Mean[5], col="red")
+plot(seq(1,5), betaCov$Mean, xlab="glc", ylim=c(-0.006,.003),pch=19)
+arrows(seq(1,5), betaCov$X2.5.,seq(1,5), betaCov$X97.5.,code=0)
+
+par(mfrow=c(3,2))
+plot(b0All4$meltTemp[b0All4$gcID==1],b0All4$Mean[b0All4$gcID==1],pch=19)
+abline(intC$Mean[1],betaTemp$Mean[1], col="red")
+plot(b0All4$meltTemp[b0All4$gcID==2],b0All4$Mean[b0All4$gcID==2],pch=19)
+abline(intC$Mean[2],betaTemp$Mean[2], col="red")
+plot(b0All4$meltTemp[b0All4$gcID==3],b0All4$Mean[b0All4$gcID==3],pch=19)
+abline(intC$Mean[3],betaTemp$Mean[3], col="red")
+plot(b0All4$meltTemp[b0All4$gcID==4],b0All4$Mean[b0All4$gcID==4],pch=19)
+abline(intC$Mean[4],betaTemp$Mean[4], col="red")
+plot(b0All4$meltTemp[b0All4$gcID==5],b0All4$Mean[b0All4$gcID==5],pch=19)
+abline(intC$Mean[5],betaTemp$Mean[5], col="red")
+plot(seq(1,5), betaTemp$Mean, xlab="glc", ylim=c(0,.05),pch=19)
+arrows(seq(1,5), betaTemp$X2.5.,seq(1,5), betaTemp$X97.5.,code=0)
+
+plot(b0All4$meltTemp[b0All4$gcID==1],b0All4$vcf[b0All4$gcID==1])
+plot(b0All4$meltTemp[b0All4$gcID==2],b0All4$vcf[b0All4$gcID==2])
+plot(b0All4$meltTemp[b0All4$gcID==3],b0All4$vcf[b0All4$gcID==3])
+plot(b0All4$meltTemp[b0All4$gcID==4],b0All4$vcf[b0All4$gcID==4])
+plot(b0All4$meltTemp[b0All4$gcID==5],b0All4$vcf[b0All4$gcID==5])
+
+plot(b0All4$meltTemp[b0All4$gcID==1],b0All4$sweMax[b0All4$gcID==1])
+plot(b0All4$meltTemp[b0All4$gcID==2],b0All4$sweMax[b0All4$gcID==2])
+plot(b0All4$meltTemp[b0All4$gcID==3],b0All4$sweMax[b0All4$gcID==3])
+plot(b0All4$meltTemp[b0All4$gcID==4],b0All4$sweMax[b0All4$gcID==4])
+plot(b0All4$meltTemp[b0All4$gcID==5],b0All4$sweMax[b0All4$gcID==5])
+
+plot(b0All4$meltTemp[b0All4$gcID==1]*b0All4$vcf[b0All4$gcID==1],b0All4$Mean[b0All4$gcID==1],pch=19)
+plot(b0All4$meltTemp[b0All4$gcID==2]*b0All4$vcf[b0All4$gcID==2],b0All4$Mean[b0All4$gcID==2],pch=19)
+plot(b0All4$meltTemp[b0All4$gcID==3]*b0All4$vcf[b0All4$gcID==3],b0All4$Mean[b0All4$gcID==3],pch=19)
+plot(b0All4$meltTemp[b0All4$gcID==4]*b0All4$vcf[b0All4$gcID==4],b0All4$Mean[b0All4$gcID==4],pch=19)
+plot(b0All4$meltTemp[b0All4$gcID==5]*b0All4$vcf[b0All4$gcID==5],b0All4$Mean[b0All4$gcID==5],pch=19)
