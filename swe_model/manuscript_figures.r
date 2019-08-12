@@ -543,24 +543,8 @@ cor(b0All4$dayMax[b0All4$gcID==3],b0All4$meltTemp[b0All4$gcID==3])
 cor(b0All4$dayMax[b0All4$gcID==4],b0All4$meltTemp[b0All4$gcID==4])
 cor(b0All4$dayMax[b0All4$gcID==5],b0All4$meltTemp[b0All4$gcID==5])
 
-cor(b0All4$dayMax[b0All4$gcID==1],b0All4$vcf[b0All4$gcID==1])
-cor(b0All4$dayMax[b0All4$gcID==2],b0All4$vcf[b0All4$gcID==2])
-cor(b0All4$dayMax[b0All4$gcID==3],b0All4$vcf[b0All4$gcID==3])
-cor(b0All4$dayMax[b0All4$gcID==4],b0All4$vcf[b0All4$gcID==4])
-cor(b0All4$dayMax[b0All4$gcID==5],b0All4$vcf[b0All4$gcID==5])
 
-plot(b0All4$dayMax[b0All4$gcID==1],b0All4$vcf[b0All4$gcID==1])
-plot(b0All4$dayMax[b0All4$gcID==2],b0All4$vcf[b0All4$gcID==2])
-plot(b0All4$dayMax[b0All4$gcID==3],b0All4$vcf[b0All4$gcID==3])
-plot(b0All4$dayMax[b0All4$gcID==4],b0All4$vcf[b0All4$gcID==4])
-plot(b0All4$dayMax[b0All4$gcID==5],b0All4$vcf[b0All4$gcID==5])
 
-par(mfrow=c(3,2))
-plot(b0All4$Lat[b0All4$gcID==1],b0All4$vcf[b0All4$gcID==1])
-plot(b0All4$Lat[b0All4$gcID==2],b0All4$vcf[b0All4$gcID==2])
-plot(b0All4$Lat[b0All4$gcID==3],b0All4$vcf[b0All4$gcID==3])
-plot(b0All4$Lat[b0All4$gcID==4],b0All4$vcf[b0All4$gcID==4])
-plot(b0All4$Lat[b0All4$gcID==5],b0All4$vcf[b0All4$gcID==5])
 
 
 par(mfrow=c(3,2))
