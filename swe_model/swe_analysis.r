@@ -27,12 +27,13 @@ library(sp)
 library(rjags)
 library(coda)
 library(mcmcplots)
+library(loo)
 ###############################################
 ### set up file paths                       ###
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run8"
+modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run9"
 
 ###############################################
 ### set up a dataframe with all of the      ###
@@ -231,53 +232,40 @@ for(i in 1:dim(gcIndT)[1]){
 
 #jags regression
 datalist <- list(Nobs= dim(b0All4)[1],
-					maxD=b0All4$dayMax,
 					b0=b0All4$Mean,
 					glcIDM=b0All4$gcID,
 					glcIDB=b0All4$gcID,
 					TempAB=b0All4$meltTemp,
 					CanopyB=b0All4$vcf,
-					sweMaxB=b0All4$sweMax,
-					TempAM=b0All4$onsetTemp,
-					CanopyM=b0All4$vcf,
-					Lat=b0All4$Lat,
-					GCyearM=b0All4$gcyearID,
+					sweDay=b0All4$dayMax,
 					GCyearB=b0All4$gcyearID,
 					sig.modB=b0All4$SD,
 					Ngcyear=dim(epsTable)[1],
-					ygcIDM=epsTable$gcID,
 					ygcIDB=epsTable$gcID,
 					startb=startID,
 					endb=endID,
-					startm=startID,
-					endm=endID,
 					Nglc=dim(IDSglc)[1])
 
-inits <- list(list(sig.vM=2,sig.vB=2,sig.em=rep(10,dim(gcIndT)[1]),sig.eb=rep(.5,dim(gcIndT)[1])),
-				list(sig.vM=10,sig.vB=10,sig.em=rep(15,dim(gcIndT)[1]),sig.eb=rep(.6,dim(gcIndT)[1])),
-				list(sig.vM=5,sig.vB=5,sig.em=rep(5,dim(gcIndT)[1]),sig.eb=rep(.25,dim(gcIndT)[1])))
+inits <- list(list(sig.vB=2,sig.eb=rep(.5,dim(gcIndT)[1])),
+				list(sig.vB=10,sig.eb=rep(.6,dim(gcIndT)[1])),
+				list(sig.vB=5,sig.eb=rep(.25,dim(gcIndT)[1])))
 				
-parms <- c("betaM0S","betaM1","betaM2","betaM3",
-			"betaB0S","betaB1","betaB2","betaB3",
-			"mu.betaM0","mu.betaM1","mu.betaM2","mu.betaM3",
+parms <- c("betaB0S","betaB1","betaB2","betaB3",
 			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
-			"sig.M0","sig.M1","sig.M2","sig.M3",
 			"sig.B0","sig.B1","sig.B2","sig.B3",
-			"sig.vB","sig.vM", "rep.max","rep.b0","eps.maxS","eps.bS","sig.em","sig.eb")
+			"sig.vB","rep.b0","eps.bS","sig.eb","Dsum","loglike")
 			
 	
 curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_curve_empirical_regression.r",
-						data=datalist,n.adapt=100000,n.chains=3,inits=inits)
+						data=datalist,n.adapt=10000,n.chains=3,inits=inits)
 						
-curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=100000,thin=50)						
+curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=50000,thin=25)						
 			
-mcmcplot(curve.sample, parms=c("betaM0S","betaM1","betaM2","betaM3",
+mcmcplot(curve.sample, parms=c(
 			"betaB0S","betaB1","betaB2","betaB3",
-			"mu.betaM0","mu.betaM1","mu.betaM2","mu.betaM3",
 			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
-			"sig.M0","sig.M1","sig.M2","sig.M3",
 			"sig.B0","sig.B1","sig.B2","sig.B3",
-			"sig.vB","sig.vM","eps.maxS","eps.bS","sig.em","sig.eb"),dir=paste0(modDir,"\\history"))		
+			"sig.vB","eps.bS","sig.eb"),dir=paste0(modDir,"\\history"))		
 
 
 #model output							   
