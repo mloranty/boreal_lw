@@ -33,7 +33,7 @@ library(loo)
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run9"
+modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run10"
 
 ###############################################
 ### set up a dataframe with all of the      ###
@@ -311,3 +311,6 @@ plot(b0All4$Mean,bRep$Mean)
 fit <- lm(bRep$Mean~	b0All4$Mean)	
 summary(fit)			
 abline(0,1,col="red",lwd=2)
+chains <- rbind(chain1,chain2,chain3)
+llall <- chains[,gsub(dexps,"",colnames(chains))=="loglike"]
+waic(llall)
