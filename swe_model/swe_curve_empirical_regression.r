@@ -76,7 +76,7 @@ model{
 		tau.es <- pow(sig.es,-2)
 		sig.es ~ dgamma(0.0001,0.0001)
 		
-	espS.bar <- mean(eps.s[])	
+	epsS.bar <- mean(eps.s[])	
 	####################
 	####hyper-priors####
 	####################
