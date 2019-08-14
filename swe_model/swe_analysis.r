@@ -266,7 +266,7 @@ inits <- list(list(sig.vB=2,sig.eb=rep(.5,dim(gcIndT)[1]),t.S=1,rhoS=.5,sigS=2,
 parms <- c("betaB0S","betaB1","betaB2","betaB3",
 			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
 			"sig.B0","sig.B1","sig.B2","sig.B3",
-			"sig.vB","rep.b0","eps.bS","sig.eb","Dsum","loglike","eps.sS","sigS","rhoS")
+			"sig.vB","rep.b0","eps.bS","sig.eb","Dsum","loglike","eps.sS","sig.es")
 			
 	
 curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_curve_empirical_regression.r",
@@ -278,7 +278,7 @@ mcmcplot(curve.sample, parms=c(
 			"betaB0S","betaB1","betaB2","betaB3",
 			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
 			"sig.B0","sig.B1","sig.B2","sig.B3",
-			"sig.vB","eps.bS","sig.eb","sigS","rhoS"),dir=paste0(modDir,"\\history"))		
+			"sig.vB","eps.bS","sig.eb","sig.es"),dir=paste0(modDir,"\\history"))		
 
 
 #model output							   

@@ -65,42 +65,18 @@ model{
 	#####random    #####
 	#####effects   #####
 	####################
-	eps.s[1:Ncell] ~ dmnorm(mu.epsS[1:Ncell],OmegaS[1:Ncell,1:Ncell])
+
 	for(j in 1:Ncell){
 		#specify means
-		mu.epsS[j] <- 0
+		eps.s[j] ~ dnorm(0,tau.es)
 		#specify identifiable parameters
 		eps.sS[j] <- eps.s[j]-epsS.bar
 	}
-	epsS.bar <- mean(eps.s[])
-	#spatial covariance model for tree random effect
-	OmegaS[1:Ncell,1:Ncell] <- inverse(SigmaS[1:Ncell,1:Ncell])
-	#standard deviation for spatial covariance
-	for(m in 1:Ncell){
-			for(j in 1:Ncell){
-				SigmaS[m,j] <- (1/tauS)*exp(phiS*DistS[m,j])
-				DistS[m,j]=sqrt(pow(x[j]-x[m],2)+ pow(y[m] - y[j], 2))	
-			}
-		}	
-	#priors for spatial covariance
-	#folded t for standard deviation
-	
-		tauS <- pow(sigS,-2)
-		sigS ~ dunif(0,100)
-		#abs(t.S)
-		#t.S ~ dt(0,p.S, 2)
-		#p.S <- 1/(v.S*v.S)
-		#v.S ~ dunif(0,100)
+		#variance terms for random effects
+		tau.es <- pow(sig.es,-2)
+		sig.es ~ dgamma(0.0001,0.0001)
 		
-	#prior for autocorrelation
-		phiS <-  log(rhoS)
-		rhoS ~ dunif(0,1)
-		#dbeta(alphaS,betaS)
-		#alphaS ~ dunif(0,100)
-		#betaS ~ dunif(0,100)
-		
-		
-		
+	espS.bar <- mean(eps.s[])	
 	####################
 	####hyper-priors####
 	####################
