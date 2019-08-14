@@ -229,31 +229,44 @@ for(i in 1:dim(gcIndT)[1]){
 		endID [i] <- tail(which(epsTable$gcID==gcIndT$gcID[i]))[6]
 }
 
+#index for spatial random effect
+cellDF <- unique(data.frame(cell=b0All4$cell, y=b0All4$y,x=b0All4$x,gcID=b0All4$gcID))
+cellDF$cellID <- seq(1,nrow(cellDF))
+
+#join back into b0All
+b0All5 <- join(b0All4, cellDF, by=c("cell","x","y","gcID"), type="left")
+
 
 #jags regression
-datalist <- list(Nobs= dim(b0All4)[1],
-					b0=b0All4$Mean,
-					glcIDM=b0All4$gcID,
-					glcIDB=b0All4$gcID,
-					TempAB=b0All4$meltTemp,
-					CanopyB=b0All4$vcf,
-					sweDay=b0All4$dayMax,
-					GCyearB=b0All4$gcyearID,
-					sig.modB=b0All4$SD,
+datalist <- list(Nobs= dim(b0All5)[1],
+					b0=b0All5$Mean,
+					glcIDB=b0All5$gcID,
+					TempAB=b0All5$meltTemp,
+					CanopyB=b0All5$vcf,
+					sweDay=b0All5$dayMax,
+					GCyearB=b0All5$gcyearID,
+					sig.modB=b0All5$SD,
 					Ngcyear=dim(epsTable)[1],
 					ygcIDB=epsTable$gcID,
 					startb=startID,
 					endb=endID,
-					Nglc=dim(IDSglc)[1])
+					Nglc=dim(IDSglc)[1],
+					cellID=b0All5$cellID,
+					x=b0All5$x,
+					y=b0All5$y,
+					Ncell=nrow(cellDF))
 
-inits <- list(list(sig.vB=2,sig.eb=rep(.5,dim(gcIndT)[1])),
-				list(sig.vB=10,sig.eb=rep(.6,dim(gcIndT)[1])),
-				list(sig.vB=5,sig.eb=rep(.25,dim(gcIndT)[1])))
+inits <- list(list(sig.vB=2,sig.eb=rep(.5,dim(gcIndT)[1]),t.S=1,rhoS=.5,sigS=2,
+					eps.s=rnorm(nrow(cellDF),0,.5)),
+				list(sig.vB=10,sig.eb=rep(.6,dim(gcIndT)[1]),t.S=2,rhoS=.2,sigS=1,
+						eps.s=rnorm(nrow(cellDF),-0.001,.1)),
+				list(sig.vB=5,sig.eb=rep(.25,dim(gcIndT)[1]),t.S=3,rhoS=.6,sigS=3,
+				eps.s=rnorm(nrow(cellDF),0.001,.25)))
 				
 parms <- c("betaB0S","betaB1","betaB2","betaB3",
 			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
 			"sig.B0","sig.B1","sig.B2","sig.B3",
-			"sig.vB","rep.b0","eps.bS","sig.eb","Dsum","loglike")
+			"sig.vB","rep.b0","eps.bS","sig.eb","Dsum","loglike","eps.sS","sigS","rhoS")
 			
 	
 curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_curve_empirical_regression.r",
@@ -265,7 +278,7 @@ mcmcplot(curve.sample, parms=c(
 			"betaB0S","betaB1","betaB2","betaB3",
 			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
 			"sig.B0","sig.B1","sig.B2","sig.B3",
-			"sig.vB","eps.bS","sig.eb"),dir=paste0(modDir,"\\history"))		
+			"sig.vB","eps.bS","sig.eb","sigS","rhoS"),dir=paste0(modDir,"\\history"))		
 
 
 #model output							   
