@@ -236,6 +236,12 @@ cellDF$cellID <- seq(1,nrow(cellDF))
 #join back into b0All
 b0All5 <- join(b0All4, cellDF, by=c("cell","x","y","gcID"), type="left")
 
+distMat <- matrix(rep(NA,nrow(cellDF)*nrow(cellDF)),ncol=nrow(cellDF))
+for(i in 1:nrow(cellDF)){
+	for(j in 1:nrow(cellDF)){
+		distMat[i,j] <- sqrt(((cellDF$x[i]-cellDF$x[j])^2) +((cellDF$y[i]-cellDF$y[j])^2))/1000
+	}
+}
 
 #jags regression
 datalist <- list(Nobs= dim(b0All5)[1],
@@ -320,10 +326,52 @@ betaCov <- datC[datC$parm=="betaB2",]
 #pull out slope rep
 bRep <- datC[datC$parm=="rep.b0",]			
 			
-plot(b0All4$Mean,bRep$Mean)	
-fit <- lm(bRep$Mean~	b0All4$Mean)	
+plot(b0All5$Mean,bRep$Mean)	
+fit <- lm(bRep$Mean~	b0All5$Mean)	
 summary(fit)			
-abline(0,1,col="red",lwd=2)
+abline(0,1,col="red",lwd=2) 
 chains <- rbind(chain1,chain2,chain3)
 llall <- chains[,gsub(dexps,"",colnames(chains))=="loglike"]
 waic(llall)
+
+datC[datC$parm=="Dsum",]
+
+b0All5$residual <- b0All5$Mean-bRep$Mean
+
+qqnorm(b0All5$residual)
+qqline(b0All5$residual)
+
+
+#check spatial patterns of residuals
+#pull out by year
+years <- seq(2000,2009)
+b0All5L <- list()
+for(i in 1:length(years)){
+	b0All5L [[i]] <- join(sweCellDF,b0All5[b0All5$year==years[i],], by="cell",type="left")
+
+}
+
+
+#set into raster
+rresid2000 <- setValues(swe,b0All5L [[1]]$residual)
+rresid2001 <- setValues(swe,b0All5L [[2]]$residual)
+rresid2002 <- setValues(swe,b0All5L [[3]]$residual)
+rresid2003 <- setValues(swe,b0All5L [[4]]$residual)
+rresid2004 <- setValues(swe,b0All5L [[5]]$residual)
+rresid2005 <- setValues(swe,b0All5L [[6]]$residual)
+rresid2006 <- setValues(swe,b0All5L [[7]]$residual)
+rresid2007 <- setValues(swe,b0All5L [[8]]$residual)
+rresid2008 <- setValues(swe,b0All5L [[9]]$residual)
+rresid2009 <- setValues(swe,b0All5L [[10]]$residual)
+
+par(mfrow=c(2,5))
+plot(rresid2000)
+plot(rresid2001)
+plot(rresid2002)
+plot(rresid2003)
+plot(rresid2004)
+plot(rresid2005)
+plot(rresid2006)
+plot(rresid2007)
+plot(rresid2008)
+plot(rresid2009)

@@ -32,7 +32,7 @@ library(maps)
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run8"
+modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run10"
 plotDI <- "c:\\Users\\hkropp\\Google Drive\\Picker17\\figures"
 
 ###############################################
