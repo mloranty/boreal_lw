@@ -79,8 +79,8 @@ model{
 	for(m in 1:Ncell){
 			for(j in 1:Ncell){
 				SigmaS[m,j] <- (1/tauS)*exp(phiS*DistS[m,j])
-				#put distance in km rather than m
-				DistS[m,j] <- sqrt(pow(x[j]-x[m],2)+ pow(y[m] - y[j], 2))/1000	
+				#convert distance from m so numbers aren't so high
+				DistS[m,j] <- sqrt(pow(x[j]-x[m],2)+ pow(y[m] - y[j], 2))/10000	
 			}
 		}	
 	#priors for spatial covariance
