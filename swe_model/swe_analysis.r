@@ -256,17 +256,19 @@ datalist <- list(Nobs= dim(b0All5)[1],
 					y=b0All5$y,
 					Ncell=nrow(cellDF))
 
-inits <- list(list(sig.vB=2,sig.eb=rep(.5,dim(gcIndT)[1]),t.S=1,rhoS=.5,sigS=3,
+
+				
+inits <- list(list(sig.vB=2,sig.eb=rep(.5,dim(gcIndT)[1]),sig.es=.2,
 					eps.s=rnorm(nrow(cellDF),0,.5)),
-				list(sig.vB=10,sig.eb=rep(.6,dim(gcIndT)[1]),t.S=2,rhoS=.9,sigS=5,
+				list(sig.vB=10,sig.eb=rep(.6,dim(gcIndT)[1]),sig.es=.5,
 						eps.s=rnorm(nrow(cellDF),-0.001,.1)),
-				list(sig.vB=5,sig.eb=rep(.25,dim(gcIndT)[1]),t.S=3,rhoS=.6,sigS=1,
+				list(sig.vB=5,sig.eb=rep(.25,dim(gcIndT)[1]),sig.es=1,
 				eps.s=rnorm(nrow(cellDF),0.001,.25)))
 				
-parms <- c("betaB0S","betaB1","betaB2","betaB3",
-			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
-			"sig.B0","sig.B1","sig.B2","sig.B3",
-			"sig.vB","rep.b0","eps.bS","sig.eb","Dsum","loglike","eps.sS","sigS","rhoS")
+parms <- c("betaB0S","betaB1","betaB2","betaB3","betaB4","betaB5","betaB6",
+			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3","mu.betaB4","mu.betaB5","mu.betaB6",
+			"sig.B0","sig.B1","sig.B2","sig.B3","sig.B4","sig.B5","sig.B6",
+			"sig.vB","rep.b0","eps.bS","sig.eb","Dsum","loglike","eps.sS","sig.es")
 			
 	
 curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_curve_empirical_regression.r",
@@ -275,11 +277,10 @@ curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\s
 curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=50000,thin=25)						
 			
 mcmcplot(curve.sample, parms=c(
-			"betaB0S","betaB1","betaB2","betaB3",
-			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
-			"sig.B0","sig.B1","sig.B2","sig.B3",
-			"sig.vB","eps.bS","sig.eb","sigS","rhoS"),dir=paste0(modDir,"\\history"))		
-
+			"betaB0S","betaB1","betaB2","betaB3","betaB4","betaB5","betaB6",
+			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3","mu.betaB4","mu.betaB5","mu.betaB6",
+			"sig.B0","sig.B1","sig.B2","sig.B3","sig.B4","sig.B5","sig.B6",
+			"sig.vB","eps.bS","sig.eb","sig.es"),dir=paste0(modDir,"\\history"))	
 
 #model output							   
 mod.out <- summary(curve.sample)

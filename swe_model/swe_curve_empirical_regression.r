@@ -10,7 +10,9 @@ model{
 		rep.b0[i] ~ dnorm(mu.b0[i],tau.b0[i])
 		#empirical regression
 		mu.b0[i] <- betaB0[glcIDB[i]] + betaB1[glcIDB[i]]*TempAB[i] + betaB2[glcIDB[i]]*CanopyB[i] +
-						 betaB3[glcIDB[i]]*(sweDay[i]-107)+ eps.b[GCyearB[i]] + eps.s[cellID[i]]
+						 betaB3[glcIDB[i]]*(sweDay[i]-107) + betaB4[glcIDB[i]]*TempAB[i]*CanopyB[i] +
+						 betaB5[glcIDB[i]]*TempAB[i]*(sweDay[i]-107) + betaB2[glcIDB[i]]*CanopyB[i]*(sweDay[i]-107) +
+						 eps.b[GCyearB[i]] + eps.s[cellID[i]]
 		#error model 
 		tau.b0[i] <- pow(sig.b0[i],-2)
 		sig.b0[i] <- sig.modB[i] + sig.vB
@@ -49,6 +51,9 @@ model{
 		betaB1[i] ~ dnorm(mu.betaB1,tau.betaB1)
 		betaB2[i] ~ dnorm(mu.betaB2,tau.betaB2)
 		betaB3[i] ~ dnorm(mu.betaB3,tau.betaB3)
+		betaB4[i] ~ dnorm(mu.betaB4,tau.betaB4)
+		betaB5[i] ~ dnorm(mu.betaB5,tau.betaB5)
+		betaB6[i] ~ dnorm(mu.betaB6,tau.betaB6)
 		#calculate identifiable intercepts
 		betaB0S[i] <- betaB0[i] + epsb.bar[i] + epsS.bar
 	
@@ -61,46 +66,22 @@ model{
 		sig.vB ~ dgamma(0.0001,0.0001)		
 	
 	####################
-	#####spatial   #####
+	#####cell      #####
 	#####random    #####
 	#####effects   #####
 	####################
-	eps.s[1:Ncell] ~ dmnorm(mu.epsS[1:Ncell],OmegaS[1:Ncell,1:Ncell])
+
 	for(j in 1:Ncell){
 		#specify means
-		mu.epsS[j] <- 0
+		eps.s[j] ~ dnorm(0,tau.es)
 		#specify identifiable parameters
 		eps.sS[j] <- eps.s[j]-epsS.bar
 	}
-	epsS.bar <- mean(eps.s[])
-	#spatial covariance model for tree random effect
-	OmegaS[1:Ncell,1:Ncell] <- inverse(SigmaS[1:Ncell,1:Ncell])
-	#standard deviation for spatial covariance
-	for(m in 1:Ncell){
-			for(j in 1:Ncell){
-				SigmaS[m,j] <- (1/tauS)*exp(phiS*DistS[m,j])
-				#convert distance from m so numbers aren't so high
-				DistS[m,j] <- sqrt(pow(x[j]-x[m],2)+ pow(y[m] - y[j], 2))/10000	
-			}
-		}	
-	#priors for spatial covariance
-	#folded t for standard deviation
-	
-		tauS <- pow(sigS,-2)
-		sigS ~ dunif(0,100)
-		#abs(t.S)
-		#t.S ~ dt(0,p.S, 2)
-		#p.S <- 1/(v.S*v.S)
-		#v.S ~ dunif(0,100)
+		#variance terms for random effects
+		tau.es <- pow(sig.es,-2)
+		sig.es ~ dgamma(0.0001,0.0001)
 		
-	#prior for autocorrelation
-		phiS <-  log(rhoS)
-		rhoS ~ dunif(0,1)
-		#dbeta(alphaS,betaS)
-		#alphaS ~ dunif(0,100)
-		#betaS ~ dunif(0,100)
-		
-		
+	epsS.bar <- mean(eps.s[])	
 	####################
 	####hyper-priors####
 	####################
@@ -109,18 +90,26 @@ model{
 	mu.betaB1 ~ dnorm(0,0.00001)
 	mu.betaB2 ~ dnorm(0,0.00001)
 	mu.betaB3 ~ dnorm(0,0.00001)
-
-	
+	mu.betaB4 ~ dnorm(0,0.00001)
+	mu.betaB5 ~ dnorm(0,0.00001)
+	mu.betaB6 ~ dnorm(0,0.00001)
 
 	tau.betaB0 <- pow(sig.B0, -2)
 	tau.betaB1 <- pow(sig.B1, -2)
 	tau.betaB2 <- pow(sig.B2, -2)
 	tau.betaB3 <- pow(sig.B3, -2)
+	tau.betaB4 <- pow(sig.B4, -2)
+	tau.betaB5 <- pow(sig.B5, -2)
+	tau.betaB6 <- pow(sig.B6, -2)
 
 	sig.B0 ~ dunif(0,1000)
 	sig.B1 ~ dunif(0,1000)
 	sig.B2 ~ dunif(0,1000)
 	sig.B3 ~ dunif(0,1000)
+	sig.B4 ~ dunif(0,1000)
+	sig.B5 ~ dunif(0,1000)
+	sig.B6 ~ dunif(0,1000)
+	
 	
 	#Posterior predictive loss is the posterior mean of Dsum, must monitor Dsum
   Dsum <- sum(Sqdiff[])
