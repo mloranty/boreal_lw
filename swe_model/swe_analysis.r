@@ -33,7 +33,7 @@ library(loo)
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run10"
+modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run11"
 
 ###############################################
 ### set up a dataframe with all of the      ###
@@ -236,12 +236,6 @@ cellDF$cellID <- seq(1,nrow(cellDF))
 #join back into b0All
 b0All5 <- join(b0All4, cellDF, by=c("cell","x","y","gcID"), type="left")
 
-distMat <- matrix(rep(NA,nrow(cellDF)*nrow(cellDF)),ncol=nrow(cellDF))
-for(i in 1:nrow(cellDF)){
-	for(j in 1:nrow(cellDF)){
-		distMat[i,j] <- sqrt(((cellDF$x[i]-cellDF$x[j])^2) +((cellDF$y[i]-cellDF$y[j])^2))/1000
-	}
-}
 
 #jags regression
 datalist <- list(Nobs= dim(b0All5)[1],
@@ -262,17 +256,17 @@ datalist <- list(Nobs= dim(b0All5)[1],
 					y=b0All5$y,
 					Ncell=nrow(cellDF))
 
-inits <- list(list(sig.vB=2,sig.eb=rep(.5,dim(gcIndT)[1]),t.S=1,rhoS=.5,sigS=2,
+inits <- list(list(sig.vB=2,sig.eb=rep(.5,dim(gcIndT)[1]),t.S=1,rhoS=.5,sigS=3,
 					eps.s=rnorm(nrow(cellDF),0,.5)),
-				list(sig.vB=10,sig.eb=rep(.6,dim(gcIndT)[1]),t.S=2,rhoS=.2,sigS=1,
+				list(sig.vB=10,sig.eb=rep(.6,dim(gcIndT)[1]),t.S=2,rhoS=.9,sigS=5,
 						eps.s=rnorm(nrow(cellDF),-0.001,.1)),
-				list(sig.vB=5,sig.eb=rep(.25,dim(gcIndT)[1]),t.S=3,rhoS=.6,sigS=3,
+				list(sig.vB=5,sig.eb=rep(.25,dim(gcIndT)[1]),t.S=3,rhoS=.6,sigS=1,
 				eps.s=rnorm(nrow(cellDF),0.001,.25)))
 				
 parms <- c("betaB0S","betaB1","betaB2","betaB3",
 			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
 			"sig.B0","sig.B1","sig.B2","sig.B3",
-			"sig.vB","rep.b0","eps.bS","sig.eb","Dsum","loglike","eps.sS","sig.es")
+			"sig.vB","rep.b0","eps.bS","sig.eb","Dsum","loglike","eps.sS","sigS","rhoS")
 			
 	
 curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_curve_empirical_regression.r",
@@ -284,7 +278,7 @@ mcmcplot(curve.sample, parms=c(
 			"betaB0S","betaB1","betaB2","betaB3",
 			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
 			"sig.B0","sig.B1","sig.B2","sig.B3",
-			"sig.vB","eps.bS","sig.eb","sig.es"),dir=paste0(modDir,"\\history"))		
+			"sig.vB","eps.bS","sig.eb","sigS","rhoS"),dir=paste0(modDir,"\\history"))		
 
 
 #model output							   
