@@ -56,9 +56,50 @@ model{
 		betaB6[i] ~ dnorm(mu.betaB6,tau.betaB6)
 		#calculate identifiable intercepts
 		betaB0S[i] <- betaB0[i] + epsb.bar[i] + epsS.bar
-	
+		
+		#estimate effects with interactions
+		#low canopy is 10% and temp is -2 and melt doy is 60
+		covEffectLow[i] <- betaB2[i] + (betaB4[i]*-2 ) + betaB6[i]*(60-107)
+		TempEffectLow[i] <-  betaB1[i] + betaB4[i]*10 +  betaB5[i]*(60-107)
+		MeltEffectLow[i] <-  betaB3[i] + (betaB5[i]*-2) + betaB6[i]*10
+		#mid canopy is 30% and temp is 1 and melt doy is 100
+		covEffectMid[i] <- betaB2[i] + (betaB4[i]*1 ) + betaB6[i]*(100-107)
+		TempEffectMid[i] <-  betaB1[i] + betaB4[i]*30 +  betaB5[i]*(100-107)
+		MeltEffectMid[i] <-  betaB3[i] + (betaB5[i]*1) + betaB6[i]*30
+		#high canopy is 60% and temp is 5 and melt doy is 140
 
-
+		covEffectHigh[i] <- betaB2[i] + (betaB4[i]*5 ) + betaB6[i]*(140-107)
+		TempEffectHigh[i] <-  betaB1[i] + betaB4[i]*60 +  betaB5[i]*(140-107)
+		MeltEffectHigh[i] <-  betaB3[i] + (betaB5[i]*5) + betaB6[i]*60
+		
+		#look at when one interaction is zero
+		#and at low 
+		#cover with low temp but middle of melt period
+		covTempLow[i] <- betaB2[i] + (betaB4[i]*-2 )
+		#cov with early melt but temp at zero
+		covMeltLow[i] <- betaB2[i] + betaB6[i]*(60-107)
+		#melt with a low temp and tree cover of zero
+		meltTempLow[i] <- betaB3[i] + (betaB5[i]*-2) 
+		#melt day with low canopy cover and temp of zero
+		meltCovLow[i] <-  betaB3[i]  + betaB6[i]*10
+		#temperature with low canopy cover
+		tempCovLow[i] <- betaB1[i] + betaB4[i]*10 
+		#temperature with early melt day
+		tempMeltLow[i] <- betaB1[i] +  betaB5[i]*(60-107)
+		#look at when one interaction is zero
+		#and at high
+		#cover with high temp but middle of melt period
+		covTempHigh[i] <- betaB2[i] + (betaB4[i]*5 )
+		#cov with late melt but temp at zero
+		covMeltHigh[i] <- betaB2[i] + betaB6[i]*(140-107)
+		#melt with a high temp and tree cover of zero
+		meltTempHigh[i] <- betaB3[i] + (betaB5[i]*5) 
+		#melt day with high canopy cover and temp of zero
+		meltCovHigh[i] <-  betaB3[i]  + betaB6[i]*60
+		#temperature with high canopy cover
+		tempCovHigh[i] <- betaB1[i] + betaB4[i]*60 
+		#temperature with late melt day and no cnaopy
+		tempMeltHigh[i] <- betaB1[i] +  betaB5[i]*(140-107)
 		
 	}
 

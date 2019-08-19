@@ -33,7 +33,7 @@ library(loo)
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run11"
+modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run12"
 
 ###############################################
 ### set up a dataframe with all of the      ###
@@ -268,13 +268,16 @@ inits <- list(list(sig.vB=2,sig.eb=rep(.5,dim(gcIndT)[1]),sig.es=.2,
 parms <- c("betaB0S","betaB1","betaB2","betaB3","betaB4","betaB5","betaB6",
 			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3","mu.betaB4","mu.betaB5","mu.betaB6",
 			"sig.B0","sig.B1","sig.B2","sig.B3","sig.B4","sig.B5","sig.B6",
-			"sig.vB","rep.b0","eps.bS","sig.eb","Dsum","loglike","eps.sS","sig.es")
+			"sig.vB","rep.b0","eps.bS","sig.eb","Dsum","loglike","eps.sS","sig.es",
+			"covEffectLow","TempEffectLow","MeltEffectLow","covEffectMid","TempEffectMid","MeltEffectMid",
+			"covEffectHigh","TempEffectHigh","MeltEffectHigh","covTempLow","covMeltLow","meltTempLow","meltCovLow",
+			"tempCovLow","tempMeltLow","covTempHigh","covMeltHigh","meltTempHigh","meltCovHigh","tempCovHigh","tempMeltHigh")
 			
 	
 curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_curve_empirical_regression.r",
 						data=datalist,n.adapt=10000,n.chains=3,inits=inits)
 						
-curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=50000,thin=25)						
+curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=90000,thin=45)						
 			
 mcmcplot(curve.sample, parms=c(
 			"betaB0S","betaB1","betaB2","betaB3","betaB4","betaB5","betaB6",
@@ -423,4 +426,5 @@ fit.v2 <- variofit(v2, ini.cov.pars = c(0.025, 0.01),
  par(mfrow=c(1,2))
  plot(v)
  plot(v2)
+ 
  
