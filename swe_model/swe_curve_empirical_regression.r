@@ -11,7 +11,7 @@ model{
 		#empirical regression
 		mu.b0[i] <- betaB0[glcIDB[i]] + betaB1[glcIDB[i]]*TempAB[i] + betaB2[glcIDB[i]]*CanopyB[i] +
 						 betaB3[glcIDB[i]]*(sweDay[i]-107) + betaB4[glcIDB[i]]*TempAB[i]*CanopyB[i] +
-						 betaB5[glcIDB[i]]*TempAB[i]*(sweDay[i]-107) + betaB2[glcIDB[i]]*CanopyB[i]*(sweDay[i]-107) +
+						 betaB5[glcIDB[i]]*TempAB[i]*(sweDay[i]-107) + betaB6[glcIDB[i]]*CanopyB[i]*(sweDay[i]-107) +
 						 eps.b[GCyearB[i]] + eps.s[cellID[i]]
 		#error model 
 		tau.b0[i] <- pow(sig.b0[i],-2)
