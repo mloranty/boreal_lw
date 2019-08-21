@@ -6,6 +6,7 @@
 #### b0Out: the rate of swe decline and midOut: the   ####
 #### timing of half swe,muB0Out=glc mean slope        ####
 #### muMidOut= glc mean midpoint                      ####
+#### halfOut= #of days between last Max day and mid   ####
 ##########################################################
 
 
@@ -26,12 +27,13 @@ library(sp)
 library(rjags)
 library(coda)
 library(mcmcplots)
+library(loo)
 ###############################################
 ### set up file paths                       ###
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run7"
+modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run12"
 
 ###############################################
 ### set up a dataframe with all of the      ###
@@ -39,40 +41,56 @@ modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run7"
 ###############################################
 sweCell <- unique(data.frame(cell=datSwe$cell,gcID=datSwe$gcID,pixID=datSwe$pixID,year=datSwe$year,
 								y=datSwe$y.coord,x=datSwe$x.coord,
-								vcf=datSwe$vcf,zone=datSwe$zone,dayMax=datSwe$dayMax))
+								vcf=datSwe$vcf,zone=datSwe$zone,dayMax=datSwe$dayMax, newpixID=datSwe$newpixID))
 								
 								
 #calculate the melt period		
 #join midpoint into swe cell
+sweCell2 <- join(sweCell,midOut,by=c("newpixID","gcID","year"),type="left")
+colnames(halfOut)[1:7] <- paste0(colnames(halfOut)[1:7],"H")
+sweCell3 <- join(sweCell2,halfOut,by=c("newpixID","gcID","year"),type="left")
 
-sweCell2 <- join(sweCell,midOut,by=c("pixID","gcID","year"),type="left")
-
-sweCell2$Mlength <- (round(sweCell2$Mean)-sweCell2$dayMax)*2
 #calculate the end day
-sweCell2$dayEnd <- sweCell2$dayMax+sweCell2$Mlength
+sweCell3$dayEnd <- ifelse(round(sweCell3$Mean)+round(sweCell3$MeanH) > 182,
+					182,round(sweCell3$Mean)+round(sweCell3$MeanH))
 
+#### data filter #####
+#there are some very fast melt periods
+#where the standard deviation of the midpoint
+#is within the range of the onset. Looking at the
+#melt period won't be reliable. 					
+sweCell3 <- sweCell3[round(sweCell3$Mean-sweCell3$SD)>sweCell3$dayMax,]
 
 #calculate average temperature to only be within the melt period
-#and calculate the temperature in the three weeks before the melt period
-meltTemp <- numeric(0)
-onsetTemp <- numeric(0)
+#and calculate the temperature in the  week before the melt period
 
+#subset swe cell3 info
+daysToJoin <- data.frame(pixID=sweCell3$pixID,year=sweCell3$year,gcID=sweCell3$gcID,
+						dayMax=sweCell3$dayMax,dayEnd=sweCell3$dayEnd)
 
-for(i in 1:dim(sweCell2)[1]){
-	meltTemp[i] <- mean(sweAll$t.air[sweAll$pixID==sweCell2$pixID[i]&sweAll$gcID==sweCell2$gcID[i]&
-						sweAll$year==sweCell2$year[i]&sweAll$jday>=sweCell2$dayMax[i]&sweAll$jday<=sweCell2$dayEnd[i]]-273.15)
-	onsetTemp[i] <- mean(sweAll$t.air[sweAll$pixID==sweCell2$pixID[i]&sweAll$gcID==sweCell2$gcID[i]&
-						sweAll$year==sweCell2$year[i]&sweAll$jday>=(sweCell2$dayMax[i]-7)&sweAll$jday<=sweCell2$dayMax[i]]-273.15)								
-}
+						
+sweDaysJoin <- join(sweAll,daysToJoin, by=c("pixID","gcID","year"),type="inner")
+
+sweMeltSub <- sweDaysJoin[sweDaysJoin$jday>=sweDaysJoin$dayMax&sweDaysJoin$jday<=sweDaysJoin$dayEnd,]
+sweOnsetSub <- sweDaysJoin[sweDaysJoin$jday>=(sweDaysJoin$dayMax-7)&sweDaysJoin$jday<=sweDaysJoin$dayMax,]		
+
+#now aggregate temperature
+meltTempDF <- aggregate(sweMeltSub$t.air-273.15, by=list(sweMeltSub$pixID,sweMeltSub$gcID,sweMeltSub$year),FUN="mean",na.rm=TRUE)
+colnames(meltTempDF) <- c("pixID","gcID","year","meltTemp")
+onsetTempDF <- aggregate(sweOnsetSub$t.air-273.15, by=list(sweOnsetSub$pixID,sweOnsetSub$gcID,sweOnsetSub$year),FUN="mean",na.rm=TRUE)
+colnames(onsetTempDF) <- c("pixID","gcID","year","onsetTemp")
+#join back into sweCell3
+sweCell3a <- join(sweCell3, meltTempDF, by=c("pixID","gcID","year"),type="left")	
+sweCell3b <- join(sweCell3a, onsetTempDF, by=c("pixID","gcID","year"),type="left")	
 
 #create a data frame  to combine back into slope output
-sweCell3 <- data.frame(pixID=sweCell2$pixID,cell=sweCell2$cell,gcID=sweCell2$gcID,year=sweCell2$year,
-							vcf=sweCell2$vcf,zone=sweCell2$zone,dayMax=sweCell2$dayMax,Mlength=sweCell2$Mlength,
-							dayEnd=sweCell2$dayEnd,meltTemp=meltTemp,onsetTemp=onsetTemp,
-							x=sweCell2$x,y=sweCell2$y)
+sweCell4 <- data.frame(pixID=sweCell3b$pixID,newpixID=sweCell3b$newpixID,cell=sweCell3b$cell,gcID=sweCell3b$gcID,year=sweCell3b$year,
+							vcf=sweCell3b$vcf,zone=sweCell3b$zone,dayMax=sweCell3b$dayMax,
+							dayEnd=sweCell3b$dayEnd,meltTemp=sweCell3b$meltTemp,onsetTemp=sweCell3b$onsetTemp,
+							x=sweCell3b$x,y=sweCell3b$y)
 
 #now join to each output
-b0All <- join(b0Out,sweCell3,by=c("year","gcID","pixID"),type="inner")
+b0All <- join(b0Out,sweCell4,by=c("year","gcID","newpixID"),type="inner")
 
 
 #organize output by year
@@ -211,61 +229,65 @@ for(i in 1:dim(gcIndT)[1]){
 		endID [i] <- tail(which(epsTable$gcID==gcIndT$gcID[i]))[6]
 }
 
+#index for spatial random effect
+cellDF <- unique(data.frame(cell=b0All4$cell, y=b0All4$y,x=b0All4$x,gcID=b0All4$gcID))
+cellDF$cellID <- seq(1,nrow(cellDF))
+
+#join back into b0All
+b0All5 <- join(b0All4, cellDF, by=c("cell","x","y","gcID"), type="left")
 
 
 #jags regression
-datalist <- list(Nobs= dim(b0All4)[1],
-					maxD=b0All4$dayMax,
-					b0=b0All4$Mean,
-					glcIDM=b0All4$gcID,
-					glcIDB=b0All4$gcID,
-					TempAB=b0All4$meltTemp,
-					CanopyB=b0All4$vcf,
-					sweMaxB=b0All4$sweMax,
-					TempAM=b0All4$onsetTemp,
-					CanopyM=b0All4$vcf,
-					Lat=b0All4$Lat,
-					GCyearM=b0All4$gcyearID,
-					GCyearB=b0All4$gcyearID,
-					sig.modB=b0All4$SD,
+datalist <- list(Nobs= dim(b0All5)[1],
+					b0=b0All5$Mean,
+					glcIDB=b0All5$gcID,
+					TempAB=b0All5$meltTemp,
+					CanopyB=b0All5$vcf,
+					sweDay=b0All5$dayMax,
+					GCyearB=b0All5$gcyearID,
+					sig.modB=b0All5$SD,
 					Ngcyear=dim(epsTable)[1],
-					ygcIDM=epsTable$gcID,
 					ygcIDB=epsTable$gcID,
 					startb=startID,
 					endb=endID,
-					startm=startID,
-					endm=endID,
-					Nglc=dim(IDSglc)[1])
+					Nglc=dim(IDSglc)[1],
+					cellID=b0All5$cellID,
+					x=b0All5$x,
+					y=b0All5$y,
+					Ncell=nrow(cellDF))
 
-inits <- list(list(sig.vM=2,sig.vB=2,sig.em=rep(10,dim(gcIndT)[1]),sig.eb=rep(.5,dim(gcIndT)[1])),
-				list(sig.vM=10,sig.vB=10,sig.em=rep(15,dim(gcIndT)[1]),sig.eb=rep(.6,dim(gcIndT)[1])),
-				list(sig.vM=5,sig.vB=5,sig.em=rep(5,dim(gcIndT)[1]),sig.eb=rep(.25,dim(gcIndT)[1])))
+
 				
-parms <- c("betaM0S","betaM1","betaM2","betaM3",
-			"betaB0S","betaB1","betaB2","betaB3",
-			"mu.betaM0","mu.betaM1","mu.betaM2","mu.betaM3",
-			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
-			"sig.M0","sig.M1","sig.M2","sig.M3",
-			"sig.B0","sig.B1","sig.B2","sig.B3",
-			"sig.vB","sig.vM", "rep.max","rep.b0","eps.maxS","eps.bS","sig.em","sig.eb")
+inits <- list(list(sig.vB=2,sig.eb=rep(.5,dim(gcIndT)[1]),sig.es=.2,
+					eps.s=rnorm(nrow(cellDF),0,.5)),
+				list(sig.vB=10,sig.eb=rep(.6,dim(gcIndT)[1]),sig.es=.5,
+						eps.s=rnorm(nrow(cellDF),-0.001,.1)),
+				list(sig.vB=5,sig.eb=rep(.25,dim(gcIndT)[1]),sig.es=1,
+				eps.s=rnorm(nrow(cellDF),0.001,.25)))
+				
+parms <- c("betaB0S","betaB1","betaB2","betaB3","betaB4","betaB5","betaB6",
+			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3","mu.betaB4","mu.betaB5","mu.betaB6",
+			"sig.B0","sig.B1","sig.B2","sig.B3","sig.B4","sig.B5","sig.B6",
+			"sig.vB","rep.b0","eps.bS","sig.eb","Dsum","loglike","eps.sS","sig.es",
+			"covEffectLow","TempEffectLow","MeltEffectLow","covEffectMid","TempEffectMid","MeltEffectMid",
+			"covEffectHigh","TempEffectHigh","MeltEffectHigh","covTempLow","covMeltLow","meltTempLow","meltCovLow",
+			"tempCovLow","tempMeltLow","covTempHigh","covMeltHigh","meltTempHigh","meltCovHigh","tempCovHigh","tempMeltHigh")
 			
 	
 curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_curve_empirical_regression.r",
 						data=datalist,n.adapt=10000,n.chains=3,inits=inits)
 						
-curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=100000,thin=50)						
+curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=90000,thin=45)						
 			
-mcmcplot(curve.sample, parms=c("betaM0S","betaM1","betaM2","betaM3",
-			"betaB0S","betaB1","betaB2","betaB3",
-			"mu.betaM0","mu.betaM1","mu.betaM2","mu.betaM3",
-			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
-			"sig.M0","sig.M1","sig.M2","sig.M3",
-			"sig.B0","sig.B1","sig.B2","sig.B3",
-			"sig.vB","sig.vM","eps.maxS","eps.bS","sig.em","sig.eb"),dir=paste0(modDir,"\\history"))		
-
+mcmcplot(curve.sample, parms=c(
+			"betaB0S","betaB1","betaB2","betaB3","betaB4","betaB5","betaB6",
+			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3","mu.betaB4","mu.betaB5","mu.betaB6",
+			"sig.B0","sig.B1","sig.B2","sig.B3","sig.B4","sig.B5","sig.B6",
+			"sig.vB","eps.bS","sig.eb","sig.es"),dir=paste0(modDir,"\\history"))	
 
 #model output							   
 mod.out <- summary(curve.sample)
+
 
 write.table(mod.out$statistics,paste0(modDir,"\\curve_mod_stats.csv"),
 			sep=",",row.names=TRUE)
@@ -302,7 +324,92 @@ betaCov <- datC[datC$parm=="betaB2",]
 #pull out slope rep
 bRep <- datC[datC$parm=="rep.b0",]			
 			
-plot(b0All4$Mean,bRep$Mean)	
-fit <- lm(bRep$Mean~	b0All4$Mean)	
+plot(b0All5$Mean,bRep$Mean)	
+fit <- lm(bRep$Mean~	b0All5$Mean)	
 summary(fit)			
-abline(0,1,col="red",lwd=2)
+abline(0,1,col="red",lwd=2) 
+chains <- rbind(chain1,chain2,chain3)
+llall <- chains[,gsub(dexps,"",colnames(chains))=="loglike"]
+waic(llall)
+
+datC[datC$parm=="Dsum",]
+
+b0All5$residual <- b0All5$Mean-bRep$Mean
+
+qqnorm(b0All5$residual)
+qqline(b0All5$residual)
+
+
+#check spatial patterns of residuals
+#pull out by year
+years <- seq(2000,2009)
+b0All5L <- list()
+for(i in 1:length(years)){
+	b0All5L [[i]] <- join(sweCellDF,b0All5[b0All5$year==years[i],], by="cell",type="left")
+
+}
+
+
+#set into raster
+rresid2000 <- setValues(swe,b0All5L [[1]]$residual)
+rresid2001 <- setValues(swe,b0All5L [[2]]$residual)
+rresid2002 <- setValues(swe,b0All5L [[3]]$residual)
+rresid2003 <- setValues(swe,b0All5L [[4]]$residual)
+rresid2004 <- setValues(swe,b0All5L [[5]]$residual)
+rresid2005 <- setValues(swe,b0All5L [[6]]$residual)
+rresid2006 <- setValues(swe,b0All5L [[7]]$residual)
+rresid2007 <- setValues(swe,b0All5L [[8]]$residual)
+rresid2008 <- setValues(swe,b0All5L [[9]]$residual)
+rresid2009 <- setValues(swe,b0All5L [[10]]$residual)
+
+par(mfrow=c(2,5))
+plot(rresid2000)
+plot(rresid2001)
+plot(rresid2002)
+plot(rresid2003)
+plot(rresid2004)
+plot(rresid2005)
+plot(rresid2006)
+plot(rresid2007)
+plot(rresid2008)
+plot(rresid2009)
+
+
+library(geoR)
+#check out semivariogram of residuals
+
+
+bins <- 10
+coords.mod <- as.matrix(b0All5[,c("x","y")]/1000)
+max.dist <- 0.5 * max(dist(coords.mod))
+
+v <- variog(coords = coords.mod, data = b0All5$residual, uvec = (seq(0,
+ max.dist, length = bins)))
+
+
+fit.v <- variofit(v, ini.cov.pars = c(0.015, 0.1),
+  nugget =0.014, fix.nugget=FALSE,cov.model = "exponential",
+ minimisation.function = "nls", weights = "equal")
+plot(v)
+lines(v)
+summary(fit.v)
+
+datC[datC$parm=="covTempLow",]
+datC[datC$parm=="covTempHigh",]
+
+datC[datC$parm=="covMeltLow",]
+datC[datC$parm=="covMeltHigh",]
+
+datC[datC$parm=="covEffectLow",]
+datC[datC$parm=="covEffectMid",]
+datC[datC$parm=="covEffectHigh",]
+
+
+#pull out interaction beta
+betaI4 <- datC[datC$parm=="betaB4",] 
+betaI5 <- datC[datC$parm=="betaB5",] 
+betaI6 <- datC[datC$parm=="betaB5",] 
+#intercept
+betaIn <- datC[datC$parm=="betaB0S",] 
+
+datC[datC$parm=="TempEffectLow",]

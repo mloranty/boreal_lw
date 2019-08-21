@@ -12,197 +12,20 @@ DDdir <- c("/home/hkropp/boreal/data",
 				"z:\\projects\\boreal_swe_depletion\\data")
 
 #######################################################
-# file name information                               #
-#######################################################
-
-#read in rep information
-
-
-#create a vector with all of the parent directories
-dirP <- c("z:\\projects\\boreal_swe_depletion\\model\\run13\\run1")
-
-outD <- "z:\\projects\\boreal_swe_depletion\\model\\run13\\eval"
-#get a list of all of the files
-
-
-	dirA <- list.dirs(paste0(dirP), full.names=FALSE)
-	#remove parent directory
-	dirA <- dirA[-1]
-	dimA <- length(dirA)
-	datA <- data.frame(files=dirA,dirP=rep(dirP,dimA))
-
-
-
-#pull out identifying info
-
-for(i in 1:dim(datA)[1]){
-		#vegetation land class
-		datA$glc[i] <- as.numeric(strsplit(as.character(datA$files[i]),"_")[[1]][2])
-		#year
-		datA$year[i] <- as.numeric(strsplit(as.character(datA$files[i]),"_")[[1]][4])
-		#chain
-		datA$chain[i] <- as.numeric(strsplit(as.character(datA$files[i]),"_")[[1]][6])
-}	
-whichrep <- read.csv("z:\\projects\\boreal_swe_depletion\\data\\rep_subID.csv")
-#turn chains into a list
-chain1 <- datA[datA$chain==1,1:4]
-colnames(chain1)[1:2] <- paste0(colnames(chain1)[1:2],"1") 
-
-chain2 <- datA[datA$chain==2,1:4]
-colnames(chain2)[1:2] <- paste0(colnames(chain2)[1:2],"2")
-
-chain3 <- datA[datA$chain==3,1:4]
-colnames(chain3)[1:2] <- paste0(colnames(chain3)[1:2],"3")
-
-chains <- list(chain1,chain2,chain3)
-
-chainDF <- join_all(chains,by=c("glc","year"),type="inner")
-
-
-
-#get a list of all of the names of the variables
-parms <- list.files(paste0(chainDF$dirP1[1],"\\",chainDF$files1[1]))
-
-#read in coda
-#for(i 1:dim(chainDF)[1]){
-b0Out1 <- data.frame()
-b0Out2 <- data.frame()
-b0Out3 <- data.frame()
-b0mcmc <- mcmc.list()
-b0.diag <- list()
-b0Summ <- list()
-b0Stat <- list()
-for(i in 1:dim(chainDF)[1]){
-
-	#read in output
-	b0Out1 <- read.csv(paste0(chainDF$dirP1[i],"\\",chainDF$files1[i],"\\b0_out.csv"))
-	b0Out2 <- read.csv(paste0(chainDF$dirP2[i],"\\",chainDF$files2[i],"\\b0_out.csv"))
-	b0Out3 <- read.csv(paste0(chainDF$dirP3[i],"\\",chainDF$files3[i],"\\b0_out.csv"))
-	colnames(b0Out1) <- paste0("b0_",seq(1,dim(b0Out1)[2]))
-	colnames(b0Out2) <- paste0("b0_",seq(1,dim(b0Out2)[2]))
-	colnames(b0Out3) <- paste0("b0_",seq(1,dim(b0Out3)[2]))
-	
-	#turn into mcmc
-	#and convert to days
-	b0Out1 <- as.mcmc(apply(b0Out1,c(1,2),function(X){X/(182-32)}))
-	b0Out2 <- as.mcmc(apply(b0Out2,c(1,2),function(X){X/(182-32)}))
-	b0Out3 <- as.mcmc(apply(b0Out3,c(1,2),function(X){X/(182-32)}))
-	b0mcmc <- mcmc.list(b0Out1,b0Out2,b0Out3)
-	b0Summ[[i]] <- summary(b0mcmc)
-	b0Stat[[i]] <- data.frame(b0Summ[[i]]$statistics,b0Summ[[i]]$quantiles,gcID=rep(chainDF$glc[i],dim(b0Summ[[i]]$statistics)[1]),
-					year=rep(chainDF$year[i],dim(b0Summ[[i]]$statistics)[1]),pixID=seq(1,dim(b0Summ[[i]]$statistics)[1]))
-}
-	
-
-midOut1 <- data.frame()
-midOut2 <- data.frame()
-midOut3 <- data.frame()
-midmcmc <- mcmc.list()
-mid.diag <- list()
-midSumm <- list()
-midStat <- list()
-for(i in 1:dim(chainDF)[1]){
-
-	#read in output
-	midOut1 <- read.csv(paste0(chainDF$dirP1[i],"\\",chainDF$files1[i],"\\mid0_out.csv"))
-	midOut2 <- read.csv(paste0(chainDF$dirP2[i],"\\",chainDF$files2[i],"\\mid0_out.csv"))
-	midOut3 <- read.csv(paste0(chainDF$dirP3[i],"\\",chainDF$files3[i],"\\mid0_out.csv"))
-	colnames(midOut1) <- paste0("mid0_",seq(1,dim(midOut1)[2]))
-	colnames(midOut2) <- paste0("mid0_",seq(1,dim(midOut2)[2]))
-	colnames(midOut3) <- paste0("mid0_",seq(1,dim(midOut3)[2]))
-
-	#turn into mcmc
-	#convert to doy
-	midOut1 <- as.mcmc(apply(midOut1,c(1,2),function(X){(X*(182-32))+32}))
-	midOut2 <- as.mcmc(apply(midOut2,c(1,2),function(X){(X*(182-32))+32}))
-	midOut3 <- as.mcmc(apply(midOut3,c(1,2),function(X){(X*(182-32))+32}))
-	midmcmc <- mcmc.list(midOut1,midOut2,midOut3)
-	midSumm[[i]] <- summary(midmcmc)
-	midStat[[i]] <- data.frame(midSumm[[i]]$statistics,midSumm[[i]]$quantiles,gcID=rep(chainDF$glc[i],dim(midSumm[[i]]$statistics)[1]),
-					year=rep(chainDF$year[i],dim(midSumm[[i]]$statistics)[1]),pixID=seq(1,dim(midSumm[[i]]$statistics)[1]))
-}
-
-midOut <- ldply(midStat, data.frame)
-b0Out <- ldply(b0Stat, data.frame)
-
-###
-#read in means
-mumidOut1 <- data.frame()
-mumidOut2 <- data.frame()
-mumidOut3 <- data.frame()
-mumidmcmc <- mcmc.list()
-mumidSumm <- list()
-mumidStat <- list()
-for(i in 1:dim(chainDF)[1]){
-	#read in output
-	mumidOut1 <- read.csv(paste0(chainDF$dirP1[i],"\\",chainDF$files1[i],"\\muMid_out.csv"))
-	mumidOut2 <- read.csv(paste0(chainDF$dirP2[i],"\\",chainDF$files2[i],"\\muMid_out.csv"))
-	mumidOut3 <- read.csv(paste0(chainDF$dirP3[i],"\\",chainDF$files3[i],"\\muMid_out.csv"))
-	colnames(mumidOut1) <- paste0("mumid")
-	colnames(mumidOut2) <- paste0("mumid")
-	colnames(mumidOut3) <- paste0("mumid")
-	#turn into mcmc
-	mumidOut1 <- as.mcmc(apply(mumidOut1,c(1,2),function(X){(X*(182-32))+32}))
-	mumidOut2 <- as.mcmc(apply(mumidOut2,c(1,2),function(X){(X*(182-32))+32}))
-	mumidOut3 <- as.mcmc(apply(mumidOut3,c(1,2),function(X){(X*(182-32))+32}))
-	mumidmcmc <- mcmc.list(mumidOut1,mumidOut2,mumidOut3)
-	mumidSumm[[i]] <- summary(mumidmcmc)
-	mumidStat[[i]] <- data.frame(Mean=mumidSumm[[i]]$statistics[1],
-									SD=mumidSumm[[i]]$statistics[2],
-									p2.5=mumidSumm[[i]]$quantiles[1],
-									p97.5=mumidSumm[[i]]$quantiles[5],gcID=chainDF$glc[i],
-					year=chainDF$year[i])
-}
-
-muMidOut <- ldply(mumidStat,data.frame)
-
-mub0Out1 <- data.frame()
-mub0Out2 <- data.frame()
-mub0Out3 <- data.frame()
-mub0mcmc <- mcmc.list()
-mub0.diag <- list()
-mub0Summ <- list()
-mub0Stat <- list()
-for(i in 1:dim(chainDF)[1]){
-
-	#read in output
-	mub0Out1 <- read.csv(paste0(chainDF$dirP1[i],"\\",chainDF$files1[i],"\\muB0_out.csv"))
-	mub0Out2 <- read.csv(paste0(chainDF$dirP2[i],"\\",chainDF$files2[i],"\\muB0_out.csv"))
-	mub0Out3 <- read.csv(paste0(chainDF$dirP3[i],"\\",chainDF$files3[i],"\\muB0_out.csv"))
-	colnames(mub0Out1) <- paste0("mub0")
-	colnames(mub0Out2) <- paste0("mub0")
-	colnames(mub0Out3) <- paste0("mub0")
-	#turn into mcmc
-	mub0Out1 <- as.mcmc(apply(mub0Out1,c(1,2),function(X){X/(182-32)}))
-	mub0Out2 <- as.mcmc(apply(mub0Out2,c(1,2),function(X){X/(182-32)}))
-	mub0Out3 <- as.mcmc(apply(mub0Out3,c(1,2),function(X){X/(182-32)}))
-	mub0mcmc <- mcmc.list(mub0Out1,mub0Out2,mub0Out3)
-	mub0Summ[[i]] <- summary(mub0mcmc)
-	mub0Stat[[i]] <- data.frame(Mean=mub0Summ[[i]]$statistics[1],
-									SD=mub0Summ[[i]]$statistics[2],
-									p2.5=mub0Summ[[i]]$quantiles[1],
-									p25=mub0Summ[[i]]$quantiles[2],
-									p75=mub0Summ[[i]]$quantiles[4],
-									p97.5=mub0Summ[[i]]$quantiles[5],
-							gcID=chainDF$glc[i],
-					year=chainDF$year[i])
-}
-muB0Out <- ldply(mub0Stat,data.frame)
-#######################################################
 # read in and filter data                             #
 #######################################################
 #read in data files
 if(runOS==1){
 	dat.swe <- read.csv(paste0(DDdir[1], "/swe_depletion_model_data_vcf_no_topo.csv"))
 	dat.glc <- read.csv(paste0(DDdir[1], "/glc50_table.csv"))
-	whichrep <- read.csv(paste0(DDdir[1],"/rep_subID.csv"))
+	whichrep <- read.csv(paste0(DDdir[1],"/rep_subID_new.csv"))
 	datExc <- read.csv(paste0(DDdir[1],"/prob_pix.csv"))
 
 }else{
 
 	dat.swe <- read.csv(paste0(DDdir[2],"\\swe_depletion_model_data_vcf_no_topo.csv"))
 	dat.glc <- read.csv(paste0(DDdir[2], "/glc50_table.csv"))
-	whichrep <- read.csv(paste0(DDdir[2],"\\rep_subID.csv"))
+	whichrep <- read.csv(paste0(DDdir[2],"\\rep_subID_new.csv"))
 	datExc <- read.csv(paste0(DDdir[2],"\\prob_pix.csv"))
 }
 
@@ -273,8 +96,6 @@ dat.swe3 <- join(dat.swe2, sweMaxF, by=c("cell","year"), type="inner")
 IDSglc <- unique(data.frame(zone=dat.swe3$zone))
 IDSglc <- join(IDSglc, dat.glc[,1:2], by="zone", type="left")
 IDSglc$gcID <- seq(1,dim(IDSglc)[1])
-
-
 
 
 #join glc ID into dataframe
@@ -406,8 +227,262 @@ dat.swe10 <- join(dat.swe9,pixJ4, by=c("cell","year","gcID","pixID","gcYearID"),
 
 dat.swe11<- dat.swe10[dat.swe10$doyN>10,]	
 
-datSwe <- dat.swe11
+#######################################################
+# Exclude cells with data not appropriate for model   #
+#######################################################
+
+datExc$flag <- rep(1, dim(datExc)[1])
+
+dat.swe12 <- join(dat.swe11,datExc, by=c("gcID","pixID","year"), type="left")
+dat.swe13 <- dat.swe12[is.na(dat.swe12$flag),]
+
+#######################################################
+# Need to change the pixel ID since some of the data  #
+# is now subsetted and pixels are removed also need   # 
+# day of maximum for a calculations                   #  
+#######################################################
+#organize max data for calculation
+maxpixList <- list()
+for(i in 1:dim(gcYearID)[1]){
+	maxpixList[[i]] <- unique(data.frame(dayMax=dat.swe13$dayMax[dat.swe13$gcID==gcYearID$gcID[i]&dat.swe13$year==gcYearID$year[i]],
+						pixID=dat.swe13$pixID[dat.swe13$gcID==gcYearID$gcID[i]&dat.swe13$year==gcYearID$year[i]]))
+	maxpixList[[i]] <-	maxpixList[[i]] [order(maxpixList[[i]]$pixID),] 		
+	maxpixList[[i]]$newpixID <- seq(1,dim(maxpixList[[i]])[1])
+	maxpixList[[i]]$gcYearID <- rep(gcYearID$gcYearID[i],dim(maxpixList[[i]])[1])
+	#also add cell new count back into gcYearID
+	gcYearID$newpixCount[i] <- dim(maxpixList[[i]])[1]
+
+}
+
+#join back into swe to have new pixel id
+maxpixDF <- ldply(maxpixList,data.frame)[,-1]
+dat.swe14 <- join(dat.swe13, maxpixDF, by=c("pixID","gcYearID"), type="left")
+#pull out which rows each gc is related
+sweRows <- list()
+sweDims <- numeric(0)
+for(i in 1:dim(gcYearID)[1]){
+	sweRows[[i]] <- which(dat.swe14$gcID==gcYearID$gcID[i]&dat.swe14$year==gcYearID$year[i])
+	sweDims[i] <- length(sweRows[[i]])
+}
+
+
+datRep <- dat.swe14[whichrep$rows,]
+
+
+#rename final swe data
+datSwe <- dat.swe14
 #swe for entire melt period
 sweAll <- dat.swe5 
-#clear out files that aren't needed
-rm(list=setdiff(ls(), c("datSwe","b0Out","midOut","muB0Out","muMidOut","IDSglc","sweAll")))
+
+#######################################################
+# file name information                               #
+#######################################################
+
+#read in rep information
+
+
+#create a vector with all of the parent directories
+dirP <- c("z:\\projects\\boreal_swe_depletion\\model\\run14\\run1")
+
+outD <- "z:\\projects\\boreal_swe_depletion\\model\\run14\\eval"
+#get a list of all of the files
+
+
+	dirA <- list.dirs(paste0(dirP), full.names=FALSE)
+	#remove parent directory
+	dirA <- dirA[-1]
+	dimA <- length(dirA)
+	datA <- data.frame(files=dirA,dirP=rep(dirP,dimA))
+
+
+
+#pull out identifying info
+
+for(i in 1:dim(datA)[1]){
+		#vegetation land class
+		datA$glc[i] <- as.numeric(strsplit(as.character(datA$files[i]),"_")[[1]][2])
+		#year
+		datA$year[i] <- as.numeric(strsplit(as.character(datA$files[i]),"_")[[1]][4])
+		#chain
+		datA$chain[i] <- as.numeric(strsplit(as.character(datA$files[i]),"_")[[1]][6])
+}	
+whichrep <- read.csv("z:\\projects\\boreal_swe_depletion\\data\\rep_subID.csv")
+#turn chains into a list
+chain1 <- datA[datA$chain==1,1:4]
+colnames(chain1)[1:2] <- paste0(colnames(chain1)[1:2],"1") 
+
+chain2 <- datA[datA$chain==2,1:4]
+colnames(chain2)[1:2] <- paste0(colnames(chain2)[1:2],"2")
+
+chain3 <- datA[datA$chain==3,1:4]
+colnames(chain3)[1:2] <- paste0(colnames(chain3)[1:2],"3")
+
+chains <- list(chain1,chain2,chain3)
+
+chainDF <- join_all(chains,by=c("glc","year"),type="inner")
+#gcID is the correct name not gcID
+colnames(chainDF)[3] <- "gcID"
+
+#join chainDF and gcYearID
+chainDF <- join(chainDF,gcYearID, by=c("gcID","year"), type="left")
+#order chainDF by gcYearID
+chainDF <- chainDF[order(chainDF$gcYearID),]
+
+#get a list of all of the names of the variables
+parms <- list.files(paste0(chainDF$dirP1[1],"\\",chainDF$files1[1]))
+
+
+#read in coda
+#for(i 1:dim(chainDF)[1]){
+b0Out1 <- data.frame()
+b0Out2 <- data.frame()
+b0Out3 <- data.frame()
+b0mcmc <- mcmc.list()
+b0.diag <- list()
+b0Summ <- list()
+b0Stat <- list()
+for(i in 1:dim(chainDF)[1]){
+
+	#read in output
+	b0Out1 <- read.csv(paste0(chainDF$dirP1[i],"\\",chainDF$files1[i],"\\b0_out.csv"))
+	b0Out2 <- read.csv(paste0(chainDF$dirP2[i],"\\",chainDF$files2[i],"\\b0_out.csv"))
+	b0Out3 <- read.csv(paste0(chainDF$dirP3[i],"\\",chainDF$files3[i],"\\b0_out.csv"))
+	colnames(b0Out1) <- paste0("b0_",seq(1,dim(b0Out1)[2]))
+	colnames(b0Out2) <- paste0("b0_",seq(1,dim(b0Out2)[2]))
+	colnames(b0Out3) <- paste0("b0_",seq(1,dim(b0Out3)[2]))
+	
+	#turn into mcmc
+	#and convert to days
+	b0Out1 <- as.mcmc(apply(b0Out1,c(1,2),function(X){X/(182-32)}))
+	b0Out2 <- as.mcmc(apply(b0Out2,c(1,2),function(X){X/(182-32)}))
+	b0Out3 <- as.mcmc(apply(b0Out3,c(1,2),function(X){X/(182-32)}))
+	b0mcmc <- mcmc.list(b0Out1,b0Out2,b0Out3)
+	b0Summ[[i]] <- summary(b0mcmc)
+	b0Stat[[i]] <- data.frame(b0Summ[[i]]$statistics,b0Summ[[i]]$quantiles,gcID=rep(chainDF$gcID[i],dim(b0Summ[[i]]$statistics)[1]),
+					year=rep(chainDF$year[i],dim(b0Summ[[i]]$statistics)[1]),newpixID=seq(1,dim(b0Summ[[i]]$statistics)[1]))
+}
+	
+
+midOut1 <- data.frame()
+midOut2 <- data.frame()
+midOut3 <- data.frame()
+midmcmc <- mcmc.list()
+mid.diag <- list()
+midSumm <- list()
+midStat <- list()
+daysHalf1 <- list()
+outHalf1 <- matrix()
+daysHalf2 <- list()
+outHalf2 <- matrix()
+daysHalf3 <- list()
+outHalf3 <- matrix()
+halfStat <- list()
+for(i in 1:dim(chainDF)[1]){
+
+
+	#read in output
+	midOut1 <- read.csv(paste0(chainDF$dirP1[i],"\\",chainDF$files1[i],"\\mid0_out.csv"))
+	midOut2 <- read.csv(paste0(chainDF$dirP2[i],"\\",chainDF$files2[i],"\\mid0_out.csv"))
+	midOut3 <- read.csv(paste0(chainDF$dirP3[i],"\\",chainDF$files3[i],"\\mid0_out.csv"))
+	colnames(midOut1) <- paste0("mid0_",seq(1,dim(midOut1)[2]))
+	colnames(midOut2) <- paste0("mid0_",seq(1,dim(midOut2)[2]))
+	colnames(midOut3) <- paste0("mid0_",seq(1,dim(midOut3)[2]))
+
+	#turn into mcmc
+	#convert to doy
+	midOut1 <- as.mcmc(apply(midOut1,c(1,2),function(X){(X*(182-32))+32}))
+	midOut2 <- as.mcmc(apply(midOut2,c(1,2),function(X){(X*(182-32))+32}))
+	midOut3 <- as.mcmc(apply(midOut3,c(1,2),function(X){(X*(182-32))+32}))
+	midmcmc <- mcmc.list(midOut1,midOut2,midOut3)
+	midSumm[[i]] <- summary(midmcmc)
+	midStat[[i]] <- data.frame(midSumm[[i]]$statistics,midSumm[[i]]$quantiles,gcID=rep(chainDF$gcID[i],dim(midSumm[[i]]$statistics)[1]),
+					year=rep(chainDF$year[i],dim(midSumm[[i]]$statistics)[1]),newpixID=seq(1,dim(midSumm[[i]]$statistics)[1]))
+	#add calculation for time between midpoint and onset
+	daysHalf1 <- list()
+	daysHalf2 <- list()
+	daysHalf3 <- list()
+	for(j in 1:dim(midOut1)[2]){
+		daysHalf1[[j]] <- as.vector(midOut1[,j])-maxpixList[[i]]$dayMax[j]
+		daysHalf2[[j]] <- as.vector(midOut2[,j])-maxpixList[[i]]$dayMax[j]
+		daysHalf3[[j]] <- as.vector(midOut3[,j])-maxpixList[[i]]$dayMax[j]
+	}
+	outHalf1 <- matrix(unlist(daysHalf1),byrow=FALSE,ncol=dim(midOut1)[2])
+	outHalf2 <- matrix(unlist(daysHalf2),byrow=FALSE,ncol=dim(midOut1)[2])
+	outHalf3 <- matrix(unlist(daysHalf3),byrow=FALSE,ncol=dim(midOut1)[2])
+	#combine all chains
+	outAll <- rbind(outHalf1,outHalf2,outHalf3)
+	#summarize
+	halfStat[[i]] <- data.frame(Mean=apply(outAll,2,"mean"),SD=apply(outAll,2,"sd"),p2.5=apply(outAll,2,"quantile",prob=0.025),
+								p25=apply(outAll,2,"quantile",prob=0.25),p50=apply(outAll,2,"quantile",prob=0.5),p75=apply(outAll,2,"quantile",prob=0.75),
+								p97.5=apply(outAll,2,"quantile",prob=0.975),gcID=rep(chainDF$gcID[i],dim(midOut1)[2]),
+					year=rep(chainDF$year[i],dim(midOut1)[2]),newpixID=seq(1,dim(midOut1)[2]))
+}
+
+midOut <- ldply(midStat, data.frame)
+b0Out <- ldply(b0Stat, data.frame)
+halfOut <- ldply(halfStat, data.frame)
+###
+#read in means
+mumidOut1 <- data.frame()
+mumidOut2 <- data.frame()
+mumidOut3 <- data.frame()
+mumidmcmc <- mcmc.list()
+mumidSumm <- list()
+mumidStat <- list()
+for(i in 1:dim(chainDF)[1]){
+	#read in output
+	mumidOut1 <- read.csv(paste0(chainDF$dirP1[i],"\\",chainDF$files1[i],"\\muMid_out.csv"))
+	mumidOut2 <- read.csv(paste0(chainDF$dirP2[i],"\\",chainDF$files2[i],"\\muMid_out.csv"))
+	mumidOut3 <- read.csv(paste0(chainDF$dirP3[i],"\\",chainDF$files3[i],"\\muMid_out.csv"))
+	colnames(mumidOut1) <- paste0("mumid")
+	colnames(mumidOut2) <- paste0("mumid")
+	colnames(mumidOut3) <- paste0("mumid")
+	#turn into mcmc
+	mumidOut1 <- as.mcmc(apply(mumidOut1,c(1,2),function(X){(X*(182-32))+32}))
+	mumidOut2 <- as.mcmc(apply(mumidOut2,c(1,2),function(X){(X*(182-32))+32}))
+	mumidOut3 <- as.mcmc(apply(mumidOut3,c(1,2),function(X){(X*(182-32))+32}))
+	mumidmcmc <- mcmc.list(mumidOut1,mumidOut2,mumidOut3)
+	mumidSumm[[i]] <- summary(mumidmcmc)
+	mumidStat[[i]] <- data.frame(Mean=mumidSumm[[i]]$statistics[1],
+									SD=mumidSumm[[i]]$statistics[2],
+									p2.5=mumidSumm[[i]]$quantiles[1],
+									p97.5=mumidSumm[[i]]$quantiles[5],gcID=chainDF$gcID[i],
+					year=chainDF$year[i])
+}
+
+muMidOut <- ldply(mumidStat,data.frame)
+
+mub0Out1 <- data.frame()
+mub0Out2 <- data.frame()
+mub0Out3 <- data.frame()
+mub0mcmc <- mcmc.list()
+mub0.diag <- list()
+mub0Summ <- list()
+mub0Stat <- list()
+for(i in 1:dim(chainDF)[1]){
+
+	#read in output
+	mub0Out1 <- read.csv(paste0(chainDF$dirP1[i],"\\",chainDF$files1[i],"\\muB0_out.csv"))
+	mub0Out2 <- read.csv(paste0(chainDF$dirP2[i],"\\",chainDF$files2[i],"\\muB0_out.csv"))
+	mub0Out3 <- read.csv(paste0(chainDF$dirP3[i],"\\",chainDF$files3[i],"\\muB0_out.csv"))
+	colnames(mub0Out1) <- paste0("mub0")
+	colnames(mub0Out2) <- paste0("mub0")
+	colnames(mub0Out3) <- paste0("mub0")
+	#turn into mcmc
+	mub0Out1 <- as.mcmc(apply(mub0Out1,c(1,2),function(X){X/(182-32)}))
+	mub0Out2 <- as.mcmc(apply(mub0Out2,c(1,2),function(X){X/(182-32)}))
+	mub0Out3 <- as.mcmc(apply(mub0Out3,c(1,2),function(X){X/(182-32)}))
+	mub0mcmc <- mcmc.list(mub0Out1,mub0Out2,mub0Out3)
+	mub0Summ[[i]] <- summary(mub0mcmc)
+	mub0Stat[[i]] <- data.frame(Mean=mub0Summ[[i]]$statistics[1],
+									SD=mub0Summ[[i]]$statistics[2],
+									p2.5=mub0Summ[[i]]$quantiles[1],
+									p25=mub0Summ[[i]]$quantiles[2],
+									p75=mub0Summ[[i]]$quantiles[4],
+									p97.5=mub0Summ[[i]]$quantiles[5],
+							gcID=chainDF$gcID[i],
+					year=chainDF$year[i])
+}
+muB0Out <- ldply(mub0Stat,data.frame)
+
+rm(list=setdiff(ls(), c("datSwe","b0Out","midOut","muB0Out","muMidOut","IDSglc","sweAll", "halfOut")))
