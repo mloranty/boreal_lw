@@ -393,3 +393,23 @@ fit.v <- variofit(v, ini.cov.pars = c(0.015, 0.1),
 plot(v)
 lines(v)
 summary(fit.v)
+
+datC[datC$parm=="covTempLow",]
+datC[datC$parm=="covTempHigh",]
+
+datC[datC$parm=="covMeltLow",]
+datC[datC$parm=="covMeltHigh",]
+
+datC[datC$parm=="covEffectLow",]
+datC[datC$parm=="covEffectMid",]
+datC[datC$parm=="covEffectHigh",]
+
+
+#pull out interaction beta
+betaI4 <- datC[datC$parm=="betaB4",] 
+betaI5 <- datC[datC$parm=="betaB5",] 
+betaI6 <- datC[datC$parm=="betaB5",] 
+#intercept
+betaIn <- datC[datC$parm=="betaB0S",] 
+
+datC[datC$parm=="TempEffectLow",]
