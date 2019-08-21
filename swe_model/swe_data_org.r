@@ -228,6 +228,12 @@ cellInfo <- unique(data.frame(cell=dat.swe3$cell,year=dat.swe3$year, vcf=dat.swe
 #join into summ table. This will also be final table
 cellSwe <- join(sweSumm,cellInfo, by=c("cell","year"),type="left")
 
+#calculate average surface temperature during the melt period
+surfTemp <- aggregate(dat.melt3$t.air-273.15, by=list("cell","year"), FUN="mean",na.rm=TRUE)
+colnames(surfTemp) <- c("cell","year","tair")
+
+cellSwe <- join(cellSwe,surfTemp,by=c("cell","year"),type="left")
+
 #organize data names
 #swe during melt period
 datSwe <- dat.melt3

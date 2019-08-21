@@ -7,8 +7,6 @@
 ###############################################
 ### read in swe depletion data              ###
 ###############################################
-
-
 source("c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_data_org.r")
 ###############################################
 ### libraries                               ###
@@ -30,74 +28,14 @@ swepath <- "z:\\data_repo\\gis_data"
 modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run12"
 
 ###############################################
-### set up a dataframe with all of the      ###
-### data and parameters by cell             ###
+### add in unique id for model              ###
 ###############################################
 
+#join unique glc id gcID
 
-
-sweCell <- unique(data.frame(cell=datSwe$cell,gcID=datSwe$gcID,pixID=datSwe$pixID,year=datSwe$year,
-								y=datSwe$y.coord,x=datSwe$x.coord,
-								vcf=datSwe$vcf,zone=datSwe$zone,dayMax=datSwe$dayMax, newpixID=datSwe$newpixID))
+#create unique year ID
 								
-								
-#calculate the melt period		
-#join midpoint into swe cell
-sweCell2 <- join(sweCell,midOut,by=c("newpixID","gcID","year"),type="left")
-colnames(halfOut)[1:7] <- paste0(colnames(halfOut)[1:7],"H")
-sweCell3 <- join(sweCell2,halfOut,by=c("newpixID","gcID","year"),type="left")
 
-#calculate the end day
-sweCell3$dayEnd <- ifelse(round(sweCell3$Mean)+round(sweCell3$MeanH) > 182,
-					182,round(sweCell3$Mean)+round(sweCell3$MeanH))
-
-#### data filter #####
-#there are some very fast melt periods
-#where the standard deviation of the midpoint
-#is within the range of the onset. Looking at the
-#melt period won't be reliable. 					
-sweCell3 <- sweCell3[round(sweCell3$Mean-sweCell3$SD)>sweCell3$dayMax,]
-
-#calculate average temperature to only be within the melt period
-#and calculate the temperature in the  week before the melt period
-
-#subset swe cell3 info
-daysToJoin <- data.frame(pixID=sweCell3$pixID,year=sweCell3$year,gcID=sweCell3$gcID,
-						dayMax=sweCell3$dayMax,dayEnd=sweCell3$dayEnd)
-
-						
-sweDaysJoin <- join(sweAll,daysToJoin, by=c("pixID","gcID","year"),type="inner")
-
-sweMeltSub <- sweDaysJoin[sweDaysJoin$jday>=sweDaysJoin$dayMax&sweDaysJoin$jday<=sweDaysJoin$dayEnd,]
-sweOnsetSub <- sweDaysJoin[sweDaysJoin$jday>=(sweDaysJoin$dayMax-7)&sweDaysJoin$jday<=sweDaysJoin$dayMax,]		
-
-#now aggregate temperature
-meltTempDF <- aggregate(sweMeltSub$t.air-273.15, by=list(sweMeltSub$pixID,sweMeltSub$gcID,sweMeltSub$year),FUN="mean",na.rm=TRUE)
-colnames(meltTempDF) <- c("pixID","gcID","year","meltTemp")
-onsetTempDF <- aggregate(sweOnsetSub$t.air-273.15, by=list(sweOnsetSub$pixID,sweOnsetSub$gcID,sweOnsetSub$year),FUN="mean",na.rm=TRUE)
-colnames(onsetTempDF) <- c("pixID","gcID","year","onsetTemp")
-#join back into sweCell3
-sweCell3a <- join(sweCell3, meltTempDF, by=c("pixID","gcID","year"),type="left")	
-sweCell3b <- join(sweCell3a, onsetTempDF, by=c("pixID","gcID","year"),type="left")	
-
-#create a data frame  to combine back into slope output
-sweCell4 <- data.frame(pixID=sweCell3b$pixID,newpixID=sweCell3b$newpixID,cell=sweCell3b$cell,gcID=sweCell3b$gcID,year=sweCell3b$year,
-							vcf=sweCell3b$vcf,zone=sweCell3b$zone,dayMax=sweCell3b$dayMax,
-							dayEnd=sweCell3b$dayEnd,meltTemp=sweCell3b$meltTemp,onsetTemp=sweCell3b$onsetTemp,
-							x=sweCell3b$x,y=sweCell3b$y)
-
-#now join to each output
-b0All <- join(b0Out,sweCell4,by=c("year","gcID","newpixID"),type="inner")
-
-
-#organize output by year
-yearDF <- data.frame(year=unique(sweCell$year))
-bOutL <- list()
-
-for(i in 1:dim(yearDF)[1]){
-	bOutL[[i]] <- b0All[b0All$year==yearDF$year[i],]
-
-}
 
 
 ###############################################
@@ -130,10 +68,10 @@ sweCells <- ncell(swe)
 sweCellDF <- data.frame(cell=seq(1,sweCells))
 
 #join back to the swe cell id allowing others to turn to NA
-bSwe <- list()
+meltSwe <- list()
 
 for(i in 1:dim(yearDF)[1]){
-	bSwe[[i]] <- join(sweCellDF,bOutL[[i]], by="cell",type="left")
+	meltSwe[[i]] <- join(sweCellDF,meltSwe[[i]], by="cell",type="left")
 
 }
 ###############################################
