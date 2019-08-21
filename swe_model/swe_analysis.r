@@ -387,8 +387,8 @@ v <- variog(coords = coords.mod, data = b0All5$residual, uvec = (seq(0,
  max.dist, length = bins)))
 
 
-fit.v <- variofit(v, ini.cov.pars = c(0.015, 0.001),
-  nugget =0.014, fix.nugget=TRUE,cov.model = "exponential",
+fit.v <- variofit(v, ini.cov.pars = c(0.015, 0.1),
+  nugget =0.014, fix.nugget=FALSE,cov.model = "exponential",
  minimisation.function = "nls", weights = "equal")
 plot(v)
 lines(v)
