@@ -1,21 +1,15 @@
 ##########################################################
 #### Analysis of 9 years of swe depletion in boreal   ####
-#### forests. Model parameters describing swe         ####
-#### depletion are read in. There are three main      ####
-#### dataframes: datSwe: the actual swe data          ####
-#### b0Out: the rate of swe decline and midOut: the   ####
-#### timing of half swe,muB0Out=glc mean slope        ####
-#### muMidOut= glc mean midpoint                      ####
-#### halfOut= #of days between last Max day and mid   ####
+#### forests.                                         ####
 ##########################################################
 
 
 ###############################################
-### read in swe depletion curve output      ###
+### read in swe depletion data              ###
 ###############################################
 
 
-source("c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_output_process.r")
+source("c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_data_org.r")
 ###############################################
 ### libraries                               ###
 ###############################################
@@ -39,6 +33,9 @@ modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run12"
 ### set up a dataframe with all of the      ###
 ### data and parameters by cell             ###
 ###############################################
+
+
+
 sweCell <- unique(data.frame(cell=datSwe$cell,gcID=datSwe$gcID,pixID=datSwe$pixID,year=datSwe$year,
 								y=datSwe$y.coord,x=datSwe$x.coord,
 								vcf=datSwe$vcf,zone=datSwe$zone,dayMax=datSwe$dayMax, newpixID=datSwe$newpixID))
