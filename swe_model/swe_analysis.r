@@ -393,38 +393,3 @@ fit.v <- variofit(v, ini.cov.pars = c(0.015, 0.1),
 plot(v)
 lines(v)
 summary(fit.v)
-
-#compare to non cell random effects
-#read in model output
-datS2 <- read.csv(paste0("z:\\projects\\boreal_swe_depletion\\analysis\\run9\\curve_mod_stats.csv"))
-datQ2 <- read.csv(paste0("z:\\projects\\boreal_swe_depletion\\analysis\\run9\\curve_mod_quant.csv"))
-
-#combine data frames
-datC2 <- cbind(datS2,datQ2)
-#pull out parameter names
-dexps<-"\\[*[[:digit:]]*\\]"
-datC2$parm <- gsub(dexps,"",rownames(datC2))
-
-#pull out slope rep
-bRep2 <- datC2[datC2$parm=="rep.b0",]	
-bresid2 <- b0All5$Mean-bRep2$Mean
-
-bins <- 10
-coords.mod2 <- as.matrix(b0All5[,c("x","y")]/1000)
-max.dist <- 0.5 * max(dist(coords.mod))
-
-v2 <- variog(coords = coords.mod2, data = bresid2 , uvec = (seq(0,
- max.dist, length = bins)))
-plot(v2)
-
-fit.v2 <- variofit(v2, ini.cov.pars = c(0.025, 0.01),
-  nugget =0.017, fix.nugget=FALSE,cov.model = "exponential",
- minimisation.function = "nls", weights = "equal")
- summary(fit.v2)
- lines(v2, col="blue")
- 
- par(mfrow=c(1,2))
- plot(v)
- plot(v2)
- 
- 
