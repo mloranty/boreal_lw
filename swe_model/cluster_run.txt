@@ -1,6 +1,0 @@
-qsub /home/hkropp/github/boreal_lw/swe_model/run1.sh
-qsub /home/hkropp/github/boreal_lw/swe_model/run4.sh
-qsub /home/hkropp/github/boreal_lw/swe_model/run2.sh
-qsub /home/hkropp/github/boreal_lw/swe_model/run5.sh
-qsub /home/hkropp/github/boreal_lw/swe_model/run3.sh
-qsub /home/hkropp/github/boreal_lw/swe_model/run6.sh
