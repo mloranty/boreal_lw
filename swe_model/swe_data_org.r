@@ -229,10 +229,17 @@ cellInfo <- unique(data.frame(cell=dat.swe3$cell,year=dat.swe3$year, vcf=dat.swe
 cellSwe <- join(sweSumm,cellInfo, by=c("cell","year"),type="left")
 
 #calculate average surface temperature during the melt period
-surfTemp <- aggregate(dat.melt3$t.air-273.15, by=list("cell","year"), FUN="mean",na.rm=TRUE)
+surfTemp <- aggregate(dat.melt3$t.air-273.15, by=list(dat.melt3$cell,dat.melt3$year), FUN="mean",na.rm=TRUE)
 colnames(surfTemp) <- c("cell","year","tair")
 
 cellSwe <- join(cellSwe,surfTemp,by=c("cell","year"),type="left")
+
+#check no missing tair
+if(nrow(cellSwe[is.na(cellSwe$tair),])==0){
+	print("no missing surface temp due to error")
+	}else{
+	print("Error: missing surface temp")
+	}
 
 #organize data names
 #swe during melt period
