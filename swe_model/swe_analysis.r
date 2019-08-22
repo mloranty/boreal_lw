@@ -2,7 +2,11 @@
 #### Analysis of 9 years of swe depletion in boreal   ####
 #### forests.                                         ####
 ##########################################################
-
+#### inputs: daily swe data used in analysis: datSwe  ####
+#### and all swe before subsetting melt period: allSwe####
+#### table of melt period rate and other info: cellSwe####
+#### zone ids: IDSglc                                 ####
+##########################################################
 
 ###############################################
 ### read in swe depletion data              ###
@@ -25,18 +29,21 @@ library(loo)
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run12"
+modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run13"
 
 ###############################################
 ### add in unique id for model              ###
 ###############################################
 
 #join unique glc id gcID
+cellSwe2 <- join(cellSwe, IDSglc, by="zone",type="left")
+
 
 #create unique year ID
-								
-
-
+IDSyears <- unique(data.frame(year=cellSwe2$year))								
+IDSyears$yearID <- seq(1,nrow(IDSyears))
+#join back into cellSwe
+cellSwe3 <- join(cellSwe2, IDSyears, by="year",type="left")
 
 ###############################################
 ### set up information for mapping          ###
@@ -70,8 +77,8 @@ sweCellDF <- data.frame(cell=seq(1,sweCells))
 #join back to the swe cell id allowing others to turn to NA
 meltSwe <- list()
 
-for(i in 1:dim(yearDF)[1]){
-	meltSwe[[i]] <- join(sweCellDF,meltSwe[[i]], by="cell",type="left")
+for(i in 1:dim(IDSyears)[1]){
+	meltSwe[[i]] <- join(sweCellDF,cellSwe3[cellSwe3$year==IDSyears$year[i],], by="cell",type="left")
 
 }
 ###############################################
@@ -79,16 +86,16 @@ for(i in 1:dim(yearDF)[1]){
 ###############################################
 
 
-b2000 <- setValues(swe,bSwe[[1]]$Mean)
-b2001 <- setValues(swe,bSwe[[2]]$Mean)
-b2002 <- setValues(swe,bSwe[[3]]$Mean)
-b2003 <- setValues(swe,bSwe[[4]]$Mean)
-b2004 <- setValues(swe,bSwe[[5]]$Mean)
-b2005 <- setValues(swe,bSwe[[6]]$Mean)
-b2006 <- setValues(swe,bSwe[[7]]$Mean)
-b2007 <- setValues(swe,bSwe[[8]]$Mean)
-b2008 <- setValues(swe,bSwe[[9]]$Mean)
-b2009 <- setValues(swe,bSwe[[10]]$Mean)
+b2000 <- setValues(swe,meltSwe[[1]]$meltRateCM)
+b2001 <- setValues(swe,meltSwe[[2]]$meltRateCM)
+b2002 <- setValues(swe,meltSwe[[3]]$meltRateCM)
+b2003 <- setValues(swe,meltSwe[[4]]$meltRateCM)
+b2004 <- setValues(swe,meltSwe[[5]]$meltRateCM)
+b2005 <- setValues(swe,meltSwe[[6]]$meltRateCM)
+b2006 <- setValues(swe,meltSwe[[7]]$meltRateCM)
+b2007 <- setValues(swe,meltSwe[[8]]$meltRateCM)
+b2008 <- setValues(swe,meltSwe[[9]]$meltRateCM)
+b2009 <- setValues(swe,meltSwe[[10]]$meltRateCM)
 #plot each years curve on the map
 
 plot(b2000)
@@ -104,16 +111,16 @@ plot(b2009)
 
 
 #onset of melt
-m2000 <- setValues(swe,bSwe[[1]]$dayMax)
-m2001 <- setValues(swe,bSwe[[2]]$dayMax)
-m2002 <- setValues(swe,bSwe[[3]]$dayMax)
-m2003 <- setValues(swe,bSwe[[4]]$dayMax)
-m2004 <- setValues(swe,bSwe[[5]]$dayMax)
-m2005 <- setValues(swe,bSwe[[6]]$dayMax)
-m2006 <- setValues(swe,bSwe[[7]]$dayMax)
-m2007 <- setValues(swe,bSwe[[8]]$dayMax)
-m2008 <- setValues(swe,bSwe[[9]]$dayMax)
-m2009 <- setValues(swe,bSwe[[10]]$dayMax)
+m2000 <- setValues(swe,meltSwe[[1]]$meltStart)
+m2001 <- setValues(swe,meltSwe[[2]]$meltStart)
+m2002 <- setValues(swe,meltSwe[[3]]$meltStart)
+m2003 <- setValues(swe,meltSwe[[4]]$meltStart)
+m2004 <- setValues(swe,meltSwe[[5]]$meltStart)
+m2005 <- setValues(swe,meltSwe[[6]]$meltStart)
+m2006 <- setValues(swe,meltSwe[[7]]$meltStart)
+m2007 <- setValues(swe,meltSwe[[8]]$meltStart)
+m2008 <- setValues(swe,meltSwe[[9]]$meltStart)
+m2009 <- setValues(swe,meltSwe[[10]]$meltStart)
 #plot each years curve on the map
 
 plot(m2000)
@@ -129,30 +136,29 @@ plot(m2009)
 
 #get lat long for each cell
 #create a spatial points
-sweSP <- SpatialPoints(unique(data.frame(x=b0All$x,y=b0All$y,cell=b0All$cell)), CRS(laea))
+sweSP <- SpatialPoints(unique(data.frame(x=sweAll$x.coord,y=sweAll$y.coord,cell=sweAll$cell)), CRS(laea))
 #transform for wgs lat long
 sweSPr <- spTransform(sweSP, CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
 
 sweLL <- data.frame(sweSPr@coords)
 colnames(sweLL) <- c("Lon","Lat","cell")
+#join with xy coord
+sweSpatial <- unique(data.frame(x=sweAll$x.coord,y=sweAll$y.coord,cell=sweAll$cell))
+
 #join back into dataframe of results
-b0All2 <- join(b0All,sweLL, by="cell",type="left")
-
-
-#get unique swe max
-swemax <- unique(data.frame(gcID=datSwe$gcID,cell=datSwe$cell,year=datSwe$year,sweMax=datSwe$sweMax))
-
-#join
-
-b0All3 <- join(b0All2,swemax,by=c("gcID","cell","year"),type="left")
-
-
+cellSwe4 <- join(cellSwe3,sweLL, by="cell",type="left")
+cellSwe5 <- join(cellSwe4,sweSpatial, by="cell",type="left")
+###############################################
+### finish organizing model                 ###
+###############################################
 #need to organize table for eps ids
-epsTable <- unique(data.frame(gcID=b0All3$gcID,year=b0All3$year))
+epsTable <- unique(data.frame(gcID=cellSwe5$gcID,year=cellSwe5$year))
+epsTable <- epsTable[order(epsTable$gcID,epsTable$year),]
 #this order will be by GCID
 epsTable$gcyearID <- seq(1,dim(epsTable)[1])
+
 #join back into b0
-b0All4 <- join(b0All3,epsTable, by=c("gcID","year"),type="left")
+cellSwe6 <- join(cellSwe5,epsTable, by=c("gcID","year"),type="left")
 
 #create index for averaging eps
 gcIndT <- unique(data.frame(gcID=epsTable$gcID))
@@ -165,11 +171,11 @@ for(i in 1:dim(gcIndT)[1]){
 }
 
 #index for spatial random effect
-cellDF <- unique(data.frame(cell=b0All4$cell, y=b0All4$y,x=b0All4$x,gcID=b0All4$gcID))
+cellDF <- unique(data.frame(cell=cellSwe6$cell, y=cellSwe6$y,x=cellSwe6$x,gcID=cellSwe6$gcID))
 cellDF$cellID <- seq(1,nrow(cellDF))
 
 #join back into b0All
-b0All5 <- join(b0All4, cellDF, by=c("cell","x","y","gcID"), type="left")
+cellSwe7 <- join(cellSwe6, cellDF, by=c("cell","x","y","gcID"), type="left")
 
 
 #jags regression
