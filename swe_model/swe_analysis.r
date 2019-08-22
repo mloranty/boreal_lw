@@ -179,46 +179,40 @@ cellSwe7 <- join(cellSwe6, cellDF, by=c("cell","x","y","gcID"), type="left")
 
 
 #jags regression
-datalist <- list(Nobs= dim(b0All5)[1],
-					b0=b0All5$Mean,
-					glcIDB=b0All5$gcID,
-					TempAB=b0All5$meltTemp,
-					CanopyB=b0All5$vcf,
-					sweDay=b0All5$dayMax,
-					GCyearB=b0All5$gcyearID,
-					sig.modB=b0All5$SD,
+datalist <- list(Nobs= dim(cellSwe7)[1],
+					b0=cellSwe7$meltRateCM,
+					glcIDB=cellSwe7$gcID,
+					TempAB=cellSwe7$tair,
+					CanopyB=cellSwe7$vcf,
+					sweDay=cellSwe7$meltStart,
+					GCyearB=cellSwe7$gcyearID,
 					Ngcyear=dim(epsTable)[1],
 					ygcIDB=epsTable$gcID,
 					startb=startID,
 					endb=endID,
 					Nglc=dim(IDSglc)[1],
-					cellID=b0All5$cellID,
-					x=b0All5$x,
-					y=b0All5$y,
+					cellID=cellSwe7$cellID,
 					Ncell=nrow(cellDF))
 
 
 				
-inits <- list(list(sig.vB=2,sig.eb=rep(.5,dim(gcIndT)[1]),sig.es=.2,
+inits <- list(list(sig.eb=rep(.5,dim(gcIndT)[1]),sig.es=.2,
 					eps.s=rnorm(nrow(cellDF),0,.5)),
-				list(sig.vB=10,sig.eb=rep(.6,dim(gcIndT)[1]),sig.es=.5,
+				list(sig.eb=rep(.6,dim(gcIndT)[1]),sig.es=.5,
 						eps.s=rnorm(nrow(cellDF),-0.001,.1)),
-				list(sig.vB=5,sig.eb=rep(.25,dim(gcIndT)[1]),sig.es=1,
+				list(sig.eb=rep(.25,dim(gcIndT)[1]),sig.es=1,
 				eps.s=rnorm(nrow(cellDF),0.001,.25)))
 				
-parms <- c("betaB0S","betaB1","betaB2","betaB3","betaB4","betaB5","betaB6",
-			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3","mu.betaB4","mu.betaB5","mu.betaB6",
-			"sig.B0","sig.B1","sig.B2","sig.B3","sig.B4","sig.B5","sig.B6",
-			"sig.vB","rep.b0","eps.bS","sig.eb","Dsum","loglike","eps.sS","sig.es",
-			"covEffectLow","TempEffectLow","MeltEffectLow","covEffectMid","TempEffectMid","MeltEffectMid",
-			"covEffectHigh","TempEffectHigh","MeltEffectHigh","covTempLow","covMeltLow","meltTempLow","meltCovLow",
-			"tempCovLow","tempMeltLow","covTempHigh","covMeltHigh","meltTempHigh","meltCovHigh","tempCovHigh","tempMeltHigh")
+parms <- c("betaB0S","betaB1","betaB2","betaB3"
+			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3"
+			"sig.B0","sig.B1","sig.B2","sig.B3"
+			,"rep.b0","eps.bS","sig.eb","Dsum","loglike","eps.sS","sig.es")
 			
 	
 curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_curve_empirical_regression.r",
 						data=datalist,n.adapt=10000,n.chains=3,inits=inits)
 						
-curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=90000,thin=45)						
+curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=50000,thin=25)						
 			
 mcmcplot(curve.sample, parms=c(
 			"betaB0S","betaB1","betaB2","betaB3","betaB4","betaB5","betaB6",
