@@ -203,16 +203,16 @@ inits <- list(list(sig.eb=rep(.5,dim(gcIndT)[1]),sig.es=.2,
 				list(sig.eb=rep(.25,dim(gcIndT)[1]),sig.es=1,
 				eps.s=rnorm(nrow(cellDF),0.001,.25)))
 				
-parms <- c("betaB0S","betaB1","betaB2","betaB3"
-			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3"
-			"sig.B0","sig.B1","sig.B2","sig.B3"
-			,"rep.b0","eps.bS","sig.eb","Dsum","loglike","eps.sS","sig.es")
+parms <- c("betaB0S","betaB1","betaB2","betaB3",
+			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
+			"sig.B0","sig.B1","sig.B2","sig.B3",
+			"rep.b0","eps.bS","sig.eb","Dsum","loglike","eps.sS","sig.es")
 			
 	
 curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_curve_empirical_regression.r",
 						data=datalist,n.adapt=10000,n.chains=3,inits=inits)
 						
-curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=50000,thin=25)						
+curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=90000,thin=45)						
 			
 mcmcplot(curve.sample, parms=c(
 			"betaB0S","betaB1","betaB2","betaB3","betaB4","betaB5","betaB6",
