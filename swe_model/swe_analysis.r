@@ -29,7 +29,7 @@ library(loo)
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run13"
+modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run14"
 
 ###############################################
 ### add in unique id for model              ###
@@ -177,10 +177,10 @@ cellDF$cellID <- seq(1,nrow(cellDF))
 #join back into b0All
 cellSwe7 <- join(cellSwe6, cellDF, by=c("cell","x","y","gcID"), type="left")
 
-
+cellSwe7$absRate <- abs(cellSwe7$meltRateCM)
 #jags regression
 datalist <- list(Nobs= dim(cellSwe7)[1],
-					b0=cellSwe7$meltRateCM,
+					b0=cellSwe7$absRate,
 					glcIDB=cellSwe7$gcID,
 					TempAB=cellSwe7$tair,
 					CanopyB=cellSwe7$vcf,
@@ -259,8 +259,8 @@ betaCov <- datC[datC$parm=="betaB2",]
 #pull out slope rep
 bRep <- datC[datC$parm=="rep.b0",]			
 			
-plot(b0All5$Mean,bRep$Mean)	
-fit <- lm(bRep$Mean~	b0All5$Mean)	
+plot(cellSwe7$meltRateCM,bRep$Mean)	
+fit <- lm(bRep$Mean~	cellSwe7$meltRateCM)	
 summary(fit)			
 abline(0,1,col="red",lwd=2) 
 chains <- rbind(chain1,chain2,chain3)
@@ -269,33 +269,33 @@ waic(llall)
 
 datC[datC$parm=="Dsum",]
 
-b0All5$residual <- b0All5$Mean-bRep$Mean
+cellSwe7$residual <- cellSwe7$meltRateCM-bRep$Mean
 
-qqnorm(b0All5$residual)
-qqline(b0All5$residual)
+qqnorm(cellSwe7$residual)
+qqline(cellSwe7$residual)
 
 
 #check spatial patterns of residuals
 #pull out by year
 years <- seq(2000,2009)
-b0All5L <- list()
+cellSwe7L <- list()
 for(i in 1:length(years)){
-	b0All5L [[i]] <- join(sweCellDF,b0All5[b0All5$year==years[i],], by="cell",type="left")
+	cellSwe7L [[i]] <- join(sweCellDF,cellSwe7[cellSwe7$year==years[i],], by="cell",type="left")
 
 }
 
 
 #set into raster
-rresid2000 <- setValues(swe,b0All5L [[1]]$residual)
-rresid2001 <- setValues(swe,b0All5L [[2]]$residual)
-rresid2002 <- setValues(swe,b0All5L [[3]]$residual)
-rresid2003 <- setValues(swe,b0All5L [[4]]$residual)
-rresid2004 <- setValues(swe,b0All5L [[5]]$residual)
-rresid2005 <- setValues(swe,b0All5L [[6]]$residual)
-rresid2006 <- setValues(swe,b0All5L [[7]]$residual)
-rresid2007 <- setValues(swe,b0All5L [[8]]$residual)
-rresid2008 <- setValues(swe,b0All5L [[9]]$residual)
-rresid2009 <- setValues(swe,b0All5L [[10]]$residual)
+rresid2000 <- setValues(swe,cellSwe7L [[1]]$residual)
+rresid2001 <- setValues(swe,cellSwe7L [[2]]$residual)
+rresid2002 <- setValues(swe,cellSwe7L [[3]]$residual)
+rresid2003 <- setValues(swe,cellSwe7L [[4]]$residual)
+rresid2004 <- setValues(swe,cellSwe7L [[5]]$residual)
+rresid2005 <- setValues(swe,cellSwe7L [[6]]$residual)
+rresid2006 <- setValues(swe,cellSwe7L [[7]]$residual)
+rresid2007 <- setValues(swe,cellSwe7L [[8]]$residual)
+rresid2008 <- setValues(swe,cellSwe7L [[9]]$residual)
+rresid2009 <- setValues(swe,cellSwe7L [[10]]$residual)
 
 par(mfrow=c(2,5))
 plot(rresid2000)
@@ -315,10 +315,10 @@ library(geoR)
 
 
 bins <- 10
-coords.mod <- as.matrix(b0All5[,c("x","y")]/1000)
+coords.mod <- as.matrix(cellSwe7[,c("x","y")]/1000)
 max.dist <- 0.5 * max(dist(coords.mod))
 
-v <- variog(coords = coords.mod, data = b0All5$residual, uvec = (seq(0,
+v <- variog(coords = coords.mod, data = cellSwe7$residual, uvec = (seq(0,
  max.dist, length = bins)))
 
 
@@ -329,22 +329,11 @@ plot(v)
 lines(v)
 summary(fit.v)
 
-datC[datC$parm=="covTempLow",]
-datC[datC$parm=="covTempHigh",]
 
-datC[datC$parm=="covMeltLow",]
-datC[datC$parm=="covMeltHigh",]
-
-datC[datC$parm=="covEffectLow",]
-datC[datC$parm=="covEffectMid",]
-datC[datC$parm=="covEffectHigh",]
 
 
 #pull out interaction beta
-betaI4 <- datC[datC$parm=="betaB4",] 
-betaI5 <- datC[datC$parm=="betaB5",] 
-betaI6 <- datC[datC$parm=="betaB5",] 
+beta1 <- datC[datC$parm=="betaB1",] 
+beta3 <- datC[datC$parm=="betaB3",] 
 #intercept
 betaIn <- datC[datC$parm=="betaB0S",] 
-
-datC[datC$parm=="TempEffectLow",]
