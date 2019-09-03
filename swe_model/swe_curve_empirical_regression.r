@@ -48,6 +48,7 @@ model{
 		betaB2[i] ~ dnorm(mu.betaB2,tau.betaB2)
 		betaB3[i] ~ dnorm(mu.betaB3,tau.betaB3)
 
+		
 		#likelihood standard deviation
 		tau.b0[i] <- pow(sig.b0[i],-2)
 		sig.b0[i] ~ dunif(0,100)
@@ -55,6 +56,11 @@ model{
 		#calculate identifiable intercepts
 		betaB0S[i] <- betaB0[i] + epsb.bar[i] + epsS.bar
 		
+		#check melt rates not on log scale
+		trB0[i] <- exp(betaB0S[i])
+		trB1[i] <- exp(betaB1[i])
+		trB2[i] <- exp(betaB2[i])
+		trB3[i] <- exp(betaB3[i])	
 	}
 
 	

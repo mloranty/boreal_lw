@@ -29,7 +29,7 @@ library(loo)
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run14"
+modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run15"
 
 ###############################################
 ### add in unique id for model              ###
@@ -178,9 +178,10 @@ cellDF$cellID <- seq(1,nrow(cellDF))
 cellSwe7 <- join(cellSwe6, cellDF, by=c("cell","x","y","gcID"), type="left")
 
 cellSwe7$absRate <- abs(cellSwe7$meltRateCM)
+cellSwe7$logAbsRate <- log(cellSwe7$absRate)
 #jags regression
 datalist <- list(Nobs= dim(cellSwe7)[1],
-					b0=cellSwe7$absRate,
+					b0=cellSwe7$logAbsRate,
 					glcIDB=cellSwe7$gcID,
 					TempAB=cellSwe7$tair,
 					CanopyB=cellSwe7$vcf,
@@ -205,7 +206,7 @@ inits <- list(list(sig.eb=rep(.5,dim(gcIndT)[1]),sig.es=.2,
 				
 parms <- c("betaB0S","betaB1","betaB2","betaB3",
 			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
-			"sig.B0","sig.B1","sig.B2","sig.B3",
+			"sig.B0","sig.B1","sig.B2","sig.B3","trB0","trB1","trB2","trB3",
 			"rep.b0","eps.bS","sig.eb","Dsum","loglike","eps.sS","sig.es")
 			
 	
