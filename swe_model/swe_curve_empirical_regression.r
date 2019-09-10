@@ -9,7 +9,7 @@ model{
 		b0[i] ~ dnorm(mu.b0[i],tau.b0[glcIDB[i]])
 		rep.b0[i] ~ dnorm(mu.b0[i],tau.b0[glcIDB[i]])
 		#empirical regression
-		mu.b0[i] <- betaB0[glcIDB[i]] + betaB1[glcIDB[i]]*TempAB[i] + betaB2[glcIDB[i]]*(CanopyB[i]-20) +
+		mu.b0[i] <- betaB0[glcIDB[i]] + betaB1[glcIDB[i]]*TempAB[i] + 
 						 betaB3[glcIDB[i]]*(sweDay[i]-107) +
 						 eps.b[GCyearB[i]] + eps.s[cellID[i]]
 		#posterior predictive loss
@@ -45,7 +45,6 @@ model{
 		#slope regression priors
 		betaB0[i] ~ dnorm(mu.betaB0,tau.betaB0)
 		betaB1[i] ~ dnorm(mu.betaB1,tau.betaB1)
-		betaB2[i] ~ dnorm(mu.betaB2,tau.betaB2)
 		betaB3[i] ~ dnorm(mu.betaB3,tau.betaB3)
 
 		
@@ -83,18 +82,15 @@ model{
 	#means
 	mu.betaB0 ~ dnorm(0,0.00001)
 	mu.betaB1 ~ dnorm(0,0.00001)
-	mu.betaB2 ~ dnorm(0,0.00001)
 	mu.betaB3 ~ dnorm(0,0.00001)
 
 	tau.betaB0 <- pow(sig.B0, -2)
 	tau.betaB1 <- pow(sig.B1, -2)
-	tau.betaB2 <- pow(sig.B2, -2)
 	tau.betaB3 <- pow(sig.B3, -2)
 
 
 	sig.B0 ~ dunif(0,1000)
 	sig.B1 ~ dunif(0,1000)
-	sig.B2 ~ dunif(0,1000)
 	sig.B3 ~ dunif(0,1000)
 	
 	

@@ -29,7 +29,7 @@ library(loo)
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run15"
+modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run16"
 
 ###############################################
 ### add in unique id for model              ###
