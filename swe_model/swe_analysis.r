@@ -260,8 +260,8 @@ betaCov <- datC[datC$parm=="betaB2",]
 #pull out slope rep
 bRep <- datC[datC$parm=="rep.b0",]			
 			
-plot(cellSwe7$absRate,bRep$Mean)	
-fit <- lm(bRep$Mean~	cellSwe7$absRate)	
+plot(log(cellSwe7$absRate),bRep$Mean)	
+fit <- lm(bRep$Mean~	log(cellSwe7$absRate))	
 summary(fit)			
 abline(0,1,col="red",lwd=2) 
 chains <- rbind(chain1,chain2,chain3)
@@ -270,7 +270,7 @@ waic(llall)
 
 datC[datC$parm=="Dsum",]
 
-cellSwe7$residual <- cellSwe7$absRate-bRep$Mean
+cellSwe7$residual <- cellSwe7$logAbsRate-bRep$Mean
 
 qqnorm(cellSwe7$residual)
 qqline(cellSwe7$residual)
@@ -338,14 +338,14 @@ beta1 <- datC[datC$parm=="betaB1",]
 beta3 <- datC[datC$parm=="betaB3",] 
 #intercept
 betaIn <- datC[datC$parm=="betaB0S",] 
-plot(cellSwe7$vcf[cellSwe7$gcID==1]-20,cellSwe7$absRate[cellSwe7$gcID==1])
+plot(cellSwe7$vcf[cellSwe7$gcID==1]-20,cellSwe7$logAbsRate[cellSwe7$gcID==1])
 abline(betaIn$Mean[1],betaCov$Mean[1],col="darkgoldenrod", lwd=2)
-plot(cellSwe7$tair[cellSwe7$gcID==1],log(cellSwe7$absRate[cellSwe7$gcID==1]))
+plot(cellSwe7$tair[cellSwe7$gcID==1],log(cellSwe7$logAbsRate[cellSwe7$gcID==1]))
 abline(betaIn$Mean[1],beta1$Mean[1],col="darkgoldenrod", lwd=2)
 plot(cellSwe7$meltStart[cellSwe7$gcID==1]-107,log(cellSwe7$absRate[cellSwe7$gcID==1]))
 plot(cellSwe7$meltStart[cellSwe7$gcID==1]-107,cellSwe7$sweMax[cellSwe7$gcID==1])
 
-plot(cellSwe7$meltStart[cellSwe7$gcID==1]-107,cellSwe7$absRate[cellSwe7$gcID==1])
+plot(cellSwe7$meltStart[cellSwe7$gcID==1]-107,cellSwe7$logAbsRate[cellSwe7$gcID==1])
 abline(betaIn$Mean[1],beta3$Mean[1],col="darkgoldenrod", lwd=2)
 
 plot(cellSwe7$sweMax[cellSwe7$gcID==1],cellSwe7$meltStart[cellSwe7$gcID==1])
@@ -355,5 +355,3 @@ plot(cellSwe7$meltDays[cellSwe7$gcID==1],cellSwe7$meltStart[cellSwe7$gcID==1])
 betaIn$Mean[1] + (betaCov$Mean[1]*-10)
 
 betaIn$Mean[1] + (betaCov$Mean[1]*30)
-
-plot(cellSwe7$absRate, cellSwe7$residual)

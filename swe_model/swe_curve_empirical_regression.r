@@ -56,11 +56,7 @@ model{
 		#calculate identifiable intercepts
 		betaB0S[i] <- betaB0[i] + epsb.bar[i] + epsS.bar
 		
-		#check melt rates not on log scale
-		trB0[i] <- exp(betaB0S[i])
-		trB1[i] <- exp(betaB1[i])
-		trB2[i] <- exp(betaB2[i])
-		trB3[i] <- exp(betaB3[i])	
+
 	}
 
 	
