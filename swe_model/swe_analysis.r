@@ -181,11 +181,12 @@ cellSwe7$absRate <- abs(cellSwe7$meltRateCM)
 cellSwe7$logAbsRate <- log(cellSwe7$absRate)
 #jags regression
 datalist <- list(Nobs= dim(cellSwe7)[1],
-					b0=cellSwe7$logAbsRate,
+					b0=cellSwe7$absRate,
 					glcIDB=cellSwe7$gcID,
 					TempAB=cellSwe7$tair,
 					CanopyB=cellSwe7$vcf,
-					sweDay=cellSwe7$meltStart,
+					sweMax=cellSwe7$sweMax,
+					maxBar
 					GCyearB=cellSwe7$gcyearID,
 					Ngcyear=dim(epsTable)[1],
 					ygcIDB=epsTable$gcID,
@@ -338,6 +339,8 @@ beta1 <- datC[datC$parm=="betaB1",]
 beta3 <- datC[datC$parm=="betaB3",] 
 #intercept
 betaIn <- datC[datC$parm=="betaB0S",] 
+betaInE <- datC[datC$parm=="trB0",] 
+
 plot(cellSwe7$vcf[cellSwe7$gcID==1]-20,cellSwe7$logAbsRate[cellSwe7$gcID==1])
 abline(betaIn$Mean[1],betaCov$Mean[1],col="darkgoldenrod", lwd=2)
 plot(cellSwe7$tair[cellSwe7$gcID==1],log(cellSwe7$logAbsRate[cellSwe7$gcID==1]))

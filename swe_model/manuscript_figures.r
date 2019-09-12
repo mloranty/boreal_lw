@@ -363,4 +363,3 @@ for(i in 1:5){
 }
 
 
-plot(sweRate$sweMax, sweRate$meltStart) 

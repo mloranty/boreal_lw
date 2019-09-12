@@ -10,7 +10,7 @@ model{
 		rep.b0[i] ~ dnorm(mu.b0[i],tau.b0[glcIDB[i]])
 		#empirical regression
 		mu.b0[i] <- betaB0[glcIDB[i]] + betaB1[glcIDB[i]]*TempAB[i] + 
-						 betaB3[glcIDB[i]]*(sweDay[i]-107) +
+						 betaB3[glcIDB[i]]*(sweMax[i]-maxBar) +
 						 eps.b[GCyearB[i]] + eps.s[cellID[i]]
 		#posterior predictive loss
 		Sqdiff[i] <- pow(rep.b0[i] - b0[i],2)
