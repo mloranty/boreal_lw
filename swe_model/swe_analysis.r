@@ -29,7 +29,7 @@ library(loo)
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run16"
+modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run17"
 
 ###############################################
 ### add in unique id for model              ###
@@ -178,7 +178,7 @@ cellDF$cellID <- seq(1,nrow(cellDF))
 cellSwe7 <- join(cellSwe6, cellDF, by=c("cell","x","y","gcID"), type="left")
 
 cellSwe7$absRate <- abs(cellSwe7$meltRateCM)
-cellSwe7$logAbsRate <- log(cellSwe7$absRate)
+
 #jags regression
 datalist <- list(Nobs= dim(cellSwe7)[1],
 					b0=cellSwe7$absRate,
@@ -186,7 +186,7 @@ datalist <- list(Nobs= dim(cellSwe7)[1],
 					TempAB=cellSwe7$tair,
 					CanopyB=cellSwe7$vcf,
 					sweMax=cellSwe7$sweMax,
-					maxBar
+					maxBar=mean(cellSwe7$sweMax),
 					GCyearB=cellSwe7$gcyearID,
 					Ngcyear=dim(epsTable)[1],
 					ygcIDB=epsTable$gcID,
