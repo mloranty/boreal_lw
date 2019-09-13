@@ -261,8 +261,8 @@ betaCov <- datC[datC$parm=="betaB2",]
 #pull out slope rep
 bRep <- datC[datC$parm=="rep.b0",]			
 			
-plot(log(cellSwe7$absRate),bRep$Mean)	
-fit <- lm(bRep$Mean~	log(cellSwe7$absRate))	
+plot(cellSwe7$absRate,bRep$Mean)	
+fit <- lm(bRep$Mean~	cellSwe7$absRate)	
 summary(fit)			
 abline(0,1,col="red",lwd=2) 
 chains <- rbind(chain1,chain2,chain3)
@@ -271,7 +271,7 @@ waic(llall)
 
 datC[datC$parm=="Dsum",]
 
-cellSwe7$residual <- cellSwe7$logAbsRate-bRep$Mean
+cellSwe7$residual <- cellSwe7$absRate-bRep$Mean
 
 qqnorm(cellSwe7$residual)
 qqline(cellSwe7$residual)
