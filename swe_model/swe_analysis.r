@@ -275,6 +275,7 @@ cellSwe7$residual <- cellSwe7$absRate-bRep$Mean
 
 qqnorm(cellSwe7$residual)
 qqline(cellSwe7$residual)
+plot(bRep$Mean,cellSwe7$residual)
 
 
 #check spatial patterns of residuals
@@ -341,12 +342,12 @@ beta3 <- datC[datC$parm=="betaB3",]
 betaIn <- datC[datC$parm=="betaB0S",] 
 betaInE <- datC[datC$parm=="trB0",] 
 
-plot(cellSwe7$vcf[cellSwe7$gcID==1]-20,cellSwe7$logAbsRate[cellSwe7$gcID==1])
+plot(cellSwe7$vcf[cellSwe7$gcID==1]-20,cellSwe7$absRate[cellSwe7$gcID==1])
 abline(betaIn$Mean[1],betaCov$Mean[1],col="darkgoldenrod", lwd=2)
-plot(cellSwe7$tair[cellSwe7$gcID==1],log(cellSwe7$logAbsRate[cellSwe7$gcID==1]))
+plot(cellSwe7$tair[cellSwe7$gcID==1],cellSwe7$absRate[cellSwe7$gcID==1])
 abline(betaIn$Mean[1],beta1$Mean[1],col="darkgoldenrod", lwd=2)
+plot(cellSwe7$sweMax[cellSwe7$gcID==1]-mean(cellSwe7$sweMax),cellSwe7$absRate[cellSwe7$gcID==1])
 plot(cellSwe7$meltStart[cellSwe7$gcID==1]-107,log(cellSwe7$absRate[cellSwe7$gcID==1]))
-plot(cellSwe7$meltStart[cellSwe7$gcID==1]-107,cellSwe7$sweMax[cellSwe7$gcID==1])
 
 plot(cellSwe7$meltStart[cellSwe7$gcID==1]-107,cellSwe7$logAbsRate[cellSwe7$gcID==1])
 abline(betaIn$Mean[1],beta3$Mean[1],col="darkgoldenrod", lwd=2)
