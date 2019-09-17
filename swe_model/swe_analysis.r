@@ -198,7 +198,7 @@ datalist <- list(Nobs= dim(cellSwe7)[1],
 					Nglc=dim(IDSglc)[1],
 					cellID=cellSwe7$cellID,
 					Ncell=nrow(cellDF),
-					tempMean=tempMean,
+					TempMean=tempMean,
 					CanopyMean=CanopyMean,
 					SdayMean=SdayMean)
 
