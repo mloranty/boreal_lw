@@ -9,8 +9,8 @@ model{
 		b0[i] ~ dnorm(mu.b0[i],tau.b0[glcIDB[i]])
 		rep.b0[i] ~ dnorm(mu.b0[i],tau.b0[glcIDB[i]])
 		#empirical regression
-		mu.b0[i] <- betaB0[glcIDB[i]] + betaB1[glcIDB[i]]*TempAB[i] + betaB2[glcIDB[i]]*(CanopyB[i]-20) + 
-						 betaB3[glcIDB[i]]*(sweMax[i]-maxBar) +
+		mu.b0[i] <- betaB0[glcIDB[i]] + betaB1[glcIDB[i]]*TempAB[i] + betaB2[glcIDB[i]]*(CanopyB[i]-20) +
+						 betaB3[glcIDB[i]]*(sweDay[i]-107) +
 						 eps.b[GCyearB[i]] + eps.s[cellID[i]]
 		#posterior predictive loss
 		Sqdiff[i] <- pow(rep.b0[i] - b0[i],2)
@@ -55,7 +55,7 @@ model{
 		
 		#calculate identifiable intercepts
 		betaB0S[i] <- betaB0[i] + epsb.bar[i] + epsS.bar
-		trB0[i] <- exp(betaB0S[i])
+		
 
 	}
 
@@ -88,7 +88,7 @@ model{
 
 	tau.betaB0 <- pow(sig.B0, -2)
 	tau.betaB1 <- pow(sig.B1, -2)
-	tau.betaB2 <- pow(sig.B1, -2)
+	tau.betaB2 <- pow(sig.B2, -2)
 	tau.betaB3 <- pow(sig.B3, -2)
 
 
@@ -100,6 +100,17 @@ model{
 	
 	#Posterior predictive loss is the posterior mean of Dsum, must monitor Dsum
   Dsum <- sum(Sqdiff[])
-
+	####################
+	#####regression#####
+	#####mean for  #####
+	#####plotting  #####
+	####################
+	for(i in 1:Nglc){
+		for(j in 1:200){
+		mu.Temp[j,i] <- betaB0[i] + betaB1[i]*TempMean[j] 
+		mu.Canopy[j,i] <- betaB0[i] + betaB2[i]*(CanopyMean[j]-20)
+		mu.Onset[j,i] <- betaB0[i] + betaB3[i]*(SdayMean[j]-107)			 
+		}
+	}	
 
 }

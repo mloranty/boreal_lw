@@ -29,7 +29,7 @@ library(loo)
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run18"
+modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run19"
 
 ###############################################
 ### add in unique id for model              ###
@@ -178,15 +178,18 @@ cellDF$cellID <- seq(1,nrow(cellDF))
 cellSwe7 <- join(cellSwe6, cellDF, by=c("cell","x","y","gcID"), type="left")
 
 cellSwe7$absRate <- abs(cellSwe7$meltRateCM)
-
+cellSwe7$logAbsRate <- log(cellSwe7$absRate )
+#set up data for plotting
+tempMean <- seq(floor(range(cellSwe7$tair)[1]),ceiling(range(cellSwe7$tair)[2]), length.out=200)
+CanopyMean <- seq(floor(range(cellSwe7$vcf)[1]),ceiling(range(cellSwe7$vcf)[2]), length.out=200)
+SdayMean <- seq(floor(range(cellSwe7$meltStart)[1]),ceiling(range(cellSwe7$meltStart)[2]), length.out=200)
 #jags regression
 datalist <- list(Nobs= dim(cellSwe7)[1],
-					b0=cellSwe7$absRate,
+					b0=cellSwe7$logAbsRate,
 					glcIDB=cellSwe7$gcID,
 					TempAB=cellSwe7$tair,
 					CanopyB=cellSwe7$vcf,
-					sweMax=cellSwe7$sweMax,
-					maxBar=mean(cellSwe7$sweMax),
+					sweDay=cellSwe7$meltStart,
 					GCyearB=cellSwe7$gcyearID,
 					Ngcyear=dim(epsTable)[1],
 					ygcIDB=epsTable$gcID,
@@ -194,7 +197,10 @@ datalist <- list(Nobs= dim(cellSwe7)[1],
 					endb=endID,
 					Nglc=dim(IDSglc)[1],
 					cellID=cellSwe7$cellID,
-					Ncell=nrow(cellDF))
+					Ncell=nrow(cellDF),
+					tempMean=tempMean,
+					CanopyMean=CanopyMean,
+					SdayMean=SdayMean)
 
 
 				
@@ -208,7 +214,7 @@ inits <- list(list(sig.eb=rep(.5,dim(gcIndT)[1]),sig.es=.2,
 parms <- c("betaB0S","betaB1","betaB2","betaB3",
 			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
 			"sig.B0","sig.B1","sig.B2","sig.B3","trB0","trB1","trB2","trB3",
-			"rep.b0","eps.bS","sig.eb","Dsum","loglike","eps.sS","sig.es")
+			"rep.b0","eps.bS","sig.eb","Dsum","loglike","eps.sS","sig.es","mu.Temp","mu.Canopy","mu.Onset")
 			
 	
 curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_curve_empirical_regression.r",
