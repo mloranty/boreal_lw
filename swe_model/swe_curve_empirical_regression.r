@@ -55,7 +55,8 @@ model{
 		
 		#calculate identifiable intercepts
 		betaB0S[i] <- betaB0[i] + epsb.bar[i] + epsS.bar
-		
+		#look at intercept not on log scale
+		trB0[i] <- exp(betaB0S[i])
 
 	}
 

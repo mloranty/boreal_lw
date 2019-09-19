@@ -213,7 +213,7 @@ inits <- list(list(sig.eb=rep(.5,dim(gcIndT)[1]),sig.es=.2,
 				
 parms <- c("betaB0S","betaB1","betaB2","betaB3",
 			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
-			"sig.B0","sig.B1","sig.B2","sig.B3","trB0","trB1","trB2","trB3",
+			"sig.B0","sig.B1","sig.B2","sig.B3","trB0",
 			"rep.b0","eps.bS","sig.eb","Dsum","loglike","eps.sS","sig.es","mu.Temp","mu.Canopy","mu.Onset")
 			
 	
@@ -267,8 +267,8 @@ betaCov <- datC[datC$parm=="betaB2",]
 #pull out slope rep
 bRep <- datC[datC$parm=="rep.b0",]			
 			
-plot(cellSwe7$absRate,bRep$Mean)	
-fit <- lm(bRep$Mean~	cellSwe7$absRate)	
+plot(cellSwe7$logAbsRate,bRep$Mean)	
+fit <- lm(bRep$Mean~	cellSwe7$logAbsRate)	
 summary(fit)			
 abline(0,1,col="red",lwd=2) 
 chains <- rbind(chain1,chain2,chain3)
@@ -277,11 +277,13 @@ waic(llall)
 
 datC[datC$parm=="Dsum",]
 
-cellSwe7$residual <- cellSwe7$absRate-bRep$Mean
+cellSwe7$residual <- cellSwe7$logAbsRate-bRep$Mean
 
 qqnorm(cellSwe7$residual)
 qqline(cellSwe7$residual)
 plot(bRep$Mean,cellSwe7$residual)
+par(mfrow=c(2,2))
+plot(fit)
 
 
 #check spatial patterns of residuals
@@ -348,20 +350,4 @@ beta3 <- datC[datC$parm=="betaB3",]
 betaIn <- datC[datC$parm=="betaB0S",] 
 betaInE <- datC[datC$parm=="trB0",] 
 
-plot(cellSwe7$vcf[cellSwe7$gcID==1]-20,cellSwe7$absRate[cellSwe7$gcID==1])
-abline(betaIn$Mean[1],betaCov$Mean[1],col="darkgoldenrod", lwd=2)
-plot(cellSwe7$tair[cellSwe7$gcID==1],cellSwe7$absRate[cellSwe7$gcID==1])
-abline(betaIn$Mean[1],beta1$Mean[1],col="darkgoldenrod", lwd=2)
-plot(cellSwe7$sweMax[cellSwe7$gcID==1]-mean(cellSwe7$sweMax),cellSwe7$absRate[cellSwe7$gcID==1])
-plot(cellSwe7$meltStart[cellSwe7$gcID==1]-107,log(cellSwe7$absRate[cellSwe7$gcID==1]))
 
-plot(cellSwe7$meltStart[cellSwe7$gcID==1]-107,cellSwe7$logAbsRate[cellSwe7$gcID==1])
-abline(betaIn$Mean[1],beta3$Mean[1],col="darkgoldenrod", lwd=2)
-
-plot(cellSwe7$sweMax[cellSwe7$gcID==1],cellSwe7$meltStart[cellSwe7$gcID==1])
-
-plot(cellSwe7$meltDays[cellSwe7$gcID==1],cellSwe7$meltStart[cellSwe7$gcID==1])
-
-betaIn$Mean[1] + (betaCov$Mean[1]*-10)
-
-betaIn$Mean[1] + (betaCov$Mean[1]*30)
