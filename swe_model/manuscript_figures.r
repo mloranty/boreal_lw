@@ -29,9 +29,6 @@ modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run15"
 plotDI <- "c:\\Users\\hkropp\\Google Drive\\Picker17\\figures"
 
 ###############################################
-### organize all data                       ###
-###############################################
-###############################################
 ### add in unique id for model              ###
 ###############################################
 
@@ -81,6 +78,10 @@ for(i in 1:dim(IDSyears)[1]){
 	meltSwe[[i]] <- join(sweCellDF,cellSwe3[cellSwe3$year==IDSyears$year[i],], by="cell",type="left")
 
 }
+###############################################
+### map results                             ###
+###############################################
+
 
 #get lat long for each cell
 #create a spatial points
@@ -126,9 +127,7 @@ cellDF$cellID <- seq(1,nrow(cellDF))
 cellSwe7 <- join(cellSwe6, cellDF, by=c("cell","x","y","gcID"), type="left")
 
 cellSwe7$absRate <- abs(cellSwe7$meltRateCM)
-cellSwe7$logAbsRate <- log(cellSwe7$absRate)
-
-sweRate <- cellSwe7
+cellSwe7$logAbsRate <- log(cellSwe7$absRate )
 
 ################################################################################
 ################################################################################
@@ -141,7 +140,7 @@ sweRate <- cellSwe7
 ###############################################
 ### organize descriptive data               ###
 ###############################################
-
+sweRate <- cellSwe7
 #get average swe max for each of the cells
 sweMaxDF <- unique(data.frame(cell=sweRate$cell, year=sweRate$year,sweMax=sweRate$sweMax))
 #aggregate by each cell
