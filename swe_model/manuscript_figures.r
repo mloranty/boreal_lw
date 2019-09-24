@@ -25,7 +25,7 @@ library(maps)
 ###############################################
 swepath <- "z:\\data_repo\\gis_data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run15"
+modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run19"
 plotDI <- "c:\\Users\\hkropp\\Google Drive\\Picker17\\figures"
 
 ###############################################
@@ -128,7 +128,7 @@ cellSwe7 <- join(cellSwe6, cellDF, by=c("cell","x","y","gcID"), type="left")
 
 cellSwe7$absRate <- abs(cellSwe7$meltRateCM)
 cellSwe7$logAbsRate <- log(cellSwe7$absRate )
-
+sweRate <- cellSwe7
 ################################################################################
 ################################################################################
 ############### Figure 1. Map of data inputs                     ############### 
@@ -140,7 +140,7 @@ cellSwe7$logAbsRate <- log(cellSwe7$absRate )
 ###############################################
 ### organize descriptive data               ###
 ###############################################
-sweRate <- cellSwe7
+
 #get average swe max for each of the cells
 sweMaxDF <- unique(data.frame(cell=sweRate$cell, year=sweRate$year,sweMax=sweRate$sweMax))
 #aggregate by each cell
@@ -334,31 +334,82 @@ dev.off()
 
 ################################################################################
 ################################################################################
-############### Figure 2. Plot variables associated with swe     ############### 
+############### Figure 2. Plot of regression with melt rate      ############### 
 ################################################################################
 ################################################################################
 sweRate
-vegePallete <- c(rgb(170/255,190/255,140/255,.5),	
-				rgb(60/255,60/255,110/255,.5),
-				rgb(130/255,160/255,190/255,.5),
-				rgb(50/255,80/255,10/255,.5),
-				rgb(250/255,120/255,80/255,.5))
+#organize model output
+
+#regression means
+
+#intercepts
+
+
+vegePallete <- c(rgb(170/255,190/255,140/255,.25),	
+				rgb(60/255,60/255,110/255,.25),
+				rgb(130/255,160/255,190/255,.25),
+				rgb(50/255,80/255,10/255,.25),
+				rgb(250/255,120/255,80/255,.25))
 				
-histL <- list()
-for(i in 1:5){
-	histL[[i]] <- hist(sweRate$meltStart[sweRate$gcID==i], seq(32,182, by=1))
-}
-par(mfrow=c(1,2))				
-plot(sweRate$sweMax, sweRate$meltStart, type="n", ylim=c(32,182))
-points( sweRate$sweMax[sweRate$gcID==1], sweRate$meltStart[sweRate$gcID==1],col=vegePallete[1],pch=19)
-points( sweRate$sweMax[sweRate$gcID==2], sweRate$meltStart[sweRate$gcID==2],col=vegePallete[2],pch=19)
-points( sweRate$sweMax[sweRate$gcID==3], sweRate$meltStart[sweRate$gcID==3],col=vegePallete[3],pch=19)
-points( sweRate$sweMax[sweRate$gcID==4], sweRate$meltStart[sweRate$gcID==4],col=vegePallete[4],pch=19)
-points( sweRate$sweMax[sweRate$gcID==5], sweRate$meltStart[sweRate$gcID==5],col=vegePallete[5],pch=19)
-plot(c(0,0.5),c(0,1), ylim=c(32,182), xlim=c(0,0.05), type="n")
-for(i in 1:5){
-	polygon(c(rep(0,length(histL[[i]]$density)),rev(histL[[i]]$density)),
-		c(histL[[i]]$mids,rev(histL[[i]]$mids)),  col=vegePallete[i])
-}
+plotTree <- c(1,4,2)	
+plotTun <- c(3,5)			
+				
+wd1 <- 10
+hd1 <- 10	
+yl <- -3.6
+yh <- 1.2	
+xl1 <- 	floor(range(sweRate$tair)[1])
+xh1 <-	ceiling(range(sweRate$tair)[2])
+xl2 <- floor(range(sweRate$vcf)[1])
+xh2 <-	ceiling(range(sweRate$vcf)[2])
+xl3 <- range(sweRate$meltStart)[1] - 1
+xh3 <-	range(sweRate$meltStart)[2] + 1
+
+
+png(paste0(plotDI,"\\regression.png"), width = 35, height = 35, units = "cm", res=300)
+	layout(matrix(seq(1,6),ncol=3, byrow=TRUE), width=rep(lcm(wd1),3),height=rep(lcm(hd1),2))
+	par(mai=c(0,0,0,0))
+	plot(c(0,1),c(0,1), type="n", xlim=c(xl1,xh1), ylim=c(yl,yh), xaxs="i",yaxs="i",
+		xlab= " ", ylab=" ", axes=FALSE)
+	for(i in plotTree){
+		points(	sweRate$tair[sweRate$gcID == i],
+				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete[i], pch=19)
+	}
+	par(mai=c(0,0,0,0))	
+	plot(c(0,1),c(0,1), type="n", xlim=c(xl2,xh2), ylim=c(yl,yh), xaxs="i",yaxs="i",
+		xlab= " ", ylab=" ", axes=FALSE)
+	for(i in plotTree){
+		points(	sweRate$vcf[sweRate$gcID == i],
+				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete[i], pch=19)
+	}
+	par(mai=c(0,0,0,0))
+	plot(c(0,1),c(0,1), type="n", xlim=c(xl3,xh3), ylim=c(yl,yh), xaxs="i",yaxs="i",
+		xlab= " ", ylab=" ", axes=FALSE)
+	for(i in plotTree){
+		points(	sweRate$meltStart[sweRate$gcID == i],
+				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete[i], pch=19)
+	}
+	par(mai=c(0,0,0,0))
+	plot(c(0,1),c(0,1), type="n", xlim=c(xl1,xh1), ylim=c(yl,yh), xaxs="i",yaxs="i",
+		xlab= " ", ylab=" ", axes=FALSE)
+		for(i in plotTun){
+		points(	sweRate$tair[sweRate$gcID == i],
+				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete[i], pch=19)
+	}	
+	par(mai=c(0,0,0,0))
+	plot(c(0,1),c(0,1), type="n", xlim=c(xl2,xh2), ylim=c(yl,yh), xaxs="i",yaxs="i",
+		xlab= " ", ylab=" ", axes=FALSE)
+	for(i in plotTun){
+		points(	sweRate$vcf[sweRate$gcID == i],
+				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete[i], pch=19)
+	}
+	par(mai=c(0,0,0,0))
+	plot(c(0,1),c(0,1), type="n", xlim=c(xl3,xh3), ylim=c(yl,yh), xaxs="i",yaxs="i",
+		xlab= " ", ylab=" ", axes=FALSE)
+	for(i in plotTun){
+		points(	sweRate$meltStart[sweRate$gcID == i],
+				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete[i], pch=19)
+	}
+dev.off()
 
 
