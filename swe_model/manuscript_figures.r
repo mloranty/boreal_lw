@@ -29,6 +29,39 @@ modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run19"
 plotDI <- "c:\\Users\\hkropp\\Google Drive\\Picker17\\figures"
 
 ###############################################
+### define color palette                    ###
+###############################################
+vegePallete <- c(rgb(130/255,160/255,190/255),	
+				rgb(250/255,120/255,80/255),
+				rgb(170/255,190/255,140/255),
+				rgb(50/255,80/255,10/255),
+				rgb(60/255,60/255,110/255))
+vegePallete2 <-	c(rgb(130/255,160/255,190/255,.1),	
+				rgb(250/255,120/255,80/255,.1),
+				rgb(170/255,190/255,140/255,.1),
+				rgb(50/255,80/255,10/255,.1),
+				rgb(60/255,60/255,110/255,.1))			
+###############################################
+### read in regression output               ###
+###############################################
+#read in model output
+datS <- read.csv(paste0(modDir,"\\curve_mod_stats.csv"))
+datQ <- read.csv(paste0(modDir,"\\curve_mod_quant.csv"))
+
+#combine data frames
+datC <- cbind(datS,datQ)
+#pull out parameter names
+dexps<-"\\[*[[:digit:]]*\\]"
+datC$parm <- gsub(dexps,"",rownames(datC))
+unique(datC$parm)
+#pull out parameters
+#transformed intercepts
+
+#nontransformed regression parameters
+
+#add indicator if paramter is significant
+
+###############################################
 ### add in unique id for model              ###
 ###############################################
 
@@ -209,7 +242,7 @@ world2 <- project(matrix(c(worldmap2$x,worldmap2$y), ncol=2,byrow=FALSE),laea)
 ###############################################
 ### map results                             ###
 ###############################################
-namesI <- c("Deciduous needleleaf boreal","Deciduous shrub tundra","Herbaceous tundra", "Evergreen needleleaf  boreal","Mixed leaf boreal" )
+namesI <- c("Deciduous needleleaf boreal","Mixed leaf boreal","Herbaceous tundra", "Evergreen needleleaf  boreal","Deciduous shrub tundra" )
 
 
 treePallete <- c(rgb(229,245,224,max=255),
@@ -220,11 +253,7 @@ treePallete <- c(rgb(229,245,224,max=255),
 				rgb(35,139,69,max=255),
 				rgb(0,109,44,max=255),
 				rgb(0,68,27,max=255))
-vegePallete <- c(rgb(170/255,190/255,140/255),	
-				rgb(60/255,60/255,110/255),
-				rgb(130/255,160/255,190/255),
-				rgb(50/255,80/255,10/255),
-				rgb(250/255,120/255,80/255))
+
 				
 swePallete <- c(rgb(247,252,253,max=255),
 				rgb(224,236,244,max=255),
@@ -344,13 +373,6 @@ sweRate
 
 #intercepts
 
-
-vegePallete <- c(rgb(170/255,190/255,140/255,.25),	
-				rgb(60/255,60/255,110/255,.25),
-				rgb(130/255,160/255,190/255,.25),
-				rgb(50/255,80/255,10/255,.25),
-				rgb(250/255,120/255,80/255,.25))
-				
 plotTree <- c(1,4,2)	
 plotTun <- c(3,5)			
 				
@@ -373,42 +395,42 @@ png(paste0(plotDI,"\\regression.png"), width = 35, height = 35, units = "cm", re
 		xlab= " ", ylab=" ", axes=FALSE)
 	for(i in plotTree){
 		points(	sweRate$tair[sweRate$gcID == i],
-				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete[i], pch=19)
+				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete2[i], pch=19)
 	}
 	par(mai=c(0,0,0,0))	
 	plot(c(0,1),c(0,1), type="n", xlim=c(xl2,xh2), ylim=c(yl,yh), xaxs="i",yaxs="i",
 		xlab= " ", ylab=" ", axes=FALSE)
 	for(i in plotTree){
 		points(	sweRate$vcf[sweRate$gcID == i],
-				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete[i], pch=19)
+				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete2[i], pch=19)
 	}
 	par(mai=c(0,0,0,0))
 	plot(c(0,1),c(0,1), type="n", xlim=c(xl3,xh3), ylim=c(yl,yh), xaxs="i",yaxs="i",
 		xlab= " ", ylab=" ", axes=FALSE)
 	for(i in plotTree){
 		points(	sweRate$meltStart[sweRate$gcID == i],
-				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete[i], pch=19)
+				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete2[i], pch=19)
 	}
 	par(mai=c(0,0,0,0))
 	plot(c(0,1),c(0,1), type="n", xlim=c(xl1,xh1), ylim=c(yl,yh), xaxs="i",yaxs="i",
 		xlab= " ", ylab=" ", axes=FALSE)
 		for(i in plotTun){
 		points(	sweRate$tair[sweRate$gcID == i],
-				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete[i], pch=19)
+				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete2[i], pch=19)
 	}	
 	par(mai=c(0,0,0,0))
 	plot(c(0,1),c(0,1), type="n", xlim=c(xl2,xh2), ylim=c(yl,yh), xaxs="i",yaxs="i",
 		xlab= " ", ylab=" ", axes=FALSE)
 	for(i in plotTun){
 		points(	sweRate$vcf[sweRate$gcID == i],
-				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete[i], pch=19)
+				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete2[i], pch=19)
 	}
 	par(mai=c(0,0,0,0))
 	plot(c(0,1),c(0,1), type="n", xlim=c(xl3,xh3), ylim=c(yl,yh), xaxs="i",yaxs="i",
 		xlab= " ", ylab=" ", axes=FALSE)
 	for(i in plotTun){
 		points(	sweRate$meltStart[sweRate$gcID == i],
-				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete[i], pch=19)
+				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete2[i], pch=19)
 	}
 dev.off()
 
