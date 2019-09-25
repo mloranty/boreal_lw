@@ -54,13 +54,38 @@ datC <- cbind(datS,datQ)
 dexps<-"\\[*[[:digit:]]*\\]"
 datC$parm <- gsub(dexps,"",rownames(datC))
 unique(datC$parm)
+datC$parm2 <- gsub("\\d","",rownames(datC))
+
 #pull out parameters
 #transformed intercepts
-
+beta0NL <- datC[datC$parm == "trB0",] 
 #nontransformed regression parameters
+beta0 <- datC[datC$parm == "betaB0S",] 
+beta1 <- datC[datC$parm == "betaB1",] 
+beta2 <- datC[datC$parm == "betaB2",] 
+beta3 <- datC[datC$parm == "betaB3",] 
 
-#add indicator if paramter is significant
+#add indicator if parameter is significant
+beta1$sig <- ifelse(beta1$X2.5.<0&beta1$X97.5.<0,1,
+						ifelse(beta1$X2.5.>0&beta1$X97.5.>0,1,0))
+						
+						
+beta3$sig <- ifelse(beta3$X2.5.<0&beta3$X97.5.<0,1,
+						ifelse(beta3$X2.5.>0&beta3$X97.5.>0,1,0))					
 
+						
+#check if any negative slopes to account for
+
+length(which(beta1$sig == 0))						
+						
+length(which(beta3$sig == 0))	
+
+
+#pull out regression means for plotting
+
+mu.Temp <- datC[datC$parm2 == "mu.Temp[,]",]
+mu.Onset <- datC[datC$parm2 == "mu.Onset[,]",]
+						
 ###############################################
 ### add in unique id for model              ###
 ###############################################
@@ -162,6 +187,12 @@ cellSwe7 <- join(cellSwe6, cellDF, by=c("cell","x","y","gcID"), type="left")
 cellSwe7$absRate <- abs(cellSwe7$meltRateCM)
 cellSwe7$logAbsRate <- log(cellSwe7$absRate )
 sweRate <- cellSwe7
+
+
+#set up data for plotting
+tempMean <- seq(floor(range(cellSwe7$tair)[1]),ceiling(range(cellSwe7$tair)[2]), length.out=200)
+CanopyMean <- seq(floor(range(cellSwe7$vcf)[1]),ceiling(range(cellSwe7$vcf)[2]), length.out=200)
+SdayMean <- seq(floor(range(cellSwe7$meltStart)[1]),ceiling(range(cellSwe7$meltStart)[2]), length.out=200)
 ################################################################################
 ################################################################################
 ############### Figure 1. Map of data inputs                     ############### 
@@ -368,7 +399,8 @@ dev.off()
 ################################################################################
 sweRate
 #organize model output
-
+mu.Temp
+mu.Onset
 #regression means
 
 #intercepts
