@@ -31,21 +31,25 @@ plotDI <- "c:\\Users\\hkropp\\Google Drive\\Picker17\\figures"
 ###############################################
 ### define color palette                    ###
 ###############################################
-vegePallete <- c(rgb(130/255,160/255,190/255),	
-				rgb(250/255,120/255,80/255),
-				rgb(170/255,190/255,140/255),
-				rgb(50/255,80/255,10/255),
-				rgb(60/255,60/255,110/255))
-vegePallete2 <-	c(rgb(130/255,160/255,190/255,.1),	
+vegePallete <- c(rgb(50/255,80/255,10/255), #evergreen needleleaf,	
+				rgb(250/255,120/255,80/255), #mixed boreal,
+				rgb(170/255,190/255,140/255), #herbaceous,
+				rgb(130/255,160/255,190/255),# deciduous needleleaf,
+				rgb(60/255,60/255,110/255)) #deciduous shrub)
+vegePallete2 <-	c(rgb(50/255,80/255,10/255,.1),	
 				rgb(250/255,120/255,80/255,.1),
 				rgb(170/255,190/255,140/255,.1),
-				rgb(50/255,80/255,10/255,.1),
+				rgb(130/255,160/255,190/255,.1),
 				rgb(60/255,60/255,110/255,.1))		
-vegePallete3 <-	c(rgb(130/255,160/255,190/255,.5),	
+vegePallete3 <-	c(rgb(50/255,80/255,10/255,.5),	
 				rgb(250/255,120/255,80/255,.5),
 				rgb(170/255,190/255,140/255,.5),
-				rgb(50/255,80/255,10/255,.5),
+				rgb(130/255,160/255,190/255,.5),
 				rgb(60/255,60/255,110/255,.5))		
+
+#add better names
+IDSglc$name2 <- c("Evergreen needleleaf", "Mixed boreal", "Herbaceous","Deciduous needleleaf","Deciduous shrub")
+
 				
 ###############################################
 ### read in regression output               ###
@@ -279,7 +283,6 @@ world2 <- project(matrix(c(worldmap2$x,worldmap2$y), ncol=2,byrow=FALSE),laea)
 ###############################################
 ### map results                             ###
 ###############################################
-namesI <- c("Deciduous needleleaf boreal","Mixed leaf boreal","Herbaceous tundra", "Evergreen needleleaf  boreal","Deciduous shrub tundra" )
 
 
 treePallete <- c(rgb(229,245,224,max=255),
@@ -407,7 +410,7 @@ sweRate
 #organize model output
 mu.Temp$gcID <- rep(seq(1,5),each=200) 
 mu.Onset$gcID <- rep(seq(1,5),each=200) 
-#regression means
+
 
 #intercepts
 
@@ -444,7 +447,8 @@ plc <- 3
 xpl <- 6
 #size of panel letter
 ttx <- 4
-
+#legend size
+legcex <- 2.5
 
 dlTemp <- numeric(0)
 dhTemp <- numeric(0)
@@ -492,6 +496,7 @@ png(paste0(plotDI,"\\regression.png"), width = 41, height = 32, units = "cm", re
 	box(which="plot")
 	mtext(expression(paste("log(Melt Rate (cm day"^"-1","))")), side=2, outer=TRUE,line= -5, cex=plc)
 	text(xl1+(.05*(xh1-xl1)), yh-(.05*(yh-yl)), "a", cex=ttx)
+	legend("bottomright", paste(IDSglc$name2[plotTree]), col=vegePallete[plotTree],cex=legcex, lwd=mlw,lty=1, bty="n")
 	#tree cover trees
 	par(mai=c(0,0,0,0))	
 	plot(c(0,1),c(0,1), type="n", xlim=c(xl2,xh2), ylim=c(yl,yh), xaxs="i",yaxs="i",
@@ -561,6 +566,7 @@ png(paste0(plotDI,"\\regression.png"), width = 41, height = 32, units = "cm", re
 	box(which="plot")
 	mtext("Temperature (c)", side=1,line= xpl, cex=plc)
 	text(xl1+(.05*(xh1-xl1)), yh-(.05*(yh-yl)), "b", cex=ttx)
+	legend("bottomright", paste(IDSglc$name2[plotTun]), col=vegePallete[plotTun],cex=legcex, lwd=mlw,lty=1, bty="n")
 	#tree cover tundra
 	par(mai=c(0,0,0,0))
 	plot(c(0,1),c(0,1), type="n", xlim=c(xl2,xh2), ylim=c(yl,yh), xaxs="i",yaxs="i",
