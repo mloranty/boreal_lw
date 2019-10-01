@@ -626,3 +626,52 @@ dev.off()
 ############### Figure 3. Plot of regression intercepts          ############### 
 ################################################################################
 ################################################################################
+
+beta0NL$gcID <- seq(1,5)
+#join matching
+intercept <- join(beta0NL,IDSglc, by="gcID", type="left")
+plotOrder <- c(1,4,2,3,5)
+
+#break up names 
+nameSplit1 <- character(0)
+nameSplit2 <- character(0)
+for(i in 1:5){
+	nameSplit1[i] <- strsplit(intercept$name2[i], " ")[[1]][1]
+	nameSplit2[i] <- strsplit(intercept$name2[i], " ")[[1]][2]
+}
+nameSplit2 <- ifelse(is.na(nameSplit2), " ", nameSplit2)
+
+xseq <- seq(1,11, by=2)
+
+wd1 <- 18
+hd1 <- 18
+#error bar width
+eew <- 1
+#mean bar width
+mlw <- 2
+#tick arrow width
+tlw <- 2
+
+png(paste0(plotDI,"\\intercepts.png"), width = 20, height = 20, units = "cm", res=300)
+	layout(matrix(c(1),ncol=1, byrow=TRUE), width=lcm(wd1),height=lcm(hd1))
+	plot(c(0,1),c(0,1), xlim=c(0,12), ylim=c(.2,0.6), axes=FALSE, type="n", xlab = " ", ylab= " ",
+		xaxs="i", yaxs="i")
+		
+	for(j in 1:5){
+		i <- plotOrder[j]
+		arrows(xseq[j],intercept$X2.5.[i],xseq[j],intercept$X97.5.[i], code=0, lwd=eew)
+		polygon(c(xseq[j]-.5,xseq[j]-.5,xseq[j]+.5,xseq[j]+.5),
+				c(intercept$X25.[i],intercept$X75.[i],intercept$X75.[i],intercept$X25.[i]),
+				border=NA,col=vegePallete3[i])
+		arrows(	xseq[j]-.5,intercept$Mean[i],xseq[j]+.5,	intercept$Mean[i],code=0,lwd=mlw,
+				col=vegePallete[i])
+
+	}
+	axis(1, xseq, rep(" ",length(xseq)),lwd.ticks=tlw)
+	axis(2, seq(0,.6, by=.1),rep(" ",length(seq(0,.6, by=.1))),lwd.ticks=tlw)
+	mtext(paste(nameSplit1[plotOrder]),at=xseq,side=1,line=1,cex=1)
+	mtext(paste(nameSplit2[plotOrder]),at=xseq,side=1,line=2,cex=1)
+	mtext(seq(.2,.6, by=.1), at=seq(.2,.6, by=.1), side=2, las=2, line=1, cex=1)
+	mtext(expression(paste("Melt rate (cm day"^"-1",")")), side=2, line=3, cex=1.5)
+	mtext("Landcover type", side=1, line=3, cex=1.5)
+dev.off()		
