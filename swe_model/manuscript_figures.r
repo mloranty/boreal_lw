@@ -340,9 +340,11 @@ png(paste0(plotDI,"\\data_maps_vege.png"), width = 12, height = 5, units = "in",
 	par(mai=c(0,.25,0,1))
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
 	for(i in 1:(length(vegeBr)-1)){
-		polygon(c(0,0,1,1), c(vegeBr[i]/(length(vegeBr)-1),vegeBr[i+1]/(length(vegeBr)-1),vegeBr[i+1]/(length(vegeBr)-1),vegeBr[i]/(length(vegeBr)-1)),col=vegePallete[i],border=NA)
+		polygon(c(0,0,1,1), 
+		c(vegeBr[i]/(length(vegeBr)-1),vegeBr[i+1]/(length(vegeBr)-1),vegeBr[i+1]/(length(vegeBr)-1),vegeBr[i]/(length(vegeBr)-1)),
+		col=vegePallete[i],border=NA)
 	}
-	axis(4,(vegeBr[1:5]/5)+.1,namesI,cex.axis=cxa,las=2)
+	axis(4,(vegeBr[1:5]/5)+.1,IDSglc$name2,cex.axis=cxa,las=2)
 	
 dev.off()
 
@@ -619,3 +621,8 @@ png(paste0(plotDI,"\\regression.png"), width = 41, height = 32, units = "cm", re
 dev.off()
 
 
+################################################################################
+################################################################################
+############### Figure 3. Plot of regression intercepts          ############### 
+################################################################################
+################################################################################
