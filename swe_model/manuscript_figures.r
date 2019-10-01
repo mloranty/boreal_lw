@@ -414,8 +414,8 @@ mu.Onset$gcID <- rep(seq(1,5),each=200)
 plotTree <- c(1,4,2)	
 plotTun <- c(3,5)			
 				
-wd1 <- 10
-hd1 <- 10	
+wd1 <- 11
+hd1 <- 11	
 yl <- -3.6
 yh <- 1.2	
 xl1 <- 	floor(range(sweRate$tair)[1])
@@ -424,8 +424,27 @@ xl2 <- floor(range(sweRate$vcf)[1])
 xh2 <-	ceiling(range(sweRate$vcf)[2])
 xl3 <- range(sweRate$meltStart)[1] - 1
 xh3 <-	range(sweRate$meltStart)[2] + 1
+#axis labels
+xs1 <- seq(xl1,xh1-3, by=3)
+xs2 <- seq(xl2,xh2, by= 15)
+xs3 <- seq(60,xh3, by= 30)
+ys <- seq(yl,yh, by = 1)
+
 #width of regression line
 mlw <- 4
+#width of ticks
+tlw <- 4
+#axis tick label line
+tll <- 2
+#axis label size
+alc <- 2
+#plot label text size
+plc <- 3
+#x label plot line
+xpl <- 6
+#size of panel letter
+ttx <- 4
+
 
 dlTemp <- numeric(0)
 dhTemp <- numeric(0)
@@ -445,7 +464,9 @@ for(i in 1:5){
 }
 
 
-png(paste0(plotDI,"\\regression.png"), width = 35, height = 35, units = "cm", res=300)
+
+
+png(paste0(plotDI,"\\regression.png"), width = 41, height = 32, units = "cm", res=300)
 	layout(matrix(seq(1,6),ncol=3, byrow=TRUE), width=rep(lcm(wd1),3),height=rep(lcm(hd1),2))
 	par(mai=c(0,0,0,0))
 	#temperature trees
@@ -466,6 +487,11 @@ png(paste0(plotDI,"\\regression.png"), width = 35, height = 35, units = "cm", re
 				mu.Temp$Mean[mu.Temp$gcID == i & tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
 				type="l", lwd=mlw, col=vegePallete[i])
 	}
+	axis(2, ys, rep(" ",length(ys)), lwd.ticks=tlw)
+	mtext(ys,at=ys, line=tll, cex=alc, side=2,las=2)
+	box(which="plot")
+	mtext(expression(paste("log(Melt Rate (cm day"^"-1","))")), side=2, outer=TRUE,line= -5, cex=plc)
+	text(xl1+(.05*(xh1-xl1)), yh-(.05*(yh-yl)), "a", cex=ttx)
 	#tree cover trees
 	par(mai=c(0,0,0,0))	
 	plot(c(0,1),c(0,1), type="n", xlim=c(xl2,xh2), ylim=c(yl,yh), xaxs="i",yaxs="i",
@@ -486,7 +512,8 @@ png(paste0(plotDI,"\\regression.png"), width = 35, height = 35, units = "cm", re
 				type="l", lwd=mlw, lty=3, col=vegePallete[i])		
 				
 	}
-	
+		box(which="plot")
+		text(xl2+(.05*(xh2-xl2)), yh-(.05*(yh-yl)), "c", cex=ttx)
 	#day of onset trees
 	par(mai=c(0,0,0,0))
 	plot(c(0,1),c(0,1), type="n", xlim=c(xl3,xh3), ylim=c(yl,yh), xaxs="i",yaxs="i",
@@ -506,6 +533,8 @@ png(paste0(plotDI,"\\regression.png"), width = 35, height = 35, units = "cm", re
 				mu.Onset$Mean[mu.Onset$gcID == i & SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
 				type="l", lwd=mlw, col=vegePallete[i])
 	}
+		box(which="plot")
+		text(xl3+(.05*(xh3-xl3)), yh-(.05*(yh-yl)), "e", cex=ttx)
 	#temperature tundra
 	par(mai=c(0,0,0,0))
 	plot(c(0,1),c(0,1), type="n", xlim=c(xl1,xh1), ylim=c(yl,yh), xaxs="i",yaxs="i",
@@ -525,6 +554,13 @@ png(paste0(plotDI,"\\regression.png"), width = 35, height = 35, units = "cm", re
 				mu.Temp$Mean[mu.Temp$gcID == i & tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
 				type="l", lwd=mlw, col=vegePallete[i])		
 	}	
+	axis(2, ys, rep(" ",length(ys)), lwd.ticks=tlw)
+	mtext(ys,at=ys, line=tll, cex=alc, side=2,las=2)
+	axis(1, xs1, rep(" ",length(xs1)), lwd.ticks=tlw)
+	mtext(xs1,at=xs1, line=tll, cex=alc, side=1)
+	box(which="plot")
+	mtext("Temperature (c)", side=1,line= xpl, cex=plc)
+	text(xl1+(.05*(xh1-xl1)), yh-(.05*(yh-yl)), "b", cex=ttx)
 	#tree cover tundra
 	par(mai=c(0,0,0,0))
 	plot(c(0,1),c(0,1), type="n", xlim=c(xl2,xh2), ylim=c(yl,yh), xaxs="i",yaxs="i",
@@ -545,6 +581,12 @@ png(paste0(plotDI,"\\regression.png"), width = 35, height = 35, units = "cm", re
 				type="l", lwd=mlw, lty=3, col=vegePallete[i])		
 				
 	}
+	axis(1, xs2, rep(" ",length(xs2)), lwd.ticks=tlw)
+	mtext(xs2,at=xs2, line=tll, cex=alc, side=1)
+	box(which="plot")
+	mtext("Canopy cover (%)", side=1,line= xpl, cex=plc)
+	text(xl2+(.05*(xh2-xl2)), yh-(.05*(yh-yl)), "d", cex=ttx)
+	#onset day tundra
 	par(mai=c(0,0,0,0))
 	plot(c(0,1),c(0,1), type="n", xlim=c(xl3,xh3), ylim=c(yl,yh), xaxs="i",yaxs="i",
 		xlab= " ", ylab=" ", axes=FALSE)
@@ -563,6 +605,11 @@ png(paste0(plotDI,"\\regression.png"), width = 35, height = 35, units = "cm", re
 				mu.Onset$Mean[mu.Onset$gcID == i & SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
 				type="l", lwd=mlw, col=vegePallete[i])
 	}
+	axis(1, xs3, rep(" ",length(xs3)), lwd.ticks=tlw)
+	mtext(xs3,at=xs3, line=tll, cex=alc, side=1)
+	box(which="plot")
+	mtext("Onset day of year", side=1,line= xpl, cex=plc)
+	text(xl3+(.05*(xh3-xl3)), yh-(.05*(yh-yl)), "f", cex=ttx)
 dev.off()
 
 
