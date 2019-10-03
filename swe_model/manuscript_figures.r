@@ -675,3 +675,76 @@ png(paste0(plotDI,"\\intercepts.png"), width = 20, height = 20, units = "cm", re
 	mtext(expression(paste("Melt rate (cm day"^"-1",")")), side=2, line=3, cex=1.5)
 	mtext("Landcover type", side=1, line=3, cex=1.5)
 dev.off()		
+
+
+################################################################################
+################################################################################
+############### Figure 3. violin plot of melt rate               ############### 
+################################################################################
+################################################################################
+
+#get distributions
+histL <- list()
+densityH <- numeric(0)
+maxS <- numeric(0)
+
+for(i in 1:5){
+
+	histL[[i]] <- hist(sweRate$absRate[sweRate$gcID == i], breaks=seq(0,3.1, by=0.1))
+	#get max and min
+
+	densityH[i] <- max(histL[[i]]$density)
+	histL[[i]]$densityScale <-histL[[i]]$density*(0.5/ densityH[i])
+	maxS[i] <- round(max(sweRate$absRate[sweRate$gcID == i]),1)
+}
+#create box plot quantiles
+quant <- list()
+for(i in 1:5){
+	quant[[i]] <- quantile(sweRate$absRate[sweRate$gcID == i], probs=c(0.025,0.25,0.50,0.75,0.975))
+}
+
+#break up names 
+nameSplit1 <- character(0)
+nameSplit2 <- character(0)
+for(i in 1:5){
+	nameSplit1[i] <- strsplit(intercept$name2[i], " ")[[1]][1]
+	nameSplit2[i] <- strsplit(intercept$name2[i], " ")[[1]][2]
+}
+nameSplit2 <- ifelse(is.na(nameSplit2), " ", nameSplit2)
+
+#plotting
+xseq <- seq(1,11, by=2)
+plotOrder <- c(1,4,2,3,5)
+
+wd1 <- 18
+hd1 <- 18
+yl <- 0
+yh <- 3.1
+
+png(paste0(plotDI,"\\violin.png"), width = 20, height = 20, units = "cm", res=300)
+	layout(matrix(c(1),ncol=1, byrow=TRUE), width=lcm(wd1),height=lcm(hd1))
+	plot(c(0,1),c(0,1), xlim=c(0,12), ylim=c(yl,yh), axes=FALSE, type="n", xlab = " ", ylab= " ",
+		xaxs="i", yaxs="i")
+		for(j in 1:5){
+		i <- plotOrder[j]
+			polygon(c(xseq[j]+(0-histL[[i]]$densityScale[histL[[i]]$mids<=maxS[i]]), 
+						rev(xseq[j]+(histL[[i]]$densityScale[histL[[i]]$mids<=maxS[i]]))),
+					c(histL[[i]]$mids[histL[[i]]$mids<=maxS[i]],
+						rev(histL[[i]]$mids[histL[[i]]$mids<=maxS[i]])), 
+					lwd=0.75,  col=vegePallete3[i])
+			arrows(	xseq[j],quant[[i]][1], xseq[j],quant[[i]][5], code=0, lwd=1)
+			polygon(c(xseq[j]-0.15,xseq[j]-0.15,xseq[j]+0.15,xseq[j]+0.15),
+				c(quant[[i]][2],quant[[i]][4],quant[[i]][4],quant[[i]][2]),
+					border=NA, col=rgb(0.25,0.25,0.25,0.5))
+					
+			arrows(	xseq[j]-.15,quant[[i]][3], xseq[j]+.15,quant[[i]][3], code=0, lwd=4, col=vegePallete[i])		
+		}	
+		
+	axis(1, xseq, rep(" ",length(xseq)),lwd.ticks=tlw)
+	axis(2, seq(0,3.1, by=.2),rep(" ",length(seq(0,3.1, by=.2))),lwd.ticks=tlw)
+	mtext(paste(nameSplit1[plotOrder]),at=xseq,side=1,line=1,cex=1)
+	mtext(paste(nameSplit2[plotOrder]),at=xseq,side=1,line=2,cex=1)
+	mtext(seq(0,3.1, by=.2), at=seq(0,3.1, by=.2), side=2, las=2, line=1, cex=1)
+	mtext(expression(paste("Melt rate (cm day"^"-1",")")), side=2, line=3, cex=1.5)
+	mtext("Landcover type", side=1, line=3, cex=1.5)
+dev.off()		
