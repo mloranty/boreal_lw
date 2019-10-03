@@ -641,7 +641,7 @@ for(i in 1:5){
 }
 nameSplit2 <- ifelse(is.na(nameSplit2), " ", nameSplit2)
 
-xseq <- seq(1,11, by=2)
+xseq <- seq(1,10, by=2)
 
 wd1 <- 18
 hd1 <- 18
@@ -654,7 +654,7 @@ tlw <- 2
 
 png(paste0(plotDI,"\\intercepts.png"), width = 20, height = 20, units = "cm", res=300)
 	layout(matrix(c(1),ncol=1, byrow=TRUE), width=lcm(wd1),height=lcm(hd1))
-	plot(c(0,1),c(0,1), xlim=c(0,12), ylim=c(.2,0.6), axes=FALSE, type="n", xlab = " ", ylab= " ",
+	plot(c(0,1),c(0,1), xlim=c(0,11), ylim=c(.2,0.6), axes=FALSE, type="n", xlab = " ", ylab= " ",
 		xaxs="i", yaxs="i")
 		
 	for(j in 1:5){
@@ -713,7 +713,7 @@ for(i in 1:5){
 nameSplit2 <- ifelse(is.na(nameSplit2), " ", nameSplit2)
 
 #plotting
-xseq <- seq(1,11, by=2)
+xseq <- seq(1,10, by=2)
 plotOrder <- c(1,4,2,3,5)
 
 wd1 <- 18
