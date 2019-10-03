@@ -20,6 +20,7 @@ library(rgdal)
 library(gdalUtils)
 library(sp)
 library(maps)
+library(rgeos)
 ###############################################
 ### set up file paths                       ###
 ###############################################
@@ -269,7 +270,7 @@ MapMax <- join(sweCellDF,sweMaxSumm, by="cell",type="left")
 rasterCanopy <- setValues(swe,MapCanopy$vcf)
 rasterVege <- setValues(swe,MapVege$gcID)
 rasterMaxMean <- setValues(swe,MapMax$sweMax)
-rasterMaxMissing <- setValues(swe,MapMax$sweMaxExc)
+
 #max missing is predominately zero throughout the entire map. Not worth showing
 worldmap <- map("world", ylim=c(40,90), fill=TRUE)
 #focus on a smaller extent
@@ -278,6 +279,23 @@ worldmap2 <- map("world", ylim=c(50,90))
 #world map
 world <- project(matrix(c(worldmap$x,worldmap$y), ncol=2,byrow=FALSE),laea)
 world2 <- project(matrix(c(worldmap2$x,worldmap2$y), ncol=2,byrow=FALSE),laea)
+
+###make polygon to cover up non study area####
+#make a point at center of map
+pt1 <- SpatialPoints(data.frame(x=0,y=0), CRS(laea))
+#make a buffer around center of plot choosing distance that is relevant
+ptBuff <- buffer(pt1,4500000)
+#set up bounds to extend beyond study area
+xcor <- c(-8000000,-8000000,8000000,8000000)
+ycor <- c(-8000000,8000000,8000000,-8000000)
+#make empty plot polygon
+boxC <- cbind(xcor,ycor)
+p <- Polygon(boxC)
+ps <- Polygons(list(p),1)
+sps <- SpatialPolygons(list(ps))
+proj4string(sps) = CRS("+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs" )
+#remove study area from empty plot
+PolyBlock <- gDifference(sps,ptBuff, byid=TRUE)
 
 
 ###############################################
@@ -325,7 +343,7 @@ png(paste0(plotDI,"\\data_maps_vege.png"), width = 12, height = 5, units = "in",
 	#set up empty plot
 	### plot 1 vegetation type ###
 	par(mai=c(0,0,0,0))
-	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4100000,4100000),ylim=c(-4100000,4100000))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4150000,4150000),ylim=c(-4150000,4150000))
 	#color background
 	polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
 	#boundaries
@@ -335,7 +353,7 @@ png(paste0(plotDI,"\\data_maps_vege.png"), width = 12, height = 5, units = "in",
 	#plot points
 	image(rasterVege,breaks=vegeBr,col=vegePallete,add=TRUE )
 	mtext("A",at=4100000,side=2,line=pll, las=2,cex=mx)
-	
+	plot(PolyBlock, col="white",border="white", add=TRUE)
 	### plot 1 legend ###
 	par(mai=c(0,.25,0,1))
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
@@ -363,6 +381,7 @@ png(paste0(plotDI,"\\data_maps_canopy.png"), width = 12, height = 5, units = "in
 	#plot points
 	image(rasterCanopy, breaks=canopyBr, col=treePallete, add=TRUE)
 	mtext("B",at=4100000,side=2,line=pll, las=2,cex=mx)
+	plot(PolyBlock, col="white",border="white", add=TRUE)
 	### plot 2 legend ###
 	par(mai=c(0,.25,0,1))
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 

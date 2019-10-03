@@ -183,6 +183,8 @@ cellSwe7$logAbsRate <- log(cellSwe7$absRate )
 tempMean <- seq(floor(range(cellSwe7$tair)[1]),ceiling(range(cellSwe7$tair)[2]), length.out=200)
 CanopyMean <- seq(floor(range(cellSwe7$vcf)[1]),ceiling(range(cellSwe7$vcf)[2]), length.out=200)
 SdayMean <- seq(floor(range(cellSwe7$meltStart)[1]),ceiling(range(cellSwe7$meltStart)[2]), length.out=200)
+LatMean <- seq(50,75, length.out=200)
+
 #jags regression
 datalist <- list(Nobs= dim(cellSwe7)[1],
 					b0=cellSwe7$logAbsRate,
@@ -201,7 +203,8 @@ datalist <- list(Nobs= dim(cellSwe7)[1],
 					Ncell=nrow(cellDF),
 					TempMean=tempMean,
 					CanopyMean=CanopyMean,
-					SdayMean=SdayMean)
+					SdayMean=SdayMean,
+					LatMean=LatMean)
 
 
 				
@@ -212,10 +215,10 @@ inits <- list(list(sig.eb=rep(.5,dim(gcIndT)[1]),sig.es=.2,
 				list(sig.eb=rep(.25,dim(gcIndT)[1]),sig.es=1,
 				eps.s=rnorm(nrow(cellDF),0.001,.25)))
 				
-parms <- c("betaB0S","betaB1","betaB2","betaB3",
-			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
-			"sig.B0","sig.B1","sig.B2","sig.B3","trB0",
-			"rep.b0","eps.bS","sig.eb","Dsum","loglike","eps.sS","sig.es","mu.Temp","mu.Canopy","mu.Onset")
+parms <- c("betaB0S","betaB1","betaB2","betaB3","betaB4",
+			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3","mu.betaB4",
+			"sig.B0","sig.B1","sig.B2","sig.B3","sig.B4","trB0",
+			"rep.b0","eps.bS","sig.eb","Dsum","loglike","eps.sS","sig.es","mu.Temp","mu.Canopy","mu.Onset","mu.Lat")
 			
 	
 curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_curve_empirical_regression.r",
@@ -224,9 +227,9 @@ curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\s
 curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=90000,thin=45)						
 			
 mcmcplot(curve.sample, parms=c(
-			"betaB0S","betaB1","betaB2","betaB3",
-			"mu.betaB0","mu.betaB1","mu.betaB2",
-			"sig.B0","sig.B1","sig.B2","sig.B3",
+			"betaB0S","betaB1","betaB2","betaB3","betaB4",
+			"mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3","mu.betaB4",
+			"sig.B0","sig.B1","sig.B2","sig.B3","sig.B4",
 			"sig.vB","eps.bS","sig.eb","sig.es"),dir=paste0(modDir,"\\history"))	
 
 #model output							   
