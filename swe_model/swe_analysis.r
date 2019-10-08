@@ -349,7 +349,9 @@ summary(fit.v)
 
 #pull out interaction beta
 beta1 <- datC[datC$parm=="betaB1",] 
+beta2 <- datC[datC$parm=="betaB2",] 
 beta3 <- datC[datC$parm=="betaB3",] 
+beta4 <- datC[datC$parm=="betaB4",] 
 #intercept
 betaIn <- datC[datC$parm=="betaB0S",] 
 betaInE <- datC[datC$parm=="trB0",] 
