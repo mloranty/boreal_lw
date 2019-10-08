@@ -75,7 +75,7 @@ beta0 <- datC[datC$parm == "betaB0S",]
 beta1 <- datC[datC$parm == "betaB1",] 
 beta2 <- datC[datC$parm == "betaB2",] 
 beta3 <- datC[datC$parm == "betaB3",] 
-
+beta4 <- datC[datC$parm == "betaB4",] 
 #add indicator if parameter is significant
 beta1$sig <- ifelse(beta1$X2.5.<0&beta1$X97.5.<0,1,
 						ifelse(beta1$X2.5.>0&beta1$X97.5.>0,1,0))
@@ -83,19 +83,21 @@ beta1$sig <- ifelse(beta1$X2.5.<0&beta1$X97.5.<0,1,
 						
 beta3$sig <- ifelse(beta3$X2.5.<0&beta3$X97.5.<0,1,
 						ifelse(beta3$X2.5.>0&beta3$X97.5.>0,1,0))					
-
+beta4$sig <- ifelse(beta4$X2.5.<0&beta4$X97.5.<0,1,
+						ifelse(beta4$X2.5.>0&beta4$X97.5.>0,1,0))	
 						
-#check if any negative slopes to account for
+#check if any nonsignificant slopes to account for
 
 length(which(beta1$sig == 0))						
 						
 length(which(beta3$sig == 0))	
-
+	
 
 #pull out regression means for plotting
 
 mu.Temp <- datC[datC$parm2 == "mu.Temp[,]",]
 mu.Onset <- datC[datC$parm2 == "mu.Onset[,]",]
+mu.Lat <- datC[datC$parm2 == "mu.Lat[,]",]
 						
 ###############################################
 ### add in unique id for model              ###
@@ -204,6 +206,7 @@ sweRate <- cellSwe7
 tempMean <- seq(floor(range(cellSwe7$tair)[1]),ceiling(range(cellSwe7$tair)[2]), length.out=200)
 CanopyMean <- seq(floor(range(cellSwe7$vcf)[1]),ceiling(range(cellSwe7$vcf)[2]), length.out=200)
 SdayMean <- seq(floor(range(cellSwe7$meltStart)[1]),ceiling(range(cellSwe7$meltStart)[2]), length.out=200)
+LatMean <- seq(50,75, length.out=200)
 ################################################################################
 ################################################################################
 ############### Figure 1. Map of data inputs                     ############### 
@@ -431,7 +434,7 @@ sweRate
 #organize model output
 mu.Temp$gcID <- rep(seq(1,5),each=200) 
 mu.Onset$gcID <- rep(seq(1,5),each=200) 
-
+mu.Lat$gcID <- rep(seq(1,5),each=200) 
 
 #intercepts
 
@@ -448,11 +451,14 @@ xl2 <- floor(range(sweRate$vcf)[1])
 xh2 <-	ceiling(range(sweRate$vcf)[2])
 xl3 <- range(sweRate$meltStart)[1] - 1
 xh3 <-	range(sweRate$meltStart)[2] + 1
+xl4 <- floor(range(sweRate$Lat)[1])
+xh4 <- ceiling(range(sweRate$Lat)[2])
 #axis labels
 xs1 <- seq(xl1,xh1-3, by=3)
 xs2 <- seq(xl2,xh2, by= 15)
 xs3 <- seq(60,xh3, by= 30)
 ys <- seq(yl,yh, by = 1)
+xs4 <- seq(xl4,xh4,by=5)
 
 #width of regression line
 mlw <- 4
@@ -477,22 +483,26 @@ dlvcf<- numeric(0)
 dhvcf <- numeric(0)
 dlOnset <- numeric(0)
 dhOnset <- numeric(0)
-
+dlLat <- numeric(0)
+dhLat <- numeric(0)
 for(i in 1:5){
 	dlTemp[i] <- floor(min(sweRate$tair[sweRate$gcID == i]))
 	dhTemp[i] <- ceiling(max(sweRate$tair[sweRate$gcID == i]))
 	dlvcf[i] <- floor(min(sweRate$vcf[sweRate$gcID == i]))
 	dhvcf[i] <- ceiling(max(sweRate$vcf[sweRate$gcID == i]))
 	dlOnset[i] <- floor(min(sweRate$meltStart[sweRate$gcID == i]))
-	dhOnset[i] <- ceiling(max(sweRate$meltStart[sweRate$gcID == i]))	
+	dhOnset[i] <- ceiling(max(sweRate$meltStart[sweRate$gcID == i]))
+	dlLat[i] <- floor(min(sweRate$Lat[sweRate$gcID == i]))
+	dhLat[i] <- ceiling(max(sweRate$Lat[sweRate$gcID == i]))
+	
 	
 }
 
 
 
 
-png(paste0(plotDI,"\\regression.png"), width = 41, height = 32, units = "cm", res=300)
-	layout(matrix(seq(1,6),ncol=3, byrow=TRUE), width=rep(lcm(wd1),3),height=rep(lcm(hd1),2))
+png(paste0(plotDI,"\\regression.png"), width = 55, height = 32, units = "cm", res=300)
+	layout(matrix(seq(1,8),ncol=4, byrow=TRUE), width=rep(lcm(wd1),4),height=rep(lcm(hd1),2))
 	par(mai=c(0,0,0,0))
 	#temperature trees
 	plot(c(0,1),c(0,1), type="n", xlim=c(xl1,xh1), ylim=c(yl,yh), xaxs="i",yaxs="i",
@@ -548,7 +558,7 @@ png(paste0(plotDI,"\\regression.png"), width = 41, height = 32, units = "cm", re
 		points(	sweRate$meltStart[sweRate$gcID == i],
 				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete2[i], pch=19)
 	}
-		for(i in plotTree){	
+	for(i in plotTree){	
 		polygon(c(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
 					rev(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]])),
 				c(mu.Onset$X2.5.[mu.Onset$gcID == i & SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
@@ -561,6 +571,32 @@ png(paste0(plotDI,"\\regression.png"), width = 41, height = 32, units = "cm", re
 	}
 		box(which="plot")
 		text(xl3+(.05*(xh3-xl3)), yh-(.05*(yh-yl)), "e", cex=ttx)
+		
+		#latitude trees
+	par(mai=c(0,0,0,0))
+	plot(c(0,1),c(0,1), type="n", xlim=c(xl4,xh4), ylim=c(yl,yh), xaxs="i",yaxs="i",
+		xlab= " ", ylab=" ", axes=FALSE)
+	for(i in plotTree){
+		points(	sweRate$Lat[sweRate$gcID == i],
+				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete2[i], pch=19)
+	}
+		for(i in plotTree){	
+		
+			polygon(c(LatMean[LatMean >= dlLat[i] & LatMean <= dhLat[i]],
+				rev(LatMean[LatMean >= dlLat[i] & LatMean<= dhLat[i]])),
+				c(rep(beta0$X2.5.[i], length(LatMean[LatMean >= dlLat[i] & LatMean<= dhLat[i]])),
+				rep(beta0$X97.5[i], length(LatMean[LatMean >= dlLat[i] & LatMean <= dhLat[i]]))),
+				border=NA, col=vegePallete3[i])
+		
+			points(LatMean[LatMean >= dlLat[i] & LatMean <= dhLat[i]],
+				rep(beta0$Mean[i], length(LatMean[LatMean >= dlLat[i] & LatMean <= dhLat[i]])),
+				type="l", lwd=mlw, lty=3, col=vegePallete[i])		
+		
+	}
+		box(which="plot")
+		text(xl4+(.05*(xh4-xl4)), yh-(.05*(yh-yl)), "g", cex=ttx)	
+		
+		
 	#temperature tundra
 	par(mai=c(0,0,0,0))
 	plot(c(0,1),c(0,1), type="n", xlim=c(xl1,xh1), ylim=c(yl,yh), xaxs="i",yaxs="i",
@@ -637,6 +673,33 @@ png(paste0(plotDI,"\\regression.png"), width = 41, height = 32, units = "cm", re
 	box(which="plot")
 	mtext("Onset day of year", side=1,line= xpl, cex=plc)
 	text(xl3+(.05*(xh3-xl3)), yh-(.05*(yh-yl)), "f", cex=ttx)
+	#latitude tundra
+	par(mai=c(0,0,0,0))
+	plot(c(0,1),c(0,1), type="n", xlim=c(xl4,xh4), ylim=c(yl,yh), xaxs="i",yaxs="i",
+		xlab= " ", ylab=" ", axes=FALSE)
+	for(i in plotTun){
+		points(	sweRate$Lat[sweRate$gcID == i],
+				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete2[i], pch=19)
+	}
+		for(i in plotTun){	
+
+			polygon(c(LatMean[LatMean >= dlLat[i] & LatMean <= dhLat[i]],
+				rev(LatMean[LatMean >= dlLat[i] & LatMean<= dhLat[i]])),
+				c(rep(beta0$X2.5.[i], length(LatMean[LatMean >= dlLat[i] & LatMean<= dhLat[i]])),
+				rep(beta0$X97.5[i], length(LatMean[LatMean >= dlLat[i] & LatMean <= dhLat[i]]))),
+				border=NA, col=vegePallete3[i])
+		
+			points(LatMean[LatMean >= dlLat[i] & LatMean <= dhLat[i]],
+				rep(beta0$Mean[i], length(LatMean[LatMean >= dlLat[i] & LatMean <= dhLat[i]])),
+				type="l", lwd=mlw, lty=3, col=vegePallete[i])		
+				
+	}
+		box(which="plot")
+		text(xl4+(.05*(xh4-xl4)), yh-(.05*(yh-yl)), "h", cex=ttx)	
+		
+	axis(1, xs4, rep(" ",length(xs4)), lwd.ticks=tlw)
+	mtext(xs4,at=xs4, line=tll, cex=alc, side=1)
+	mtext("Latitude", side=1,line= xpl, cex=plc)
 dev.off()
 
 
