@@ -316,18 +316,10 @@ treePallete <- c(rgb(229,245,224,max=255),
 				rgb(0,68,27,max=255))
 
 				
-swePallete <- c(rgb(247,252,253,max=255),
-				rgb(224,236,244,max=255),
-				rgb(158,188,218,max=255),
-				rgb(140,150,198,max=255),
-				rgb(140,107,177,max=255),
-				rgb(136,65,157,max=255),
-				rgb(129,15,124,max=255),
-				rgb(77,0,75,max=255))
 
 hd <- 10
 wd1 <- 10
-wd2 <- 4
+wd2 <- 8
 water <- rgb(149/255,218/255,255/255,.3)
 land <- rgb(250,230,190, max=255)
 #size of panel label
@@ -339,10 +331,10 @@ vegeBr <- c(0,1,2,3,4,5)
 canopyBr <- c(0,10,20,30,40,50,60,70,80)
 sweBr <-c(0.01,0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5)
 #size of axis
-cxa <- 1.25
+cxa <- 1.75
 
-png(paste0(plotDI,"\\data_maps_vege.png"), width = 12, height = 5, units = "in", res=300)
-	layout(matrix(seq(1,2),ncol=2), width=c(lcm(wd1),lcm(wd2)),height=lcm(hd))
+png(paste0(plotDI,"\\data_maps.png"), width = 18, height = 5, units = "in", res=300)
+	layout(matrix(seq(1,4),ncol=4), width=c(lcm(wd1),lcm(wd2),lcm(wd1),lcm(wd2)),height=lcm(hd))
 	#set up empty plot
 	### plot 1 vegetation type ###
 	par(mai=c(0,0,0,0))
@@ -358,7 +350,7 @@ png(paste0(plotDI,"\\data_maps_vege.png"), width = 12, height = 5, units = "in",
 	mtext("A",at=4100000,side=2,line=pll, las=2,cex=mx)
 	plot(PolyBlock, col="white",border="white", add=TRUE)
 	### plot 1 legend ###
-	par(mai=c(0,.25,0,1))
+	par(mai=c(0,.25,0,2))
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
 	for(i in 1:(length(vegeBr)-1)){
 		polygon(c(0,0,1,1), 
@@ -366,15 +358,11 @@ png(paste0(plotDI,"\\data_maps_vege.png"), width = 12, height = 5, units = "in",
 		col=vegePallete[i],border=NA)
 	}
 	axis(4,(vegeBr[1:5]/5)+.1,IDSglc$name2,cex.axis=cxa,las=2)
-	
-dev.off()
 
-png(paste0(plotDI,"\\data_maps_canopy.png"), width = 12, height = 5, units = "in", res=300)
-	layout(matrix(seq(1,2),ncol=2), width=c(lcm(wd1),lcm(wd2)),height=lcm(hd))	
 	
 	### plot 2 canopy cover ###
 	par(mai=c(0,0,0,0))
-	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4100000,4100000),ylim=c(-4100000,4100000))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4150000,4150000),ylim=c(-4150000,4150000))
 	#color background
 	polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
 	#boundaries
@@ -386,7 +374,7 @@ png(paste0(plotDI,"\\data_maps_canopy.png"), width = 12, height = 5, units = "in
 	mtext("B",at=4100000,side=2,line=pll, las=2,cex=mx)
 	plot(PolyBlock, col="white",border="white", add=TRUE)
 	### plot 2 legend ###
-	par(mai=c(0,.25,0,1))
+	par(mai=c(0,.25,0,2))
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
 	for(i in 1:(length(canopyBr)-1)){
 		polygon(c(0,0,1,1), 
@@ -397,6 +385,29 @@ png(paste0(plotDI,"\\data_maps_canopy.png"), width = 12, height = 5, units = "in
 	
 dev.off()
 
+
+
+
+
+################################################################################
+################################################################################
+############### Figure 2. Map of data related to melt            ############### 
+################################################################################
+################################################################################
+#get average, sd of swe rate by cell, then show average maximum and average onset
+swePallete <- c(rgb(247,252,253,max=255),
+				rgb(224,236,244,max=255),
+				rgb(158,188,218,max=255),
+				rgb(140,150,198,max=255),
+				rgb(140,107,177,max=255),
+				rgb(136,65,157,max=255),
+				rgb(129,15,124,max=255),
+				rgb(77,0,75,max=255))
+
+sweBr <-c(0.01,0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5)				
+				
+				
+				
 png(paste0(plotDI,"\\data_maps_maxSwe.png"), width = 12, height = 5, units = "in", res=300)
 	layout(matrix(seq(1,2),ncol=2), width=c(lcm(wd1),lcm(wd2)),height=lcm(hd))	
 
@@ -423,6 +434,7 @@ png(paste0(plotDI,"\\data_maps_maxSwe.png"), width = 12, height = 5, units = "in
 	axis(4,sweBr/sweBr[length(sweBr)],sweBr,cex.axis=cxa,las=2)	
 	
 dev.off()
+
 
 
 ################################################################################
@@ -734,7 +746,7 @@ mlw <- 2
 #tick arrow width
 tlw <- 2
 
-png(paste0(plotDI,"\\intercepts.png"), width = 20, height = 20, units = "cm", res=300)
+png(paste0(plotDI,"\\intercepts1.png"), width = 20, height = 20, units = "cm", res=300)
 	layout(matrix(c(1),ncol=1, byrow=TRUE), width=lcm(wd1),height=lcm(hd1))
 	plot(c(0,1),c(0,1), xlim=c(0,11), ylim=c(.2,0.6), axes=FALSE, type="n", xlab = " ", ylab= " ",
 		xaxs="i", yaxs="i")
