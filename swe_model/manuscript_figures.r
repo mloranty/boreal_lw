@@ -317,8 +317,8 @@ treePallete <- c(rgb(229,245,224,max=255),
 
 				
 
-hd <- 10
-wd1 <- 10
+hd <- 12
+wd1 <- 12
 wd2 <- 8
 water <- rgb(149/255,218/255,255/255,.3)
 land <- rgb(250,230,190, max=255)
@@ -333,7 +333,7 @@ sweBr <-c(0.01,0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5)
 #size of axis
 cxa <- 1.75
 
-png(paste0(plotDI,"\\data_maps.png"), width = 18, height = 5, units = "in", res=300)
+png(paste0(plotDI,"\\data_maps.png"), width = 17, height = 7, units = "in", res=300)
 	layout(matrix(seq(1,4),ncol=4), width=c(lcm(wd1),lcm(wd2),lcm(wd1),lcm(wd2)),height=lcm(hd))
 	#set up empty plot
 	### plot 1 vegetation type ###
@@ -395,7 +395,106 @@ dev.off()
 ################################################################################
 ################################################################################
 #get average, sd of swe rate by cell, then show average maximum and average onset
-swePallete <- c(rgb(247,252,253,max=255),
+
+
+###############################################
+### organize descriptive data               ###
+###############################################
+
+#get average swe max for each of the cells
+sweMaxDF <- unique(data.frame(cell=sweRate$cell, year=sweRate$year,sweMax=sweRate$sweMax))
+#aggregate by each cell
+sweMaxSumm <- aggregate(sweMaxDF$sweMax, by=list(sweMaxDF$cell), FUN="mean")
+colnames(sweMaxSumm) <- c("cell","sweMax")
+sweMaxSumm$sweMaxSD <- aggregate(sweMaxDF$sweMax, by=list(sweMaxDF$cell), FUN="sd")$x
+sweMaxSumm$sweMaxN <- aggregate(sweMaxDF$sweMax, by=list(sweMaxDF$cell), FUN="length")$x
+
+#get average swe max for each of the cells
+onsetDF <- unique(data.frame(cell=sweRate$cell, year=sweRate$year,sweOnset=sweRate$meltStart))
+#aggregate by each cell
+onsetSumm <- aggregate(onsetDF$sweOnset, by=list(onsetDF$cell), FUN="mean")
+colnames(onsetSumm) <- c("cell","sweOnset")
+
+#get average melt rate
+sweMeltSumm <- aggregate(sweRate$absRate, by=list(sweRate$cell), FUN="mean")
+colnames(sweMeltSumm) <- c("cell","aveMelt")
+sweMeltSumm$CV <- aggregate(sweRate$absRate, by=list(sweRate$cell), FUN="sd")$x/sweMeltSumm$aveMelt
+
+###############################################
+### set up information for mapping          ###
+###############################################
+# define the projection - EASE2.0 equal area grid - will use 50km resolution
+# https://epsg.io/6931
+laea <- "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs" 
+
+swe.files <- list.files(pattern =".nc",path =paste0(swepath,"\\swe_mudryk_blended"),full.names=T)
+
+# read one file in to use for reprojecting
+pr <- raster(swe.files[1])
+# crop to boreal region
+pr <- crop(pr,c(-180,180,50,90))
+# reproject to 50km EASE2.0 gird
+pr <- projectRaster(pr,res=50000,crs=laea,progress='text')
+
+
+## read in file from first year
+swe <- raster(swe.files[3])
+
+# crop to boreal region
+swe <- crop(swe,c(-180,180,50,90))
+# reproject
+swe <- projectRaster(swe,pr)
+
+#get the cell to match up to
+sweCells <- ncell(swe)
+sweCellDF <- data.frame(cell=seq(1,sweCells))
+
+
+#join back to the swe cell id allowing others to turn to NA
+
+MapMax <- join(sweCellDF,sweMaxSumm, by="cell",type="left")
+MapMelt <- join(sweCellDF,sweMeltSumm, by="cell",type="left")
+MapOnset <- join(sweCellDF,onsetSumm, by="cell",type="left")
+
+
+#set into raster
+
+rasterMaxMean <- setValues(swe,MapMax$sweMax)
+rasterMeltMean <- setValues(swe,MapMelt$aveMelt)
+rasterMeltCV <- setValues(swe,MapMelt$CV)
+rasterOnset <- setValues(swe,MapOnset$sweOnset)
+
+#max missing is predominately zero throughout the entire map. Not worth showing
+worldmap <- map("world", ylim=c(40,90), fill=TRUE)
+#focus on a smaller extent
+worldmap2 <- map("world", ylim=c(50,90))
+
+#world map
+world <- project(matrix(c(worldmap$x,worldmap$y), ncol=2,byrow=FALSE),laea)
+world2 <- project(matrix(c(worldmap2$x,worldmap2$y), ncol=2,byrow=FALSE),laea)
+
+###make polygon to cover up non study area####
+#make a point at center of map
+pt1 <- SpatialPoints(data.frame(x=0,y=0), CRS(laea))
+#make a buffer around center of plot choosing distance that is relevant
+ptBuff <- buffer(pt1,4500000)
+#set up bounds to extend beyond study area
+xcor <- c(-8000000,-8000000,8000000,8000000)
+ycor <- c(-8000000,8000000,8000000,-8000000)
+#make empty plot polygon
+boxC <- cbind(xcor,ycor)
+p <- Polygon(boxC)
+ps <- Polygons(list(p),1)
+sps <- SpatialPolygons(list(ps))
+proj4string(sps) = CRS("+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs" )
+#remove study area from empty plot
+PolyBlock <- gDifference(sps,ptBuff, byid=TRUE)
+###############################################
+### map results                             ###
+###############################################
+
+
+swemaxPallete <- c(rgb(247,252,253,max=255),
 				rgb(224,236,244,max=255),
 				rgb(158,188,218,max=255),
 				rgb(140,150,198,max=255),
@@ -403,17 +502,58 @@ swePallete <- c(rgb(247,252,253,max=255),
 				rgb(136,65,157,max=255),
 				rgb(129,15,124,max=255),
 				rgb(77,0,75,max=255))
+				
+SDPallete <- c(	rgb(255,245,240,max=255),
+				rgb(254,224,210,max=255),
+				rgb(252,187,161,max=255),
+				rgb(252,146,114,max=255),
+				rgb(251,106,74,max=255),
+				rgb(239,59,44,max=255),
+				rgb(203,24,29,max=255),
+				rgb(153,0,13,max=255))
+				
+OnsetPallete <- c(rgb(255,247,251,max=255),
+					rgb(236,226,240,max=255),
+					rgb(208,209,230,max=255),
+					rgb(166,189,219,max=255),
+					rgb(103,169,207,max=255),
+					rgb(54,144,192,max=255),
+					rgb(2,129,138,max=255),
+					rgb(1,100,80,max=255))
 
-sweBr <-c(0.01,0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5)				
+swePallete <- rev(c(rgb(178,24,43,max=255),
+				rgb(214,96,77,max=255),
+				rgb(244,165,130,max=255),
+				rgb(253,219,199,max=255),
+				rgb(209,229,240,max=255),
+				rgb(146,197,222,max=255),
+				rgb(67,147,195,max=255),
+				rgb(33,102,172,max=255)))
 				
-				
-				
-png(paste0(plotDI,"\\data_maps_maxSwe.png"), width = 12, height = 5, units = "in", res=300)
-	layout(matrix(seq(1,2),ncol=2), width=c(lcm(wd1),lcm(wd2)),height=lcm(hd))	
+sweSDBr <- round(seq(0,0.95, length.out=9),2)
+sweMaxBr <- c(0.01,0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5)				
+OnsetBr <- round(seq(45,155, length.out=9))
+sweBr <- round(seq(0.04,2, length.out=9),2) 
 
-	### plot 3 canopy cover ###
-		par(mai=c(0,0,0,0))
-	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4100000,4100000),ylim=c(-4100000,4100000))
+				
+hd <- 14
+wd1 <- 14
+wd2 <- 8
+water <- rgb(149/255,218/255,255/255,.3)
+land <- rgb(250,230,190, max=255)
+#size of panel label
+mx <- 2
+#line for panel label
+pll <- .5
+#size of axis
+cxa <- 2			
+				
+png(paste0(plotDI,"\\maps_swe.png"), width = 18, height = 12, units = "in", res=300)
+	layout(matrix(seq(1,8),ncol=4, byrow=TRUE), width=c(lcm(wd1),lcm(wd2),lcm(wd1),lcm(wd2)),height=c(lcm(hd),lcm(hd)))	
+
+	### plot 1 swe ave ###
+	par(mai=c(.25,.25,.25,.25))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4150000,4150000),ylim=c(-4150000,4150000))
 	#color background
 	polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
 	#boundaries
@@ -421,17 +561,98 @@ png(paste0(plotDI,"\\data_maps_maxSwe.png"), width = 12, height = 5, units = "in
 	#continent color
 	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
 	#plot points
-	image(rasterMaxMean,breaks=sweBr, col=swePallete, add=TRUE)
-	mtext("C",at=4100000,side=2,line=pll, las=2,cex=mx)
-	### plot 3 legend ###
-	par(mai=c(0,.25,0,1))
+	image(rasterMeltMean,breaks=sweBr, col=swePallete, add=TRUE)
+	mtext("A",at=4100000,side=2,line=pll, las=2,cex=mx)
+		plot(PolyBlock, col="white",border="white", add=TRUE)
+	### legent plot 1 swe ave ###
+	par(mai=c(0.25,0.25,0.25,2))
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
 	for(i in 1:(length(sweBr)-1)){
 		polygon(c(0,0,1,1), 
-			c(sweBr[i]/sweBr[length(sweBr)],sweBr[i+1]/sweBr[length(sweBr)],sweBr[i+1]/sweBr[length(sweBr)],sweBr[i]/sweBr[length(sweBr)]),
+			c(sweBr[i]/sweBr[length(sweBr)],
+			sweBr[i+1]/sweBr[length(sweBr)],
+			sweBr[i+1]/sweBr[length(sweBr)],
+			sweBr[i]/sweBr[length(sweBr)]),
 			col=swePallete[i],border=NA)
 	}
 	axis(4,sweBr/sweBr[length(sweBr)],sweBr,cex.axis=cxa,las=2)	
+	
+	
+	### plot 2 swe sd ###
+	par(mai=c(.25,.25,.25,.25))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4150000,4150000),ylim=c(-4150000,4150000))
+	#color background
+	polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
+	#boundaries
+	points(world, type="l", lwd=2, col="grey65")
+	#continent color
+	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
+	#plot points
+	image(rasterMeltCV,breaks=sweSDBr, col=SDPallete, add=TRUE)
+	mtext("B",at=4100000,side=2,line=pll, las=2,cex=mx)
+		plot(PolyBlock, col="white",border="white", add=TRUE)
+	### legent plot 1 swe ave ###
+	par(mai=c(0.25,0.25,0.25,2))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
+	for(i in 1:(length(sweSDBr)-1)){
+		polygon(c(0,0,1,1), 
+			c(sweSDBr[i]/sweSDBr[length(sweSDBr)],
+			sweSDBr[i+1]/sweSDBr[length(sweSDBr)],
+			sweSDBr[i+1]/sweSDBr[length(sweSDBr)],sweSDBr[i]/sweSDBr[length(sweSDBr)]),
+			col=SDPallete[i],border=NA)
+	}
+	axis(4,sweSDBr/sweSDBr[length(sweSDBr)],sweSDBr,cex.axis=cxa,las=2)		
+	
+	
+	### plot 3 swe max ###
+		par(mai=c(.25,.25,.25,.25))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4150000,4150000),ylim=c(-4150000,4150000))
+	#color background
+	polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
+	#boundaries
+	points(world, type="l", lwd=2, col="grey65")
+	#continent color
+	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
+	#plot points
+	image(rasterMaxMean,breaks=sweMaxBr, col=swemaxPallete, add=TRUE)
+	mtext("C",at=4100000,side=2,line=pll, las=2,cex=mx)
+		plot(PolyBlock, col="white",border="white", add=TRUE)
+	### plot 3 swe max ###
+	par(mai=c(0.25,0.25,0.25,2))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
+	for(i in 1:(length(sweMaxBr)-1)){
+		polygon(c(0,0,1,1), 
+			c(sweMaxBr[i]/sweMaxBr[length(sweMaxBr)],sweMaxBr[i+1]/sweMaxBr[length(sweMaxBr)],sweMaxBr[i+1]/sweMaxBr[length(sweMaxBr)],sweMaxBr[i]/sweMaxBr[length(sweMaxBr)]),
+			col=swemaxPallete[i],border=NA)
+	}
+	axis(4,sweMaxBr/sweMaxBr[length(sweMaxBr)],sweMaxBr,cex.axis=cxa,las=2)	
+	
+	
+### plot 4 onset ###
+		par(mai=c(.25,.25,.25,.25))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4150000,4150000),ylim=c(-4150000,4150000))
+	#color background
+	polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
+	#boundaries
+	points(world, type="l", lwd=2, col="grey65")
+	#continent color
+	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
+	#plot points
+	image(rasterOnset,breaks=OnsetBr, col=OnsetPallete, add=TRUE)
+	mtext("D",at=4100000,side=2,line=pll, las=2,cex=mx)
+		plot(PolyBlock, col="white",border="white", add=TRUE)
+	### plot 4 onset ###
+	par(mai=c(0.25,0.25,0.25,2))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
+	for(i in 1:(length(OnsetBr)-1)){
+		polygon(c(0,0,1,1), 
+			c((OnsetBr[i]-OnsetBr[1])/(OnsetBr[length(OnsetBr)]-OnsetBr[1]),
+			(OnsetBr[i+1]-OnsetBr[1])/(OnsetBr[length(OnsetBr)]-OnsetBr[1]),
+			(OnsetBr[i+1]-OnsetBr[1])/(OnsetBr[length(OnsetBr)]-OnsetBr[1]),
+			(OnsetBr[i]-OnsetBr[1])/(OnsetBr[length(OnsetBr)]-OnsetBr[1])),
+			col=OnsetPallete[i],border=NA)
+	}
+	axis(4,(OnsetBr-OnsetBr[1])/(OnsetBr[length(OnsetBr)]-OnsetBr[1]),OnsetBr,cex.axis=cxa,las=2)	
 	
 dev.off()
 
