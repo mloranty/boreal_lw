@@ -1062,4 +1062,120 @@ png(paste0(plotDI,"\\violin.png"), width = 20, height = 20, units = "cm", res=30
 	mtext(seq(0,3.1, by=.2), at=seq(0,3.1, by=.2), side=2, las=2, line=1, cex=1)
 	mtext(expression(paste("Melt rate (cm day"^"-1",")")), side=2, line=3, cex=1.5)
 	mtext("Landcover type", side=1, line=3, cex=1.5)
-dev.off()		
+dev.off()
+
+
+
+
+##################################################################################3
+laea <- "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs" 
+
+swe.files <- list.files(pattern =".nc",path =paste0(swepath,"\\swe_mudryk_blended"),full.names=T)
+
+#set up quantile plot
+sweBreaks <- round(quantile(sweAll$swe,seq(0,1,length.out=11)),2)
+sweBreaks[1] <- 0
+# read one file in to use for reprojecting
+pr <- brick(swe.files[29])
+# crop to boreal region
+pr <- crop(pr,c(-180,180,50,90))
+# reproject to 50km EASE2.0 gird
+pr <- projectRaster(pr,res=50000,crs=laea,progress='text')
+worldmap <- map("world", ylim=c(40,90), fill=TRUE)
+
+
+#world map
+world <- project(matrix(c(worldmap$x,worldmap$y), ncol=2,byrow=FALSE),laea)
+
+
+worldP <- Polygon(na.omit(matrix(c(world[,1],world[,2]), ncol=2, byrow=FALSE)))
+
+worldSH <- readOGR("z:\\projects\\boreal_swe_depletion\\data\\world_cl.shp")
+plot(worldSH)
+
+
+worldr <- rasterize(worldSH, subset(pr,1))
+
+plot(worldr)
+
+
+pr3 <- mask(pr,worldr)
+
+colP <- c(rgb(84,48,5, maxColorValue = 255),
+				rgb(140,81,10, maxColorValue = 255),
+				rgb(191,129,45, maxColorValue = 255),
+				rgb(223,194,125, maxColorValue = 255),
+				rgb(246,232,195, maxColorValue = 255),
+				rgb(245,245,245, maxColorValue = 255),
+				rgb(199,234,229, maxColorValue = 255),
+				rgb(128,205,193, maxColorValue = 255),
+				rgb(53,151,143, maxColorValue = 255),
+				rgb(1,102,94, maxColorValue = 255),
+				rgb(0,60,48, maxColorValue = 255))
+
+land <- rgb(139,98,76,200, max=255)
+				
+colP2 <- c(land,
+	rgb(255,247,251, maxColorValue = 255),
+	rgb(236,231,242, maxColorValue = 255),
+	rgb(208,209,230, maxColorValue = 255),
+	rgb(166,189,219, maxColorValue = 255),
+	rgb(116,169,207, maxColorValue = 255),
+	rgb(54,144,192, maxColorValue = 255),
+	rgb(5,112,176, maxColorValue = 255),
+	rgb(4,90,141, maxColorValue = 255),
+	rgb(2,56,88	, maxColorValue = 255))			
+sweBreaks2 <- round(quantile(sweAll$swe,seq(0,1,length.out=11)),2)
+sweBreaks2[1] <- 0
+
+for(i in 1:152){
+	png(paste0(plotDI,"\\swe_present\\swe00",i,".png"), width = 10, height = 10, units = "cm", res=300)
+
+	#set up empty plot
+	### plot 1 vegetation type ###
+	par(mai=c(0.25,0.25,0.25,0.25))
+	
+	plot(subset(pr3,i), breaks=sweBreaks2,col=colP2,
+			axes=FALSE, box=FALSE, legend=FALSE) 	
+			
+	legend("bottomright",paste("Day of year",i), bty="n")
+	dev.off()
+}
+png(paste0(plotDI,"\\swe_legend.png"), width = 10, height = 10, units = "cm", res=300)
+	par(mai=c(0.25,0.25,0.25,1))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
+	for(i in 1:(length(seq(0,1,length.out=11))-1)){
+		polygon(c(0,0,1,1), 
+			c(seq(0,1,length.out=11)[i],
+			seq(0,1,length.out=11)[i+1],
+			seq(0,1,length.out=11)[i+1],
+			seq(0,1,length.out=11)[i]),
+			col=colP2[i],border=NA)
+	}
+	axis(4,seq(0,1,length.out=11),sweBreaks2,cex.axis=2,las=2)	
+
+dev.off()
+
+
+#########################################################
+#make plot of swe decline
+#4004 is good
+cellPlot <- 4004
+yearPlot <- 2009
+
+
+par(mai=c(1.5,1.5,1.5,1.5))
+plot(sweAll$jday[sweAll$cell==cellPlot & sweAll$year == yearPlot], 
+	sweAll$swe[sweAll$cell==cellPlot & sweAll$year == yearPlot],
+	xlab=" ", ylab=" ",type="n",	axes=FALSE)
+	polygon(c(130,130,180,180),
+			c(0,.25,.25,0),
+			col=rgb(205/255,79/255,57/255, .5),border=NA)
+	points(sweAll$jday[sweAll$cell==cellPlot & sweAll$year == yearPlot], 
+	sweAll$swe[sweAll$cell==cellPlot & sweAll$year == yearPlot],
+	 pch=19)
+axis(1,seq(30,180,by=30), cex.axis=1.5)
+axis(2, seq(0,.25,by=0.05), las=2, cex.axis=1.5	)
+mtext("Snow water equivalent (m)", side=2, line=5, cex=2)
+mtext("Day of year", side=1, line=5, cex=2)	
+
