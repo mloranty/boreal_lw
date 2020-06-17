@@ -1179,3 +1179,7 @@ axis(2, seq(0,.25,by=0.05), las=2, cex.axis=1.5	)
 mtext("Snow water equivalent (m)", side=2, line=5, cex=2)
 mtext("Day of year", side=1, line=5, cex=2)	
 
+#############################
+#run on plot
+plot(c(0,1),c(0,1))
+legend("bottomright", paste(IDSglc$name2[c(1,2,4,3,5)]), col=vegePallete[c(1,2,4,3,5)],cex=2, lwd=2,lty=1, bty="n", bg="white")
