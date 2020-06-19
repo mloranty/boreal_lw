@@ -991,7 +991,9 @@ png(paste0(plotDI,"\\intercepts1.png"), width = 20, height = 20, units = "cm", r
 	mtext("Landcover type", side=1, line=3, cex=1.5)
 dev.off()		
 
-
+write.table(intercept,paste0(plotDI,"\\interceptTable.csv"), sep=",")
+betas <- rbind(beta1,beta3,beta4)
+write.table(betas,paste0(plotDI,"\\betaTable.csv"), sep=",")
 ################################################################################
 ################################################################################
 ############### Figure 3. violin plot of melt rate               ############### 
