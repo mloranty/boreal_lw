@@ -391,7 +391,7 @@ dev.off()
 
 ################################################################################
 ################################################################################
-############### Figure 2. Map of data related to melt            ############### 
+############### Figure 2&3. Map and distribution of data for melt############### 
 ################################################################################
 ################################################################################
 #get average, sd of swe rate by cell, then show average maximum and average onset
@@ -489,6 +489,52 @@ sps <- SpatialPolygons(list(ps))
 proj4string(sps) = CRS("+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs" )
 #remove study area from empty plot
 PolyBlock <- gDifference(sps,ptBuff, byid=TRUE)
+
+
+################################################
+###prep data for violin plot                 ###
+################################################
+#get distributions
+beta0NL$gcID <- seq(1,5)
+#join matching
+intercept <- join(beta0NL,IDSglc, by="gcID", type="left")
+
+
+histL <- list()
+densityH <- numeric(0)
+maxS <- numeric(0)
+
+for(i in 1:5){
+
+	histL[[i]] <- hist(sweRate$absRate[sweRate$gcID == i], breaks=seq(0,3.1, by=0.1))
+	#get max and min
+
+	densityH[i] <- max(histL[[i]]$density)
+	histL[[i]]$densityScale <-histL[[i]]$density*(0.5/ densityH[i])
+	maxS[i] <- round(max(sweRate$absRate[sweRate$gcID == i]),1)
+}
+#create box plot quantiles
+quant <- list()
+for(i in 1:5){
+	quant[[i]] <- quantile(sweRate$absRate[sweRate$gcID == i], probs=c(0.025,0.25,0.50,0.75,0.975))
+}
+
+#break up names 
+nameSplit1 <- character(0)
+nameSplit2 <- character(0)
+for(i in 1:5){
+	nameSplit1[i] <- strsplit(intercept$name2[i], " ")[[1]][1]
+	nameSplit2[i] <- strsplit(intercept$name2[i], " ")[[1]][2]
+}
+nameSplit2 <- ifelse(is.na(nameSplit2), " ", nameSplit2)
+
+
+
+
+
+
+
+
 ###############################################
 ### map results                             ###
 ###############################################
@@ -536,8 +582,8 @@ OnsetBr <- round(seq(45,155, length.out=9))
 sweBr <- round(seq(0.04,2, length.out=9),2) 
 
 				
-hd <- 14
-wd1 <- 14
+hd <- 18
+wd1 <- 18
 wd2 <- 8
 water <- rgb(149/255,218/255,255/255,.3)
 land <- rgb(250,230,190, max=255)
@@ -546,10 +592,21 @@ mx <- 2
 #line for panel label
 pll <- .5
 #size of axis
-cxa <- 2			
+cxa <- 2	
+#size of ticks
+tlw <- 2
+
+#plotting
+xseqV <- seq(1,10, by=2)
+plotOrderV <- c(1,4,2,3,5)
+
+wd1V <- 18
+
+ylV <- 0
+yhV <- 3.1		
 				
-png(paste0(plotDI,"\\maps_swe.png"), width = 18, height = 12, units = "in", res=300)
-	layout(matrix(seq(1,8),ncol=4, byrow=TRUE), width=c(lcm(wd1),lcm(wd2),lcm(wd1),lcm(wd2)),height=c(lcm(hd),lcm(hd)))	
+png(paste0(plotDI,"\\maps_swe_p1.png"), width = 20, height = 20, units = "in", res=300)
+	layout(matrix(seq(1,6),ncol=3, byrow=TRUE), width=c(lcm(wd1),lcm(wd2),lcm(wd1V),lcm(wd2)),height=c(lcm(hd),lcm(hd)))	
 
 	### plot 1 swe ave ###
 	par(mai=c(.25,.25,.25,.25))
@@ -576,7 +633,31 @@ png(paste0(plotDI,"\\maps_swe.png"), width = 18, height = 12, units = "in", res=
 			col=swePallete[i],border=NA)
 	}
 	axis(4,sweBr/sweBr[length(sweBr)],sweBr,cex.axis=cxa,las=2)	
-	
+			
+		plot(c(0,1),c(0,1), xlim=c(0,12), ylim=c(ylV,yhV), axes=FALSE, type="n", xlab = " ", ylab= " ",
+		xaxs="i", yaxs="i")
+		for(j in 1:5){
+		i <- plotOrderV[j]
+			polygon(c(xseqV[j]+(0-histL[[i]]$densityScale[histL[[i]]$mids<=maxS[i]]), 
+						rev(xseqV[j]+(histL[[i]]$densityScale[histL[[i]]$mids<=maxS[i]]))),
+					c(histL[[i]]$mids[histL[[i]]$mids<=maxS[i]],
+						rev(histL[[i]]$mids[histL[[i]]$mids<=maxS[i]])), 
+					lwd=0.75,  col=vegePallete3[i])
+			arrows(	xseqV[j],quant[[i]][1], xseqV[j],quant[[i]][5], code=0, lwd=1)
+			polygon(c(xseqV[j]-0.15,xseqV[j]-0.15,xseqV[j]+0.15,xseqV[j]+0.15),
+				c(quant[[i]][2],quant[[i]][4],quant[[i]][4],quant[[i]][2]),
+					border=NA, col=rgb(0.25,0.25,0.25,0.5))
+					
+			arrows( xseqV[j],quant[[i]][1], xseqV[j],quant[[i]][5],code=0, lwd=4, col=vegePallete[i])		
+		}	
+		
+	axis(1, xseqV, rep(" ",length(xseqV)),lwd.ticks=tlw)
+	axis(2, seq(0,3.1, by=.2),rep(" ",length(seq(0,3.1, by=.2))),lwd.ticks=tlw)
+	mtext(paste(nameSplit1[plotOrderV]),at=xseqV,side=1,line=1,cex=1)
+	mtext(paste(nameSplit2[plotOrderV]),at=xseqV,side=1,line=2,cex=1)
+	mtext(seq(0,3.1, by=.2), at=seq(0,3.1, by=.2), side=2, las=2, line=1, cex=1)
+	mtext(expression(paste("Melt rate (cm day"^"-1",")")), side=2, line=3, cex=1.5)
+	mtext("Landcover type", side=1, line=3, cex=1.5)
 	
 	### plot 2 swe sd ###
 	par(mai=c(.25,.25,.25,.25))
@@ -602,6 +683,35 @@ png(paste0(plotDI,"\\maps_swe.png"), width = 18, height = 12, units = "in", res=
 			col=SDPallete[i],border=NA)
 	}
 	axis(4,sweSDBr/sweSDBr[length(sweSDBr)],sweSDBr,cex.axis=cxa,las=2)		
+		plot(c(0,1),c(0,1), xlim=c(0,12), ylim=c(ylV,yhV), axes=FALSE, type="n", xlab = " ", ylab= " ",
+		xaxs="i", yaxs="i")
+		for(j in 1:5){
+		i <- plotOrderV[j]
+			polygon(c(xseqV[j]+(0-histL[[i]]$densityScale[histL[[i]]$mids<=maxS[i]]), 
+						rev(xseqV[j]+(histL[[i]]$densityScale[histL[[i]]$mids<=maxS[i]]))),
+					c(histL[[i]]$mids[histL[[i]]$mids<=maxS[i]],
+						rev(histL[[i]]$mids[histL[[i]]$mids<=maxS[i]])), 
+					lwd=0.75,  col=vegePallete3[i])
+			arrows(	xseqV[j],quant[[i]][1], xseqV[j],quant[[i]][5], code=0, lwd=1)
+			polygon(c(xseqV[j]-0.15,xseqV[j]-0.15,xseqV[j]+0.15,xseqV[j]+0.15),
+				c(quant[[i]][2],quant[[i]][4],quant[[i]][4],quant[[i]][2]),
+					border=NA, col=rgb(0.25,0.25,0.25,0.5))
+					
+			arrows( xseqV[j],quant[[i]][1], xseqV[j],quant[[i]][5],code=0, lwd=4, col=vegePallete[i])		
+		}	
+		
+	axis(1, xseqV, rep(" ",length(xseqV)),lwd.ticks=tlw)
+	axis(2, seq(0,3.1, by=.2),rep(" ",length(seq(0,3.1, by=.2))),lwd.ticks=tlw)
+	mtext(paste(nameSplit1[plotOrderV]),at=xseqV,side=1,line=1,cex=1)
+	mtext(paste(nameSplit2[plotOrderV]),at=xseqV,side=1,line=2,cex=1)
+	mtext(seq(0,3.1, by=.2), at=seq(0,3.1, by=.2), side=2, las=2, line=1, cex=1)
+	mtext(expression(paste("Melt rate (cm day"^"-1",")")), side=2, line=3, cex=1.5)
+	mtext("Landcover type", side=1, line=3, cex=1.5)
+	
+dev.off()	
+	
+	
+	####seperate
 	
 	
 	### plot 3 swe max ###
@@ -994,78 +1104,6 @@ dev.off()
 write.table(intercept,paste0(plotDI,"\\interceptTable.csv"), sep=",")
 betas <- rbind(beta1,beta3,beta4)
 write.table(betas,paste0(plotDI,"\\betaTable.csv"), sep=",")
-################################################################################
-################################################################################
-############### Figure 3. violin plot of melt rate               ############### 
-################################################################################
-################################################################################
-
-#get distributions
-histL <- list()
-densityH <- numeric(0)
-maxS <- numeric(0)
-
-for(i in 1:5){
-
-	histL[[i]] <- hist(sweRate$absRate[sweRate$gcID == i], breaks=seq(0,3.1, by=0.1))
-	#get max and min
-
-	densityH[i] <- max(histL[[i]]$density)
-	histL[[i]]$densityScale <-histL[[i]]$density*(0.5/ densityH[i])
-	maxS[i] <- round(max(sweRate$absRate[sweRate$gcID == i]),1)
-}
-#create box plot quantiles
-quant <- list()
-for(i in 1:5){
-	quant[[i]] <- quantile(sweRate$absRate[sweRate$gcID == i], probs=c(0.025,0.25,0.50,0.75,0.975))
-}
-
-#break up names 
-nameSplit1 <- character(0)
-nameSplit2 <- character(0)
-for(i in 1:5){
-	nameSplit1[i] <- strsplit(intercept$name2[i], " ")[[1]][1]
-	nameSplit2[i] <- strsplit(intercept$name2[i], " ")[[1]][2]
-}
-nameSplit2 <- ifelse(is.na(nameSplit2), " ", nameSplit2)
-
-#plotting
-xseq <- seq(1,10, by=2)
-plotOrder <- c(1,4,2,3,5)
-
-wd1 <- 18
-hd1 <- 18
-yl <- 0
-yh <- 3.1
-
-png(paste0(plotDI,"\\violin.png"), width = 20, height = 20, units = "cm", res=300)
-	layout(matrix(c(1),ncol=1, byrow=TRUE), width=lcm(wd1),height=lcm(hd1))
-	plot(c(0,1),c(0,1), xlim=c(0,12), ylim=c(yl,yh), axes=FALSE, type="n", xlab = " ", ylab= " ",
-		xaxs="i", yaxs="i")
-		for(j in 1:5){
-		i <- plotOrder[j]
-			polygon(c(xseq[j]+(0-histL[[i]]$densityScale[histL[[i]]$mids<=maxS[i]]), 
-						rev(xseq[j]+(histL[[i]]$densityScale[histL[[i]]$mids<=maxS[i]]))),
-					c(histL[[i]]$mids[histL[[i]]$mids<=maxS[i]],
-						rev(histL[[i]]$mids[histL[[i]]$mids<=maxS[i]])), 
-					lwd=0.75,  col=vegePallete3[i])
-			arrows(	xseq[j],quant[[i]][1], xseq[j],quant[[i]][5], code=0, lwd=1)
-			polygon(c(xseq[j]-0.15,xseq[j]-0.15,xseq[j]+0.15,xseq[j]+0.15),
-				c(quant[[i]][2],quant[[i]][4],quant[[i]][4],quant[[i]][2]),
-					border=NA, col=rgb(0.25,0.25,0.25,0.5))
-					
-			arrows(	xseq[j]-.15,quant[[i]][3], xseq[j]+.15,quant[[i]][3], code=0, lwd=4, col=vegePallete[i])		
-		}	
-		
-	axis(1, xseq, rep(" ",length(xseq)),lwd.ticks=tlw)
-	axis(2, seq(0,3.1, by=.2),rep(" ",length(seq(0,3.1, by=.2))),lwd.ticks=tlw)
-	mtext(paste(nameSplit1[plotOrder]),at=xseq,side=1,line=1,cex=1)
-	mtext(paste(nameSplit2[plotOrder]),at=xseq,side=1,line=2,cex=1)
-	mtext(seq(0,3.1, by=.2), at=seq(0,3.1, by=.2), side=2, las=2, line=1, cex=1)
-	mtext(expression(paste("Melt rate (cm day"^"-1",")")), side=2, line=3, cex=1.5)
-	mtext("Landcover type", side=1, line=3, cex=1.5)
-dev.off()
-
 
 
 
