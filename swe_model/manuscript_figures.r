@@ -530,10 +530,27 @@ nameSplit2 <- ifelse(is.na(nameSplit2), " ", nameSplit2)
 
 
 
+#get quantiles for CV
 
+sweCVDF <- join(MapMelt,cellDF, by="cell",type="inner")
 
+quantC <- list()
+for(i in 1:5){
+	quantC[[i]] <- quantile(sweCVDF$CV[sweCVDF$gcID == i], probs=c(0.025,0.25,0.50,0.75,0.975),na.rm=TRUE)
+}
+histLC <- list()
+densityHC <- numeric(0)
+maxSC <- numeric(0)
 
+for(i in 1:5){
 
+	histLC[[i]] <- hist(sweCVDF$CV[sweCVDF$gcID == i], breaks=seq(0,1, by=0.05))
+	#get max and min
+
+	densityHC[i] <- max(histLC[[i]]$density)
+	histLC[[i]]$densityScale <-histLC[[i]]$density*(0.5/ densityHC[i])
+	maxSC[i] <- round(max(sweCVDF$CV[sweCVDF$gcID == i], na.rm=TRUE),1)
+}
 
 ###############################################
 ### map results                             ###
@@ -582,8 +599,8 @@ OnsetBr <- round(seq(45,155, length.out=9))
 sweBr <- round(seq(0.04,2, length.out=9),2) 
 
 				
-hd <- 18
-wd1 <- 18
+hd <- 20
+wd1 <- 20
 wd2 <- 8
 water <- rgb(149/255,218/255,255/255,.3)
 land <- rgb(250,230,190, max=255)
@@ -600,10 +617,12 @@ tlw <- 2
 xseqV <- seq(1,10, by=2)
 plotOrderV <- c(1,4,2,3,5)
 
-wd1V <- 18
+wd1V <- 20
 
 ylV <- 0
-yhV <- 3.1		
+yhV <- 3.1	
+ylVC <- 0
+yhVC <- 1		
 				
 png(paste0(plotDI,"\\maps_swe_p1.png"), width = 20, height = 20, units = "in", res=300)
 	layout(matrix(seq(1,6),ncol=3, byrow=TRUE), width=c(lcm(wd1),lcm(wd2),lcm(wd1V),lcm(wd2)),height=c(lcm(hd),lcm(hd)))	
@@ -648,7 +667,7 @@ png(paste0(plotDI,"\\maps_swe_p1.png"), width = 20, height = 20, units = "in", r
 				c(quant[[i]][2],quant[[i]][4],quant[[i]][4],quant[[i]][2]),
 					border=NA, col=rgb(0.25,0.25,0.25,0.5))
 					
-			arrows( xseqV[j],quant[[i]][1], xseqV[j],quant[[i]][5],code=0, lwd=4, col=vegePallete[i])		
+			arrows( xseqV[j]-0.15,quant[[i]][3], xseqV[j]+0.15,quant[[i]][3],code=0, lwd=4, col=vegePallete[i])	
 		}	
 		
 	axis(1, xseqV, rep(" ",length(xseqV)),lwd.ticks=tlw)
@@ -683,29 +702,29 @@ png(paste0(plotDI,"\\maps_swe_p1.png"), width = 20, height = 20, units = "in", r
 			col=SDPallete[i],border=NA)
 	}
 	axis(4,sweSDBr/sweSDBr[length(sweSDBr)],sweSDBr,cex.axis=cxa,las=2)		
-		plot(c(0,1),c(0,1), xlim=c(0,12), ylim=c(ylV,yhV), axes=FALSE, type="n", xlab = " ", ylab= " ",
+		plot(c(0,1),c(0,1), xlim=c(0,12), ylim=c(ylVC,yhVC), axes=FALSE, type="n", xlab = " ", ylab= " ",
 		xaxs="i", yaxs="i")
 		for(j in 1:5){
 		i <- plotOrderV[j]
-			polygon(c(xseqV[j]+(0-histL[[i]]$densityScale[histL[[i]]$mids<=maxS[i]]), 
-						rev(xseqV[j]+(histL[[i]]$densityScale[histL[[i]]$mids<=maxS[i]]))),
-					c(histL[[i]]$mids[histL[[i]]$mids<=maxS[i]],
-						rev(histL[[i]]$mids[histL[[i]]$mids<=maxS[i]])), 
+			polygon(c(xseqV[j]+(0-histLC[[i]]$densityScale[histLC[[i]]$mids<=maxSC[i]]), 
+						rev(xseqV[j]+(histLC[[i]]$densityScale[histLC[[i]]$mids<=maxSC[i]]))),
+					c(histLC[[i]]$mids[histLC[[i]]$mids<=maxSC[i]],
+						rev(histLC[[i]]$mids[histLC[[i]]$mids<=maxSC[i]])), 
 					lwd=0.75,  col=vegePallete3[i])
-			arrows(	xseqV[j],quant[[i]][1], xseqV[j],quant[[i]][5], code=0, lwd=1)
+			arrows(	xseqV[j],quantC[[i]][1], xseqV[j],quantC[[i]][5], code=0, lwd=1)
 			polygon(c(xseqV[j]-0.15,xseqV[j]-0.15,xseqV[j]+0.15,xseqV[j]+0.15),
-				c(quant[[i]][2],quant[[i]][4],quant[[i]][4],quant[[i]][2]),
+				c(quantC[[i]][2],quantC[[i]][4],quantC[[i]][4],quantC[[i]][2]),
 					border=NA, col=rgb(0.25,0.25,0.25,0.5))
 					
-			arrows( xseqV[j],quant[[i]][1], xseqV[j],quant[[i]][5],code=0, lwd=4, col=vegePallete[i])		
+			arrows( xseqV[j]-0.15,quantC[[i]][3], xseqV[j]+0.15,quantC[[i]][3],code=0, lwd=4, col=vegePallete[i])		
 		}	
 		
 	axis(1, xseqV, rep(" ",length(xseqV)),lwd.ticks=tlw)
-	axis(2, seq(0,3.1, by=.2),rep(" ",length(seq(0,3.1, by=.2))),lwd.ticks=tlw)
+	axis(2, seq(0,1, by=.2),rep(" ",length(seq(0,1, by=.2))),lwd.ticks=tlw)
 	mtext(paste(nameSplit1[plotOrderV]),at=xseqV,side=1,line=1,cex=1)
 	mtext(paste(nameSplit2[plotOrderV]),at=xseqV,side=1,line=2,cex=1)
-	mtext(seq(0,3.1, by=.2), at=seq(0,3.1, by=.2), side=2, las=2, line=1, cex=1)
-	mtext(expression(paste("Melt rate (cm day"^"-1",")")), side=2, line=3, cex=1.5)
+	mtext(seq(0,1, by=.2), at=seq(0,1, by=.2), side=2, las=2, line=1, cex=1)
+	mtext(expression(paste("Melt rate CV")), side=2, line=3, cex=1.5)
 	mtext("Landcover type", side=1, line=3, cex=1.5)
 	
 dev.off()	
