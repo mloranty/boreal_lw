@@ -21,6 +21,7 @@ library(gdalUtils)
 library(sp)
 library(maps)
 library(rgeos)
+library(BAMMtools)
 ###############################################
 ### set up file paths                       ###
 ###############################################
@@ -557,32 +558,6 @@ for(i in 1:5){
 ###############################################
 
 
-swemaxPallete <- c(rgb(247,252,253,max=255),
-				rgb(224,236,244,max=255),
-				rgb(158,188,218,max=255),
-				rgb(140,150,198,max=255),
-				rgb(140,107,177,max=255),
-				rgb(136,65,157,max=255),
-				rgb(129,15,124,max=255),
-				rgb(77,0,75,max=255))
-				
-SDPallete <- c(	rgb(255,245,240,max=255),
-				rgb(254,224,210,max=255),
-				rgb(252,187,161,max=255),
-				rgb(252,146,114,max=255),
-				rgb(251,106,74,max=255),
-				rgb(239,59,44,max=255),
-				rgb(203,24,29,max=255),
-				rgb(153,0,13,max=255))
-				
-OnsetPallete <- c(rgb(255,247,251,max=255),
-					rgb(236,226,240,max=255),
-					rgb(208,209,230,max=255),
-					rgb(166,189,219,max=255),
-					rgb(103,169,207,max=255),
-					rgb(54,144,192,max=255),
-					rgb(2,129,138,max=255),
-					rgb(1,100,80,max=255))
 
 swePallete <- rev(c(rgb(178,24,43,max=255),
 				rgb(214,96,77,max=255),
@@ -592,11 +567,15 @@ swePallete <- rev(c(rgb(178,24,43,max=255),
 				rgb(146,197,222,max=255),
 				rgb(67,147,195,max=255),
 				rgb(33,102,172,max=255)))
-				
+#set up quantile breaks				
+sweBr <- round(quantile(getValues(rasterMeltMean)	, prob=seq(0,1,length.out=9),na.rm=TRUE),2)			
+	test <- getJenksBreaks(getValues(rasterMeltMean),9)
+
+	
 sweSDBr <- round(seq(0,0.95, length.out=9),2)
 sweMaxBr <- c(0.01,0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5)				
 OnsetBr <- round(seq(45,155, length.out=9))
-sweBr <- round(seq(0.04,2, length.out=9),2) 
+ 
 
 				
 hd <- 22
@@ -652,13 +631,13 @@ png(paste0(plotDI,"\\maps_swe_p1.png"), width = 25, height = 20, units = "in", r
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
 	for(i in 1:(length(sweBr)-1)){
 		polygon(c(0,0,1,1), 
-			c(sweBr[i]/sweBr[length(sweBr)],
-			sweBr[i+1]/sweBr[length(sweBr)],
-			sweBr[i+1]/sweBr[length(sweBr)],
-			sweBr[i]/sweBr[length(sweBr)]),
+			c(i/length(sweBr),
+			(i+1)/length(sweBr),
+			(i+1)/length(sweBr),
+			i/length(sweBr)),
 			col=swePallete[i],border=NA)
 	}
-	axis(4,sweBr/sweBr[length(sweBr)],sweBr,cex.axis=cxa,las=2)	
+	axis(4,seq(1,length(sweBr))/length(sweBr),sweBr,cex.axis=cxa,las=2)	
 			
 		plot(c(0,1),c(0,1), xlim=c(0,12), ylim=c(ylV,yhV), axes=FALSE, type="n", xlab = " ", ylab= " ",
 		xaxs="i", yaxs="i")
@@ -695,7 +674,7 @@ png(paste0(plotDI,"\\maps_swe_p1.png"), width = 25, height = 20, units = "in", r
 	#continent color
 	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
 	#plot points
-	image(rasterMeltCV,breaks=sweSDBr, col=SDPallete, add=TRUE)
+	image(rasterMeltCV,breaks=sweSDBr, col=swePallete, add=TRUE)
 	
 		plot(PolyBlock, col="white",border="white", add=TRUE)
 		text(-4150000,4150000,"C",cex=mx)
@@ -707,7 +686,7 @@ png(paste0(plotDI,"\\maps_swe_p1.png"), width = 25, height = 20, units = "in", r
 			c(sweSDBr[i]/sweSDBr[length(sweSDBr)],
 			sweSDBr[i+1]/sweSDBr[length(sweSDBr)],
 			sweSDBr[i+1]/sweSDBr[length(sweSDBr)],sweSDBr[i]/sweSDBr[length(sweSDBr)]),
-			col=SDPallete[i],border=NA)
+			col=swePallete[i],border=NA)
 	}
 	axis(4,sweSDBr/sweSDBr[length(sweSDBr)],sweSDBr,cex.axis=cxa,las=2)		
 	par(mai=c(0.5,0.5,0.5,0.5))
