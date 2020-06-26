@@ -553,6 +553,40 @@ for(i in 1:5){
 	maxSC[i] <- round(max(sweCVDF$CV[sweCVDF$gcID == i], na.rm=TRUE),1)
 }
 
+#average melt period temperature for each cell
+sweMeltTall <- join(cellSwe, cellDF, by="cell", type="left")
+sweMeltTave <- aggregate(sweMeltTall$tair, by=list(sweMeltTall$cell), FUN="mean", na.rm=TRUE)
+colnames(sweMeltTave) <- c("cell", "tairAve")
+
+#join back to the swe cell id allowing others to turn to NA
+
+MapTemp <- join(sweCellDF,sweMeltTave, by="cell",type="left")
+
+
+
+#set into raster
+
+rasterMeltTemp <- setValues(swe,MapTemp$tairAve)
+
+
+#get quantiles for air temp
+quantT <- list()
+for(i in 1:5){
+	quantT[[i]] <- quantile(sweMeltTall$tair[sweMeltTall$gcID == i], probs=c(0.025,0.25,0.50,0.75,0.975),na.rm=TRUE)
+}
+histLT <- list()
+densityHT <- numeric(0)
+maxST <- numeric(0)
+
+for(i in 1:5){
+
+	histLT[[i]] <- hist(sweMeltTall$tair[sweMeltTall$gcID == i], breaks=seq(-9,15, by=0.5))
+	#get max and min
+
+	densityHT[i] <- max(histLT[[i]]$density)
+	histLT[[i]]$densityScale <-histLT[[i]]$density*(0.5/ densityHT[i])
+	maxST[i] <- round(max(sweMeltTall$tair[sweMeltTall$gcID == i], na.rm=TRUE),1)
+}
 ###############################################
 ### map results                             ###
 ###############################################
@@ -568,11 +602,13 @@ swePallete <- rev(c(rgb(178,24,43,max=255),
 				rgb(67,147,195,max=255),
 				rgb(33,102,172,max=255)))
 #set up quantile breaks				
-sweBr <- round(quantile(getValues(rasterMeltMean)	, prob=seq(0,1,length.out=9),na.rm=TRUE),2)			
-	test <- getJenksBreaks(getValues(rasterMeltMean),9)
+sweBr <- round(getJenksBreaks(getValues(rasterMeltMean),9),2)			
+	
 
 	
-sweSDBr <- round(seq(0,0.95, length.out=9),2)
+sweSDBr <- round(getJenksBreaks(getValues(rasterMeltCV),9),2)
+meltTBr <- round(getJenksBreaks(getValues(rasterMeltTemp),9),2)
+
 sweMaxBr <- c(0.01,0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5)				
 OnsetBr <- round(seq(45,155, length.out=9))
  
@@ -600,6 +636,8 @@ wd1V <-30
 
 ylV <- 0
 yhV <- 3.1	
+ylT <- -9
+yhT <- 15
 ylVC <- 0
 yhVC <- 1	
 cax <- 1.75	
@@ -608,6 +646,8 @@ lll <- 6
 lllx <- 7
 al1 <- 2
 al2 <- 4
+
+##########Map plots part 1
 				
 png(paste0(plotDI,"\\maps_swe_p1.png"), width = 25, height = 20, units = "in", res=300)
 	layout(matrix(seq(1,6),ncol=3, byrow=TRUE), width=c(lcm(wd1),lcm(wd2),lcm(wd1V)),height=c(lcm(hd),lcm(hd)))	
@@ -683,12 +723,13 @@ png(paste0(plotDI,"\\maps_swe_p1.png"), width = 25, height = 20, units = "in", r
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
 	for(i in 1:(length(sweSDBr)-1)){
 		polygon(c(0,0,1,1), 
-			c(sweSDBr[i]/sweSDBr[length(sweSDBr)],
-			sweSDBr[i+1]/sweSDBr[length(sweSDBr)],
-			sweSDBr[i+1]/sweSDBr[length(sweSDBr)],sweSDBr[i]/sweSDBr[length(sweSDBr)]),
+			c(i/length(sweSDBr),
+			(i+1)/length(sweSDBr),
+			(i+1)/length(sweSDBr),
+			i/length(sweSDBr)),
 			col=swePallete[i],border=NA)
 	}
-	axis(4,sweSDBr/sweSDBr[length(sweSDBr)],sweSDBr,cex.axis=cxa,las=2)		
+	axis(4,seq(1,length(sweSDBr))/length(sweSDBr),sweSDBr,cex.axis=cxa,las=2)		
 	par(mai=c(0.5,0.5,0.5,0.5))
 		plot(c(0,1),c(0,1), xlim=c(0,12), ylim=c(ylVC,yhVC), axes=FALSE, type="n", xlab = " ", ylab= " ",
 		xaxs="i", yaxs="i")
@@ -717,12 +758,13 @@ png(paste0(plotDI,"\\maps_swe_p1.png"), width = 25, height = 20, units = "in", r
 	text(0.5,0.97,"D",cex=mx)
 dev.off()	
 	
-	
-	####seperate
-	
-	
-	### plot 3 swe max ###
-		par(mai=c(.25,.25,.25,.25))
+##########Map plots part 2
+				
+png(paste0(plotDI,"\\maps_swe_p2.png"), width = 25, height = 20, units = "in", res=300)
+	layout(matrix(seq(1,6),ncol=3, byrow=TRUE), width=c(lcm(wd1),lcm(wd2),lcm(wd1V)),height=c(lcm(hd),lcm(hd)))	
+
+	### plot 1 swe ave ###
+	par(mai=c(.5,.5,.5,.5))
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4150000,4150000),ylim=c(-4150000,4150000))
 	#color background
 	polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
@@ -731,19 +773,101 @@ dev.off()
 	#continent color
 	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
 	#plot points
-	image(rasterMaxMean,breaks=sweMaxBr, col=swemaxPallete, add=TRUE)
-	mtext("C",at=4100000,side=2,line=pll, las=2,cex=mx)
-		plot(PolyBlock, col="white",border="white", add=TRUE)
-	### plot 3 swe max ###
-	par(mai=c(0.25,0.25,0.25,2))
-	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
-	for(i in 1:(length(sweMaxBr)-1)){
-		polygon(c(0,0,1,1), 
-			c(sweMaxBr[i]/sweMaxBr[length(sweMaxBr)],sweMaxBr[i+1]/sweMaxBr[length(sweMaxBr)],sweMaxBr[i+1]/sweMaxBr[length(sweMaxBr)],sweMaxBr[i]/sweMaxBr[length(sweMaxBr)]),
-			col=swemaxPallete[i],border=NA)
-	}
-	axis(4,sweMaxBr/sweMaxBr[length(sweMaxBr)],sweMaxBr,cex.axis=cxa,las=2)	
+	image(rasterMeltTemp,breaks=meltTBr, col=swePallete, add=TRUE)
 	
+		plot(PolyBlock, col="white",border="white", add=TRUE)
+		text(-4150000,4150000,"A",cex=mx)
+	### legent plot 1 swe ave ###
+	par(mai=c(0.5,0.5,0.5,2))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
+	for(i in 1:(length(meltTBr)-1)){
+		polygon(c(0,0,1,1), 
+			c(i/length(meltTBr),
+			(i+1)/length(meltTBr),
+			(i+1)/length(meltTBr),
+			i/length(meltTBr)),
+			col=swePallete[i],border=NA)
+	}
+	axis(4,seq(1,length(meltTBr))/length(meltTBr),meltTBr,cex.axis=cxa,las=2)	
+			
+		plot(c(0,1),c(0,1), xlim=c(0,12), ylim=c(ylT,yhT), axes=FALSE, type="n", xlab = " ", ylab= " ",
+		xaxs="i", yaxs="i")
+		for(j in 1:5){
+		i <- plotOrderV[j]
+			polygon(c(xseqV[j]+(0-histLT[[i]]$densityScale[histLT[[i]]$mids<=maxST[i]]), 
+						rev(xseqV[j]+(histLT[[i]]$densityScale[histLT[[i]]$mids<=maxST[i]]))),
+					c(histLT[[i]]$mids[histLT[[i]]$mids<=maxST[i]],
+						rev(histLT[[i]]$mids[histLT[[i]]$mids<=maxST[i]])), 
+					lwd=0.75,  col=vegePallete3[i])
+			arrows(	xseqV[j],quantT[[i]][1], xseqV[j],quantT[[i]][5], code=0, lwd=1)
+			polygon(c(xseqV[j]-0.15,xseqV[j]-0.15,xseqV[j]+0.15,xseqV[j]+0.15),
+				c(quantT[[i]][2],quantT[[i]][4],quantT[[i]][4],quantT[[i]][2]),
+					border=NA, col=rgb(0.25,0.25,0.25,0.5))
+					
+			arrows( xseqV[j]-0.15,quantT[[i]][3], xseqV[j]+0.15,quantT[[i]][3],code=0, lwd=4, col=vegePallete[i])	
+		}	
+		
+	axis(1, xseqV, rep(" ",length(xseqV)),lwd.ticks=tlw)
+	axis(2, seq(-9,15, by=3),rep(" ",length(seq(-9,15, by=3))),lwd.ticks=tlw)
+	mtext(paste(nameSplit1[plotOrderV]),at=xseqV,side=1,line=al1,cex=cax)
+	mtext(paste(nameSplit2[plotOrderV]),at=xseqV,side=1,line=al2,cex=cax)
+	mtext(seq(-9,15, by=3), at=seq(-9,15, by=3), side=2, las=2, line=al1, cex=cax)
+	mtext(expression(paste("Average temperature (",degree,")")), side=2, line=lll, cex=lcx)
+	mtext("Landcover type", side=1, line=lllx, cex=lcx)
+	text(0.5,14.5,"C",cex=mx)
+	### plot 2 swe sd ###
+	par(mai=c(.5,.5,.5,.5))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4150000,4150000),ylim=c(-4150000,4150000))
+	#color background
+	polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
+	#boundaries
+	points(world, type="l", lwd=2, col="grey65")
+	#continent color
+	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
+	#plot points
+	image(rasterMeltCV,breaks=sweSDBr, col=swePallete, add=TRUE)
+	
+		plot(PolyBlock, col="white",border="white", add=TRUE)
+		text(-4150000,4150000,"C",cex=mx)
+	### legent plot 1 swe ave ###
+	par(mai=c(0.5,0.5,0.5,2))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
+	for(i in 1:(length(sweSDBr)-1)){
+		polygon(c(0,0,1,1), 
+			c(i/length(sweSDBr),
+			(i+1)/length(sweSDBr),
+			(i+1)/length(sweSDBr),
+			i/length(sweSDBr)),
+			col=swePallete[i],border=NA)
+	}
+	axis(4,seq(1,length(sweSDBr))/length(sweSDBr),sweSDBr,cex.axis=cxa,las=2)		
+	par(mai=c(0.5,0.5,0.5,0.5))
+		plot(c(0,1),c(0,1), xlim=c(0,12), ylim=c(ylVC,yhVC), axes=FALSE, type="n", xlab = " ", ylab= " ",
+		xaxs="i", yaxs="i")
+		for(j in 1:5){
+		i <- plotOrderV[j]
+			polygon(c(xseqV[j]+(0-histLC[[i]]$densityScale[histLC[[i]]$mids<=maxSC[i]]), 
+						rev(xseqV[j]+(histLC[[i]]$densityScale[histLC[[i]]$mids<=maxSC[i]]))),
+					c(histLC[[i]]$mids[histLC[[i]]$mids<=maxSC[i]],
+						rev(histLC[[i]]$mids[histLC[[i]]$mids<=maxSC[i]])), 
+					lwd=0.75,  col=vegePallete3[i])
+			arrows(	xseqV[j],quantC[[i]][1], xseqV[j],quantC[[i]][5], code=0, lwd=1)
+			polygon(c(xseqV[j]-0.15,xseqV[j]-0.15,xseqV[j]+0.15,xseqV[j]+0.15),
+				c(quantC[[i]][2],quantC[[i]][4],quantC[[i]][4],quantC[[i]][2]),
+					border=NA, col=rgb(0.25,0.25,0.25,0.5))
+					
+			arrows( xseqV[j]-0.15,quantC[[i]][3], xseqV[j]+0.15,quantC[[i]][3],code=0, lwd=4, col=vegePallete[i])		
+		}	
+		
+	axis(1, xseqV, rep(" ",length(xseqV)),lwd.ticks=tlw)
+	axis(2, seq(0,1, by=.2),rep(" ",length(seq(0,1, by=.2))),lwd.ticks=tlw)
+	mtext(paste(nameSplit1[plotOrderV]),at=xseqV,side=1,line=al1,cex=cax)
+	mtext(paste(nameSplit2[plotOrderV]),at=xseqV,side=1,line=al2,cex=cax)
+	mtext(seq(0,1, by=.2), at=seq(0,1, by=.2), side=2, las=2, line=al1, cex=cax)
+	mtext(expression(paste("Melt rate CV")), side=2, line=lll, cex=lcx)
+	mtext("Landcover type", side=1, line=lllx, cex=lcx)
+	text(0.5,0.97,"D",cex=mx)
+dev.off()
 	
 ### plot 4 onset ###
 		par(mai=c(.25,.25,.25,.25))
@@ -775,9 +899,39 @@ dev.off()
 
 
 
+
+
+####################Swe max ##############
+
+	
+	
+	### plot 3 swe max ###
+		par(mai=c(.25,.25,.25,.25))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4150000,4150000),ylim=c(-4150000,4150000))
+	#color background
+	polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
+	#boundaries
+	points(world, type="l", lwd=2, col="grey65")
+	#continent color
+	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
+	#plot points
+	image(rasterMaxMean,breaks=sweMaxBr, col=swemaxPallete, add=TRUE)
+	mtext("C",at=4100000,side=2,line=pll, las=2,cex=mx)
+		plot(PolyBlock, col="white",border="white", add=TRUE)
+	### plot 3 swe max ###
+	par(mai=c(0.25,0.25,0.25,2))
+	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
+	for(i in 1:(length(sweMaxBr)-1)){
+		polygon(c(0,0,1,1), 
+			c(sweMaxBr[i]/sweMaxBr[length(sweMaxBr)],sweMaxBr[i+1]/sweMaxBr[length(sweMaxBr)],sweMaxBr[i+1]/sweMaxBr[length(sweMaxBr)],sweMaxBr[i]/sweMaxBr[length(sweMaxBr)]),
+			col=swemaxPallete[i],border=NA)
+	}
+	axis(4,sweMaxBr/sweMaxBr[length(sweMaxBr)],sweMaxBr,cex.axis=cxa,las=2)	
+	
+
 ################################################################################
 ################################################################################
-############### Figure 2. Plot of regression with melt rate      ############### 
+############### Figure 4. Plot of regression with melt rate      ############### 
 ################################################################################
 ################################################################################
 sweRate
