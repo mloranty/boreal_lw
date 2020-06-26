@@ -599,36 +599,42 @@ OnsetBr <- round(seq(45,155, length.out=9))
 sweBr <- round(seq(0.04,2, length.out=9),2) 
 
 				
-hd <- 20
-wd1 <- 20
+hd <- 22
+wd1 <- 22
 wd2 <- 8
 water <- rgb(149/255,218/255,255/255,.3)
 land <- rgb(250,230,190, max=255)
 #size of panel label
-mx <- 2
+mx <- 4
 #line for panel label
-pll <- .5
+pll <- 2.5
 #size of axis
-cxa <- 2	
+cxa <- 3	
 #size of ticks
-tlw <- 2
+tlw <- 3
 
 #plotting
 xseqV <- seq(1,10, by=2)
 plotOrderV <- c(1,4,2,3,5)
 
-wd1V <- 20
+wd1V <-30
 
 ylV <- 0
 yhV <- 3.1	
 ylVC <- 0
-yhVC <- 1		
+yhVC <- 1	
+cax <- 1.75	
+lcx <- 3
+lll <- 6
+lllx <- 7
+al1 <- 2
+al2 <- 4
 				
-png(paste0(plotDI,"\\maps_swe_p1.png"), width = 20, height = 20, units = "in", res=300)
-	layout(matrix(seq(1,6),ncol=3, byrow=TRUE), width=c(lcm(wd1),lcm(wd2),lcm(wd1V),lcm(wd2)),height=c(lcm(hd),lcm(hd)))	
+png(paste0(plotDI,"\\maps_swe_p1.png"), width = 25, height = 20, units = "in", res=300)
+	layout(matrix(seq(1,6),ncol=3, byrow=TRUE), width=c(lcm(wd1),lcm(wd2),lcm(wd1V)),height=c(lcm(hd),lcm(hd)))	
 
 	### plot 1 swe ave ###
-	par(mai=c(.25,.25,.25,.25))
+	par(mai=c(.5,.5,.5,.5))
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4150000,4150000),ylim=c(-4150000,4150000))
 	#color background
 	polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
@@ -638,10 +644,11 @@ png(paste0(plotDI,"\\maps_swe_p1.png"), width = 20, height = 20, units = "in", r
 	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
 	#plot points
 	image(rasterMeltMean,breaks=sweBr, col=swePallete, add=TRUE)
-	mtext("A",at=4100000,side=2,line=pll, las=2,cex=mx)
+	
 		plot(PolyBlock, col="white",border="white", add=TRUE)
+		text(-4150000,4150000,"A",cex=mx)
 	### legent plot 1 swe ave ###
-	par(mai=c(0.25,0.25,0.25,2))
+	par(mai=c(0.5,0.5,0.5,2))
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
 	for(i in 1:(length(sweBr)-1)){
 		polygon(c(0,0,1,1), 
@@ -672,14 +679,14 @@ png(paste0(plotDI,"\\maps_swe_p1.png"), width = 20, height = 20, units = "in", r
 		
 	axis(1, xseqV, rep(" ",length(xseqV)),lwd.ticks=tlw)
 	axis(2, seq(0,3.1, by=.2),rep(" ",length(seq(0,3.1, by=.2))),lwd.ticks=tlw)
-	mtext(paste(nameSplit1[plotOrderV]),at=xseqV,side=1,line=1,cex=1)
-	mtext(paste(nameSplit2[plotOrderV]),at=xseqV,side=1,line=2,cex=1)
-	mtext(seq(0,3.1, by=.2), at=seq(0,3.1, by=.2), side=2, las=2, line=1, cex=1)
-	mtext(expression(paste("Melt rate (cm day"^"-1",")")), side=2, line=3, cex=1.5)
-	mtext("Landcover type", side=1, line=3, cex=1.5)
-	
+	mtext(paste(nameSplit1[plotOrderV]),at=xseqV,side=1,line=al1,cex=cax)
+	mtext(paste(nameSplit2[plotOrderV]),at=xseqV,side=1,line=al2,cex=cax)
+	mtext(seq(0,3.1, by=.2), at=seq(0,3.1, by=.2), side=2, las=2, line=al1, cex=cax)
+	mtext(expression(paste("Melt rate (cm day"^"-1",")")), side=2, line=lll, cex=lcx)
+	mtext("Landcover type", side=1, line=lllx, cex=lcx)
+	text(0.5,3,"C",cex=mx)
 	### plot 2 swe sd ###
-	par(mai=c(.25,.25,.25,.25))
+	par(mai=c(.5,.5,.5,.5))
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4150000,4150000),ylim=c(-4150000,4150000))
 	#color background
 	polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
@@ -689,10 +696,11 @@ png(paste0(plotDI,"\\maps_swe_p1.png"), width = 20, height = 20, units = "in", r
 	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
 	#plot points
 	image(rasterMeltCV,breaks=sweSDBr, col=SDPallete, add=TRUE)
-	mtext("B",at=4100000,side=2,line=pll, las=2,cex=mx)
+	
 		plot(PolyBlock, col="white",border="white", add=TRUE)
+		text(-4150000,4150000,"C",cex=mx)
 	### legent plot 1 swe ave ###
-	par(mai=c(0.25,0.25,0.25,2))
+	par(mai=c(0.5,0.5,0.5,2))
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
 	for(i in 1:(length(sweSDBr)-1)){
 		polygon(c(0,0,1,1), 
@@ -702,6 +710,7 @@ png(paste0(plotDI,"\\maps_swe_p1.png"), width = 20, height = 20, units = "in", r
 			col=SDPallete[i],border=NA)
 	}
 	axis(4,sweSDBr/sweSDBr[length(sweSDBr)],sweSDBr,cex.axis=cxa,las=2)		
+	par(mai=c(0.5,0.5,0.5,0.5))
 		plot(c(0,1),c(0,1), xlim=c(0,12), ylim=c(ylVC,yhVC), axes=FALSE, type="n", xlab = " ", ylab= " ",
 		xaxs="i", yaxs="i")
 		for(j in 1:5){
@@ -721,12 +730,12 @@ png(paste0(plotDI,"\\maps_swe_p1.png"), width = 20, height = 20, units = "in", r
 		
 	axis(1, xseqV, rep(" ",length(xseqV)),lwd.ticks=tlw)
 	axis(2, seq(0,1, by=.2),rep(" ",length(seq(0,1, by=.2))),lwd.ticks=tlw)
-	mtext(paste(nameSplit1[plotOrderV]),at=xseqV,side=1,line=1,cex=1)
-	mtext(paste(nameSplit2[plotOrderV]),at=xseqV,side=1,line=2,cex=1)
-	mtext(seq(0,1, by=.2), at=seq(0,1, by=.2), side=2, las=2, line=1, cex=1)
-	mtext(expression(paste("Melt rate CV")), side=2, line=3, cex=1.5)
-	mtext("Landcover type", side=1, line=3, cex=1.5)
-	
+	mtext(paste(nameSplit1[plotOrderV]),at=xseqV,side=1,line=al1,cex=cax)
+	mtext(paste(nameSplit2[plotOrderV]),at=xseqV,side=1,line=al2,cex=cax)
+	mtext(seq(0,1, by=.2), at=seq(0,1, by=.2), side=2, las=2, line=al1, cex=cax)
+	mtext(expression(paste("Melt rate CV")), side=2, line=lll, cex=lcx)
+	mtext("Landcover type", side=1, line=lllx, cex=lcx)
+	text(0.5,0.97,"D",cex=mx)
 dev.off()	
 	
 	
