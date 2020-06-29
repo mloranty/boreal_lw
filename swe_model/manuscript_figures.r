@@ -600,7 +600,7 @@ maxSO <- numeric(0)
 
 for(i in 1:5){
 
-	histLO[[i]] <- hist(sweRate$meltStart[sweRate$gcID == i], breaks=seq(32,168, by=2))
+	histLO[[i]] <- hist(sweRate$meltStart[sweRate$gcID == i], breaks=seq(32,168, by=4))
 	#get max and min
 
 	densityHO[i] <- max(histLO[[i]]$density)
@@ -725,7 +725,7 @@ png(paste0(plotDI,"\\maps_swe_p1.png"), width = 25, height = 20, units = "in", r
 	mtext(seq(0,3.1, by=.2), at=seq(0,3.1, by=.2), side=2, las=2, line=al1, cex=cax)
 	mtext(expression(paste("Melt rate (cm day"^"-1",")")), side=2, line=lll, cex=lcx)
 	mtext("Landcover type", side=1, line=lllx, cex=lcx)
-	text(0.5,3,"C",cex=mx)
+	text(0.5,3,"B",cex=mx)
 	### plot 2 swe sd ###
 	par(mai=c(.5,.5,.5,.5))
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4150000,4150000),ylim=c(-4150000,4150000))
@@ -834,9 +834,9 @@ png(paste0(plotDI,"\\maps_swe_p2.png"), width = 25, height = 20, units = "in", r
 	mtext(paste(nameSplit1[plotOrderV]),at=xseqV,side=1,line=al1,cex=cax)
 	mtext(paste(nameSplit2[plotOrderV]),at=xseqV,side=1,line=al2,cex=cax)
 	mtext(seq(-9,15, by=3), at=seq(-9,15, by=3), side=2, las=2, line=al1, cex=cax)
-	mtext(expression(paste("Average temperature (",degree,")")), side=2, line=lll, cex=lcx)
+	mtext(expression(paste("Average temperature (",degree,"C )")), side=2, line=lll, cex=lcx)
 	mtext("Landcover type", side=1, line=lllx, cex=lcx)
-	text(0.5,14.5,"C",cex=mx)
+	text(0.5,14.5,"B",cex=mx)
 	### plot 2 swe sd ###
 	par(mai=c(.5,.5,.5,.5))
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4150000,4150000),ylim=c(-4150000,4150000))
@@ -924,33 +924,12 @@ dev.off()
 
 
 ####################Swe max ##############
-
+#swe max and melt onset  relationship
 	
-	
-	### plot 3 swe max ###
-		par(mai=c(.25,.25,.25,.25))
-	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4150000,4150000),ylim=c(-4150000,4150000))
-	#color background
-	polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
-	#boundaries
-	points(world, type="l", lwd=2, col="grey65")
-	#continent color
-	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
-	#plot points
-	image(rasterMaxMean,breaks=sweMaxBr, col=swemaxPallete, add=TRUE)
-	mtext("C",at=4100000,side=2,line=pll, las=2,cex=mx)
-		plot(PolyBlock, col="white",border="white", add=TRUE)
-	### plot 3 swe max ###
-	par(mai=c(0.25,0.25,0.25,2))
-	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
-	for(i in 1:(length(sweMaxBr)-1)){
-		polygon(c(0,0,1,1), 
-			c(sweMaxBr[i]/sweMaxBr[length(sweMaxBr)],sweMaxBr[i+1]/sweMaxBr[length(sweMaxBr)],sweMaxBr[i+1]/sweMaxBr[length(sweMaxBr)],sweMaxBr[i]/sweMaxBr[length(sweMaxBr)]),
-			col=swemaxPallete[i],border=NA)
-	}
-	axis(4,sweMaxBr/sweMaxBr[length(sweMaxBr)],sweMaxBr,cex.axis=cxa,las=2)	
-	
-
+plot(~sweRate$tair+sweRate$sweMax+sweRate$Lat+sweRate$meltStart)
+cov.df <- data.frame(tair= sweRate$tair, sweMax = sweRate$sweMax, Lat=sweRate$Lat,
+			meltStart=sweRate$meltStart)
+cor(cov.df)			
 ################################################################################
 ################################################################################
 ############### Figure 4. Plot of regression with melt rate      ############### 
