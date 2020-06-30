@@ -901,7 +901,32 @@ dev.off()
 plot(~sweRate$tair+sweRate$sweMax+sweRate$Lat+sweRate$meltStart)
 cov.df <- data.frame(tair= sweRate$tair, sweMax = sweRate$sweMax, Lat=sweRate$Lat,
 			meltStart=sweRate$meltStart)
-cor(cov.df)			
+cor(cov.df)		
+
+#output quantiles
+tempQT <- ldply(quantT)
+tempQT$gcID <- seq(1,5)
+tempQT$type <- rep("averageTemperature", 5)
+
+tempQO <- ldply(quantO)
+tempQO$gcID <- seq(1,5)
+tempQO$type <- rep("onsetDay", 5)
+
+tempQC <- ldply(quantC)
+tempQC$gcID <- seq(1,5)
+tempQC$type <- rep("maxSwe", 5)
+
+tempQM <- ldply(quant)
+tempQM$gcID <- seq(1,5)
+tempQM$type <- rep("meltRate", 5)
+
+quantAll <- rbind(tempQT,tempQO,tempQC,tempQM)
+
+
+quantAll2 <- join(quantAll,IDSglc, by="gcID", type="left")
+
+write.table(quantAll2, paste0(plotDI,"\\quantiles_for_reference.csv"), sep=",",row.names=FALSE)
+	
 ################################################################################
 ################################################################################
 ############### Figure 4. Plot of regression with melt rate      ############### 
