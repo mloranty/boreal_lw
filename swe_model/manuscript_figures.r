@@ -334,7 +334,7 @@ sweBr <-c(0.01,0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5)
 #size of axis
 cxa <- 1.75
 
-png(paste0(plotDI,"\\data_maps.png"), width = 17, height = 7, units = "in", res=300)
+png(paste0(plotDI,"\\figure1_data_maps.png"), width = 17, height = 7, units = "in", res=300)
 	layout(matrix(seq(1,4),ncol=4), width=c(lcm(wd1),lcm(wd2),lcm(wd1),lcm(wd2)),height=lcm(hd))
 	#set up empty plot
 	### plot 1 vegetation type ###
