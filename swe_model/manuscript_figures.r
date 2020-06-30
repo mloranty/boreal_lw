@@ -28,7 +28,7 @@ library(BAMMtools)
 swepath <- "z:\\data_repo\\gis_data"
 
 modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run19"
-plotDI <- "c:\\Users\\hkropp\\Google Drive\\Picker17\\figures"
+plotDI <- "z:\\projects\\boreal_swe_depletion\\final_figures"
 
 ###############################################
 ### define color palette                    ###
@@ -537,7 +537,7 @@ sweCVDF <- join(MapMelt,cellDF, by="cell",type="inner")
 
 quantC <- list()
 for(i in 1:5){
-	quantC[[i]] <- quantile(sweCVDF$CV[sweCVDF$gcID == i], probs=c(0.025,0.25,0.50,0.75,0.975),na.rm=TRUE)
+	quantC[[i]] <- quantile(sweRate$sweMax[sweRate$gcID == i], probs=c(0.025,0.25,0.50,0.75,0.975),na.rm=TRUE)
 }
 histLC <- list()
 densityHC <- numeric(0)
@@ -545,12 +545,12 @@ maxSC <- numeric(0)
 
 for(i in 1:5){
 
-	histLC[[i]] <- hist(sweCVDF$CV[sweCVDF$gcID == i], breaks=seq(0,1, by=0.05))
+	histLC[[i]] <- hist(sweRate$sweMax[sweRate$gcID == i], breaks=seq(0,1, by=0.05))
 	#get max and min
 
 	densityHC[i] <- max(histLC[[i]]$density)
 	histLC[[i]]$densityScale <-histLC[[i]]$density*(0.5/ densityHC[i])
-	maxSC[i] <- round(max(sweCVDF$CV[sweCVDF$gcID == i], na.rm=TRUE),1)
+	maxSC[i] <- round(max(sweRate$sweMax[sweRate$gcID == i], na.rm=TRUE),1)
 }
 
 #average melt period temperature for each cell
@@ -629,8 +629,7 @@ sweBr <- round(getJenksBreaks(getValues(rasterMeltMean),9),2)
 sweSDBr <- round(getJenksBreaks(getValues(rasterMeltCV),9),2)
 meltTBr <- round(getJenksBreaks(getValues(rasterMeltTemp),9),2)
 OnsetBr <- round(getJenksBreaks(getValues(rasterOnset),9),0)
-sweMaxBr <- c(0.01,0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5)				
-
+sweMaxBr <- round(getJenksBreaks(getValues(rasterMaxMean),9),2)
  
 
 				
@@ -659,7 +658,7 @@ yhV <- 3.1
 ylT <- -9
 yhT <- 15
 ylVC <- 0
-yhVC <- 1
+yhVC <- 0.5
 ylO <- 30
 yhO <- 170
 cax <- 1.75	
@@ -671,7 +670,7 @@ al2 <- 4
 
 ##########Map plots part 1
 				
-png(paste0(plotDI,"\\maps_swe_p1.png"), width = 25, height = 20, units = "in", res=300)
+png(paste0(plotDI,"\\figure2_maps_swe_p1.png"), width = 25, height = 20, units = "in", res=300)
 	layout(matrix(seq(1,6),ncol=3, byrow=TRUE), width=c(lcm(wd1),lcm(wd2),lcm(wd1V)),height=c(lcm(hd),lcm(hd)))	
 
 	### plot 1 swe ave ###
@@ -736,22 +735,22 @@ png(paste0(plotDI,"\\maps_swe_p1.png"), width = 25, height = 20, units = "in", r
 	#continent color
 	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
 	#plot points
-	image(rasterMeltCV,breaks=sweSDBr, col=swePallete, add=TRUE)
+	image(rasterMaxMean,breaks=sweMaxBr, col=swePallete, add=TRUE)
 	
 		plot(PolyBlock, col="white",border="white", add=TRUE)
 		text(-4150000,4150000,"C",cex=mx)
 	### legent plot 1 swe ave ###
 	par(mai=c(0.5,0.5,0.5,2))
 	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
-	for(i in 1:(length(sweSDBr)-1)){
+	for(i in 1:(length(sweMaxBr)-1)){
 		polygon(c(0,0,1,1), 
-			c(i/length(sweSDBr),
-			(i+1)/length(sweSDBr),
-			(i+1)/length(sweSDBr),
-			i/length(sweSDBr)),
+			c(i/length(sweMaxBr),
+			(i+1)/length(sweMaxBr),
+			(i+1)/length(sweMaxBr),
+			i/length(sweMaxBr)),
 			col=swePallete[i],border=NA)
 	}
-	axis(4,seq(1,length(sweSDBr))/length(sweSDBr),sweSDBr,cex.axis=cxa,las=2)		
+	axis(4,seq(1,length(sweMaxBr))/length(sweMaxBr),sweMaxBr,cex.axis=cxa,las=2)		
 	par(mai=c(0.5,0.5,0.5,0.5))
 		plot(c(0,1),c(0,1), xlim=c(0,12), ylim=c(ylVC,yhVC), axes=FALSE, type="n", xlab = " ", ylab= " ",
 		xaxs="i", yaxs="i")
@@ -771,18 +770,18 @@ png(paste0(plotDI,"\\maps_swe_p1.png"), width = 25, height = 20, units = "in", r
 		}	
 		
 	axis(1, xseqV, rep(" ",length(xseqV)),lwd.ticks=tlw)
-	axis(2, seq(0,1, by=.2),rep(" ",length(seq(0,1, by=.2))),lwd.ticks=tlw)
+	axis(2, seq(0,.5, by=.1),rep(" ",length(seq(0,.5, by=.1))),lwd.ticks=tlw)
 	mtext(paste(nameSplit1[plotOrderV]),at=xseqV,side=1,line=al1,cex=cax)
 	mtext(paste(nameSplit2[plotOrderV]),at=xseqV,side=1,line=al2,cex=cax)
-	mtext(seq(0,1, by=.2), at=seq(0,1, by=.2), side=2, las=2, line=al1, cex=cax)
-	mtext(expression(paste("Melt rate CV")), side=2, line=lll, cex=lcx)
+	mtext(seq(0,.5, by=.1), at=seq(0,.5, by=.1), side=2, las=2, line=al1, cex=cax)
+	mtext(expression(paste("Maximum SWE (m)")), side=2, line=lll, cex=lcx)
 	mtext("Landcover type", side=1, line=lllx, cex=lcx)
-	text(0.5,0.97,"D",cex=mx)
+	text(0.5,0.47,"D",cex=mx)
 dev.off()	
 	
 ##########Map plots part 2
 				
-png(paste0(plotDI,"\\maps_swe_p2.png"), width = 25, height = 20, units = "in", res=300)
+png(paste0(plotDI,"\\figure3_maps_swe_p2.png"), width = 25, height = 20, units = "in", res=300)
 	layout(matrix(seq(1,6),ncol=3, byrow=TRUE), width=c(lcm(wd1),lcm(wd2),lcm(wd1V)),height=c(lcm(hd),lcm(hd)))	
 
 	### plot 1 swe ave ###
@@ -891,33 +890,6 @@ png(paste0(plotDI,"\\maps_swe_p2.png"), width = 25, height = 20, units = "in", r
 	text(0.5,167,"D",cex=mx)
 dev.off()
 	
-### plot 4 onset ###
-		par(mai=c(.25,.25,.25,.25))
-	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4150000,4150000),ylim=c(-4150000,4150000))
-	#color background
-	polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
-	#boundaries
-	points(world, type="l", lwd=2, col="grey65")
-	#continent color
-	polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
-	#plot points
-	image(rasterOnset,breaks=OnsetBr, col=OnsetPallete, add=TRUE)
-	mtext("D",at=4100000,side=2,line=pll, las=2,cex=mx)
-		plot(PolyBlock, col="white",border="white", add=TRUE)
-	### plot 4 onset ###
-	par(mai=c(0.25,0.25,0.25,2))
-	plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
-	for(i in 1:(length(OnsetBr)-1)){
-		polygon(c(0,0,1,1), 
-			c((OnsetBr[i]-OnsetBr[1])/(OnsetBr[length(OnsetBr)]-OnsetBr[1]),
-			(OnsetBr[i+1]-OnsetBr[1])/(OnsetBr[length(OnsetBr)]-OnsetBr[1]),
-			(OnsetBr[i+1]-OnsetBr[1])/(OnsetBr[length(OnsetBr)]-OnsetBr[1]),
-			(OnsetBr[i]-OnsetBr[1])/(OnsetBr[length(OnsetBr)]-OnsetBr[1])),
-			col=OnsetPallete[i],border=NA)
-	}
-	axis(4,(OnsetBr-OnsetBr[1])/(OnsetBr[length(OnsetBr)]-OnsetBr[1]),OnsetBr,cex.axis=cxa,las=2)	
-	
-dev.off()
 
 
 
