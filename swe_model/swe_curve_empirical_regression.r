@@ -10,7 +10,7 @@ model{
 		rep.b0[i] ~ dnorm(mu.b0[i],tau.b0[glcIDB[i]])
 		#empirical regression
 		mu.b0[i] <- betaB0[glcIDB[i]] + betaB1[glcIDB[i]]*TempAB[i] + betaB2[glcIDB[i]]*(CanopyB[i]-20) +
-						 betaB3[glcIDB[i]]*(sweDay[i]-107) + betaB4[glcIDB[i]]*(Lat[i]-60) +
+						 betaB3[glcIDB[i]]*(sweDay[i]-107) + betaB4[glcIDB[i]]*(SweMax[i]-0.15) +
 						 eps.b[GCyearB[i]] + eps.s[cellID[i]]
 		#posterior predictive loss
 		Sqdiff[i] <- pow(rep.b0[i] - b0[i],2)
@@ -114,7 +114,7 @@ model{
 		mu.Temp[j,i] <- betaB0[i] + betaB1[i]*TempMean[j] 
 		mu.Canopy[j,i] <- betaB0[i] + betaB2[i]*(CanopyMean[j]-20)
 		mu.Onset[j,i] <- betaB0[i] + betaB3[i]*(SdayMean[j]-107)
-		mu.Lat[j,i] <- betaB0[i] + betaB4[i]*(LatMean[i]-60)
+		mu.Max[j,i] <- betaB0[i] + betaB4[i]*(MaxMean[i]-0.15)
 		}
 	}	
 
