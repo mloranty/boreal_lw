@@ -223,9 +223,9 @@ parms <- c("betaB0S","betaB1","betaB2","betaB3","betaB4",
 			
 	
 curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\swe_model\\swe_curve_empirical_regression.r",
-						data=datalist,n.adapt=10000,n.chains=3,inits=inits)
+						data=datalist,n.adapt=20000,n.chains=3,inits=inits)
 						
-curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=50000,thin=25)						
+curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=600000,thin=300)						
 			
 mcmcplot(curve.sample, parms=c(
 			"betaB0S","betaB1","betaB2","betaB3","betaB4",
