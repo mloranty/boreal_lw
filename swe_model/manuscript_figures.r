@@ -954,6 +954,8 @@ xl2 <- floor(range(sweRate$vcf)[1])
 xh2 <-	ceiling(range(sweRate$vcf)[2])
 xl3 <- range(sweRate$meltStart)[1] - 1
 xh3 <-	range(sweRate$meltStart)[2] + 1
+
+###check name of swe Max
 xl4 <- floor(range(sweRate$sweMax)[1])
 xh4 <- ceiling(range(sweRate$sweMax)[2])
 #axis labels
@@ -986,8 +988,8 @@ dlvcf<- numeric(0)
 dhvcf <- numeric(0)
 dlOnset <- numeric(0)
 dhOnset <- numeric(0)
-dlLat <- numeric(0)
-dhLat <- numeric(0)
+dlMax <- numeric(0)
+dhMax <- numeric(0)
 for(i in 1:5){
 	dlTemp[i] <- floor(min(sweRate$tair[sweRate$gcID == i]))
 	dhTemp[i] <- ceiling(max(sweRate$tair[sweRate$gcID == i]))
@@ -995,8 +997,8 @@ for(i in 1:5){
 	dhvcf[i] <- ceiling(max(sweRate$vcf[sweRate$gcID == i]))
 	dlOnset[i] <- floor(min(sweRate$meltStart[sweRate$gcID == i]))
 	dhOnset[i] <- ceiling(max(sweRate$meltStart[sweRate$gcID == i]))
-	dlLat[i] <- floor(min(sweRate$sweMax[sweRate$gcID == i]))
-	dhLat[i] <- ceiling(max(sweRate$sweMax[sweRate$gcID == i]))
+	dlMax[i] <- floor(min(sweRate$sweMax[sweRate$gcID == i]))
+	dhMax[i] <- ceiling(max(sweRate$sweMax[sweRate$gcID == i]))
 	
 	
 }
@@ -1181,7 +1183,7 @@ png(paste0(plotDI,"\\regression.png"), width = 55, height = 32, units = "cm", re
 	plot(c(0,1),c(0,1), type="n", xlim=c(xl4,xh4), ylim=c(yl,yh), xaxs="i",yaxs="i",
 		xlab= " ", ylab=" ", axes=FALSE)
 	for(i in plotTun){
-		points(	sweRate$Lat[sweRate$gcID == i],
+		points(	sweRate$SweMax[sweRate$gcID == i],
 				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete2[i], pch=19)
 	}
 		for(i in plotTun){	
