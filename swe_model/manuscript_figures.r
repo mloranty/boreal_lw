@@ -28,7 +28,7 @@ library(plyr)
 ###############################################
 swepath <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\data"
 
-modDir <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\run20"
+modDir <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\analysis\\run20"
 plotDI <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\final_figures"
 
 ###############################################
@@ -99,8 +99,8 @@ length(which(beta3$sig == 0))
 
 mu.Temp <- datC[datC$parm2 == "mu.Temp[,]",]
 mu.Onset <- datC[datC$parm2 == "mu.Onset[,]",]
-mu.Lat <- datC[datC$parm2 == "mu.Lat[,]",]
-						
+mu.Max <- datC[datC$parm2 == "mu.Max[,]",]
+mu.Canopy <- datC[datC$parm2 == "mu.Canopy[,]",]						
 ###############################################
 ### add in unique id for model              ###
 ###############################################
@@ -208,7 +208,7 @@ sweRate <- cellSwe7
 tempMean <- seq(floor(range(cellSwe7$tair)[1]),ceiling(range(cellSwe7$tair)[2]), length.out=200)
 CanopyMean <- seq(floor(range(cellSwe7$vcf)[1]),ceiling(range(cellSwe7$vcf)[2]), length.out=200)
 SdayMean <- seq(floor(range(cellSwe7$meltStart)[1]),ceiling(range(cellSwe7$meltStart)[2]), length.out=200)
-LatMean <- seq(50,75, length.out=200)
+MaxMean <- seq(0,0.5, length.out=200)
 ################################################################################
 ################################################################################
 ############### Figure 1. Map of data inputs                     ############### 
@@ -937,7 +937,7 @@ sweRate
 #organize model output
 mu.Temp$gcID <- rep(seq(1,5),each=200) 
 mu.Onset$gcID <- rep(seq(1,5),each=200) 
-mu.Lat$gcID <- rep(seq(1,5),each=200) 
+mu.Max$gcID <- rep(seq(1,5),each=200) 
 
 #intercepts
 
@@ -954,8 +954,8 @@ xl2 <- floor(range(sweRate$vcf)[1])
 xh2 <-	ceiling(range(sweRate$vcf)[2])
 xl3 <- range(sweRate$meltStart)[1] - 1
 xh3 <-	range(sweRate$meltStart)[2] + 1
-xl4 <- floor(range(sweRate$Lat)[1])
-xh4 <- ceiling(range(sweRate$Lat)[2])
+xl4 <- floor(range(sweRate$sweMax)[1])
+xh4 <- ceiling(range(sweRate$sweMax)[2])
 #axis labels
 xs1 <- seq(xl1,xh1-3, by=3)
 xs2 <- seq(xl2,xh2, by= 15)
@@ -995,8 +995,8 @@ for(i in 1:5){
 	dhvcf[i] <- ceiling(max(sweRate$vcf[sweRate$gcID == i]))
 	dlOnset[i] <- floor(min(sweRate$meltStart[sweRate$gcID == i]))
 	dhOnset[i] <- ceiling(max(sweRate$meltStart[sweRate$gcID == i]))
-	dlLat[i] <- floor(min(sweRate$Lat[sweRate$gcID == i]))
-	dhLat[i] <- ceiling(max(sweRate$Lat[sweRate$gcID == i]))
+	dlLat[i] <- floor(min(sweRate$sweMax[sweRate$gcID == i]))
+	dhLat[i] <- ceiling(max(sweRate$sweMax[sweRate$gcID == i]))
 	
 	
 }
@@ -1202,7 +1202,7 @@ png(paste0(plotDI,"\\regression.png"), width = 55, height = 32, units = "cm", re
 		
 	axis(1, xs4, rep(" ",length(xs4)), lwd.ticks=tlw)
 	mtext(xs4,at=xs4, line=tll, cex=alc, side=1)
-	mtext("Latitude", side=1,line= xpl, cex=plc)
+	mtext("Maximum SWE", side=1,line= xpl, cex=plc)
 dev.off()
 
 

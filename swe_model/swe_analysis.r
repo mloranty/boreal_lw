@@ -27,9 +27,9 @@ library(loo)
 ###############################################
 ### set up file paths                       ###
 ###############################################
-swepath <- "z:\\data_repo\\gis_data"
+swepath <- "C:\\Users\\hkropp\\Google Drive\\GIS"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run20"
+modDir <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\analysis\\run21"
 
 ###############################################
 ### add in unique id for model              ###
