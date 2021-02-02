@@ -22,13 +22,14 @@ library(sp)
 library(maps)
 library(rgeos)
 library(BAMMtools)
+library(plyr)
 ###############################################
 ### set up file paths                       ###
 ###############################################
-swepath <- "z:\\data_repo\\gis_data"
+swepath <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\data"
 
-modDir <- "z:\\projects\\boreal_swe_depletion\\analysis\\run19"
-plotDI <- "z:\\projects\\boreal_swe_depletion\\final_figures"
+modDir <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\run20"
+plotDI <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\final_figures"
 
 ###############################################
 ### define color palette                    ###

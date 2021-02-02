@@ -15,35 +15,27 @@ library(plyr)
 ###############################################
 ### set up file paths                       ###
 ###############################################
-swepath <- "z:\\data_repo\\gis_data"
+swepath <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\data"
 
 #######################################################
 # data info                                           #
 #######################################################
 
-#linux =1 or windows =2
-runOS <- 2
+
 #linux data directory first option, windows second optioon
-DDdir <- c("/home/hkropp/boreal/data",
-				"z:\\projects\\boreal_swe_depletion\\data")
+DDdir <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\data"
 
 #######################################################
 # read in and filter data                             #
 #######################################################
 #read in data files
-if(runOS==1){
-	dat.swe <- read.csv(paste0(DDdir[1], "/swe_depletion_model_data_vcf_no_topo.csv"))
-	dat.glc <- read.csv(paste0(DDdir[1], "/glc50_table.csv"))
-	whichrep <- read.csv(paste0(DDdir[1],"/rep_subID_new.csv"))
-	datExc <- read.csv(paste0(DDdir[1],"/prob_pix.csv"))
 
-}else{
 
-	dat.swe <- read.csv(paste0(DDdir[2],"\\swe_depletion_model_data_vcf_no_topo.csv"))
-	dat.glc <- read.csv(paste0(DDdir[2], "/glc50_table.csv"))
-	whichrep <- read.csv(paste0(DDdir[2],"\\rep_subID_new.csv"))
-	datExc <- read.csv(paste0(DDdir[2],"\\prob_pix.csv"))
-}
+	dat.swe <- read.csv(paste0(DDdir,"\\swe_depletion_model_data_vcf_no_topo.csv"))
+	dat.glc <- read.csv(paste0(DDdir, "\\glc50_table.csv"))
+	whichrep <- read.csv(paste0(DDdir,"\\rep_subID_new.csv"))
+	datExc <- read.csv(paste0(DDdir,"\\prob_pix.csv"))
+
 
 
 print("finish reading in data")
