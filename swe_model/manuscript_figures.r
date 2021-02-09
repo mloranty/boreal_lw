@@ -26,9 +26,9 @@ library(plyr)
 ###############################################
 ### set up file paths                       ###
 ###############################################
-swepath <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\data"
+swepath <- "C:\\Users\\hkropp\\Google Drive\\GIS\\swe_mudryk_blended"
 
-modDir <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\analysis\\run20"
+modDir <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\analysis\\run21"
 plotDI <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\final_figures"
 
 ###############################################
@@ -79,12 +79,16 @@ beta2 <- datC[datC$parm == "betaB2",]
 beta3 <- datC[datC$parm == "betaB3",] 
 beta4 <- datC[datC$parm == "betaB4",] 
 #add indicator if parameter is significant
+#temp during melt period
 beta1$sig <- ifelse(beta1$X2.5.<0&beta1$X97.5.<0,1,
 						ifelse(beta1$X2.5.>0&beta1$X97.5.>0,1,0))
-						
-						
+#Canopy cover - 20%						
+beta2$sig <- ifelse(beta2$X2.5.<0&beta2$X97.5.<0,1,
+                    ifelse(beta2$X2.5.>0&beta2$X97.5.>0,1,0))						
+#onset doy - 107 doy (middle of time period)				
 beta3$sig <- ifelse(beta3$X2.5.<0&beta3$X97.5.<0,1,
-						ifelse(beta3$X2.5.>0&beta3$X97.5.>0,1,0))					
+						ifelse(beta3$X2.5.>0&beta3$X97.5.>0,1,0))
+#maximum swe value -0.15m
 beta4$sig <- ifelse(beta4$X2.5.<0&beta4$X97.5.<0,1,
 						ifelse(beta4$X2.5.>0&beta4$X97.5.>0,1,0))	
 						
@@ -122,7 +126,7 @@ cellSwe3 <- join(cellSwe2, IDSyears, by="year",type="left")
 # https://epsg.io/6931
 laea <- "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs" 
 
-swe.files <- list.files(pattern =".nc",path =paste0(swepath,"\\swe_mudryk_blended"),full.names=T)
+swe.files <- list.files(pattern =".nc",path =paste0(swepath),full.names=T)
 
 # read one file in to use for reprojecting
 pr <- raster(swe.files[1])
@@ -243,7 +247,7 @@ gcNames <- unique(data.frame(names=sweRate$names, gcID=sweRate$gcID))
 # https://epsg.io/6931
 laea <- "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs" 
 
-swe.files <- list.files(pattern =".nc",path =paste0(swepath,"\\swe_mudryk_blended"),full.names=T)
+swe.files <- list.files(pattern =".nc",path =paste0(swepath),full.names=T)
 
 # read one file in to use for reprojecting
 pr <- raster(swe.files[1])
@@ -384,7 +388,7 @@ png(paste0(plotDI,"\\figure1_data_maps.png"), width = 17, height = 7, units = "i
 			col=treePallete[i],border=NA)
 	}
 	axis(4,canopyBr/canopyBr[length(canopyBr)],canopyBr,cex.axis=cxa,las=2)	
-	
+	mtext("Canopy cover (%)", side=3, line=1, cex=2)
 dev.off()
 
 
