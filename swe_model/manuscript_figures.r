@@ -60,6 +60,7 @@ IDSglc$name2 <- c("Evergreen needleleaf", "Mixed boreal", "Herbaceous","Deciduou
 #read in model output
 datS <- read.csv(paste0(modDir,"\\curve_mod_stats.csv"))
 datQ <- read.csv(paste0(modDir,"\\curve_mod_quant.csv"))
+chain1 <- read.csv(paste0(modDir,"\\chain1_coda.csv"))
 
 #combine data frames
 datC <- cbind(datS,datQ)
@@ -410,21 +411,21 @@ dev.off()
 #get average swe max for each of the cells
 sweMaxDF <- unique(data.frame(cell=sweRate$cell, year=sweRate$year,sweMax=sweRate$sweMax))
 #aggregate by each cell
-sweMaxSumm <- aggregate(sweMaxDF$sweMax, by=list(sweMaxDF$cell), FUN="mean")
+sweMaxSumm <- aggregate(sweMaxDF$sweMax, by=list(sweMaxDF$cell), FUN="mean", na.rm=TRUE)
 colnames(sweMaxSumm) <- c("cell","sweMax")
-sweMaxSumm$sweMaxSD <- aggregate(sweMaxDF$sweMax, by=list(sweMaxDF$cell), FUN="sd")$x
+sweMaxSumm$sweMaxSD <- aggregate(sweMaxDF$sweMax, by=list(sweMaxDF$cell), FUN="sd", na.rm=TRUE)$x
 sweMaxSumm$sweMaxN <- aggregate(sweMaxDF$sweMax, by=list(sweMaxDF$cell), FUN="length")$x
 
 #get average swe max for each of the cells
 onsetDF <- unique(data.frame(cell=sweRate$cell, year=sweRate$year,sweOnset=sweRate$meltStart))
 #aggregate by each cell
-onsetSumm <- aggregate(onsetDF$sweOnset, by=list(onsetDF$cell), FUN="mean")
+onsetSumm <- aggregate(onsetDF$sweOnset, by=list(onsetDF$cell), FUN="mean", na.rm=TRUE)
 colnames(onsetSumm) <- c("cell","sweOnset")
 
 #get average melt rate
-sweMeltSumm <- aggregate(sweRate$absRate, by=list(sweRate$cell), FUN="mean")
+sweMeltSumm <- aggregate(sweRate$absRate, by=list(sweRate$cell), FUN="mean", na.rm=TRUE)
 colnames(sweMeltSumm) <- c("cell","aveMelt")
-sweMeltSumm$CV <- aggregate(sweRate$absRate, by=list(sweRate$cell), FUN="sd")$x/sweMeltSumm$aveMelt
+sweMeltSumm$CV <- aggregate(sweRate$absRate, by=list(sweRate$cell), FUN="sd", na.rm=TRUE)$x/sweMeltSumm$aveMelt
 
 ###############################################
 ### set up information for mapping          ###
@@ -433,7 +434,7 @@ sweMeltSumm$CV <- aggregate(sweRate$absRate, by=list(sweRate$cell), FUN="sd")$x/
 # https://epsg.io/6931
 laea <- "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs" 
 
-swe.files <- list.files(pattern =".nc",path =paste0(swepath,"\\swe_mudryk_blended"),full.names=T)
+swe.files <- list.files(pattern =".nc",path =paste0(swepath),full.names=T)
 
 # read one file in to use for reprojecting
 pr <- raster(swe.files[1])
@@ -961,13 +962,13 @@ xh3 <-	range(sweRate$meltStart)[2] + 1
 
 ###check name of swe Max
 xl4 <- floor(range(sweRate$sweMax)[1])
-xh4 <- ceiling(range(sweRate$sweMax)[2])
+xh4 <- round(range(sweRate$sweMax)[2],1)
 #axis labels
 xs1 <- seq(xl1,xh1-3, by=3)
 xs2 <- seq(xl2,xh2, by= 15)
 xs3 <- seq(60,xh3, by= 30)
 ys <- seq(yl,yh, by = 1)
-xs4 <- seq(xl4,xh4,by=5)
+xs4 <- seq(xl4,xh4,by=0.1)
 
 #width of regression line
 mlw <- 4
@@ -1081,24 +1082,24 @@ png(paste0(plotDI,"\\regression.png"), width = 55, height = 32, units = "cm", re
 		box(which="plot")
 		text(xl3+(.05*(xh3-xl3)), yh-(.05*(yh-yl)), "e", cex=ttx)
 		
-		#latitude trees
+		#max swe trees
 	par(mai=c(0,0,0,0))
 	plot(c(0,1),c(0,1), type="n", xlim=c(xl4,xh4), ylim=c(yl,yh), xaxs="i",yaxs="i",
 		xlab= " ", ylab=" ", axes=FALSE)
 	for(i in plotTree){
-		points(	sweRate$Lat[sweRate$gcID == i],
+		points(	sweRate$sweMax[sweRate$gcID == i],
 				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete2[i], pch=19)
 	}
 		for(i in plotTree){	
 		
-			polygon(c(LatMean[LatMean >= dlLat[i] & LatMean <= dhLat[i]],
-				rev(LatMean[LatMean >= dlLat[i] & LatMean<= dhLat[i]])),
-				c(rep(beta0$X2.5.[i], length(LatMean[LatMean >= dlLat[i] & LatMean<= dhLat[i]])),
-				rep(beta0$X97.5[i], length(LatMean[LatMean >= dlLat[i] & LatMean <= dhLat[i]]))),
+			polygon(c(MaxMean[MaxMean >= dlMax[i] & MaxMean <= dhMax[i]],
+				rev(MaxMean[MaxMean >= dlMax[i] & MaxMean<= dhMax[i]])),
+				c(rep(beta0$X2.5.[i], length(MaxMean[MaxMean >= dlMax[i] & MaxMean<= dhMax[i]])),
+				rep(beta0$X97.5[i], length(MaxMean[MaxMean >= dlMax[i] & MaxMean <= dhMax[i]]))),
 				border=NA, col=vegePallete3[i])
 		
-			points(LatMean[LatMean >= dlLat[i] & LatMean <= dhLat[i]],
-				rep(beta0$Mean[i], length(LatMean[LatMean >= dlLat[i] & LatMean <= dhLat[i]])),
+			points(MaxMean[MaxMean >= MaxMean[i] & MaxMean <= dhMax[i]],
+				rep(beta0$Mean[i], length(MaxMean[MaxMean >= dlMax[i] & MaxMean <= dhMax[i]])),
 				type="l", lwd=mlw, lty=3, col=vegePallete[i])		
 		
 	}
@@ -1187,19 +1188,19 @@ png(paste0(plotDI,"\\regression.png"), width = 55, height = 32, units = "cm", re
 	plot(c(0,1),c(0,1), type="n", xlim=c(xl4,xh4), ylim=c(yl,yh), xaxs="i",yaxs="i",
 		xlab= " ", ylab=" ", axes=FALSE)
 	for(i in plotTun){
-		points(	sweRate$SweMax[sweRate$gcID == i],
+		points(	sweRate$sweMax[sweRate$gcID == i],
 				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete2[i], pch=19)
 	}
 		for(i in plotTun){	
 
-			polygon(c(LatMean[LatMean >= dlLat[i] & LatMean <= dhLat[i]],
-				rev(LatMean[LatMean >= dlLat[i] & LatMean<= dhLat[i]])),
-				c(rep(beta0$X2.5.[i], length(LatMean[LatMean >= dlLat[i] & LatMean<= dhLat[i]])),
-				rep(beta0$X97.5[i], length(LatMean[LatMean >= dlLat[i] & LatMean <= dhLat[i]]))),
+			polygon(c(MaxMean[MaxMean >= dlMax[i] & MaxMean <= dhMax[i]],
+				rev(MaxMean[MaxMean >= dlMax[i] & MaxMean<= dhMax[i]])),
+				c(mu.Max$X2.5.[mu.Max$gcID == i],
+				  rev(mu.Max$X97.5[mu.Max$gcID == i ])),
 				border=NA, col=vegePallete3[i])
-		
-			points(LatMean[LatMean >= dlLat[i] & LatMean <= dhLat[i]],
-				rep(beta0$Mean[i], length(LatMean[LatMean >= dlLat[i] & LatMean <= dhLat[i]])),
+				
+			points(MaxMean[MaxMean >= dlMax[i] & MaxMean <= dhMax[i]],
+				rep(beta0$Mean[i], length(MaxMean[MaxMean >= dlMax[i] & MaxMean <= dhMax[i]])),
 				type="l", lwd=mlw, lty=3, col=vegePallete[i])		
 				
 	}

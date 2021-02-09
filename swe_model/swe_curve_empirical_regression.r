@@ -114,7 +114,7 @@ model{
 		mu.Temp[j,i] <- betaB0[i] + betaB1[i]*TempMean[j] 
 		mu.Canopy[j,i] <- betaB0[i] + betaB2[i]*(CanopyMean[j]-20)
 		mu.Onset[j,i] <- betaB0[i] + betaB3[i]*(SdayMean[j]-107)
-		mu.Max[j,i] <- betaB0[i] + betaB4[i]*(MaxMean[i]-0.15)
+		mu.Max[j,i] <- betaB0[i] + betaB4[i]*(MaxMean[j]-0.15)
 		}
 	}	
 

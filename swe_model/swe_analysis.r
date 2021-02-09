@@ -29,7 +29,7 @@ library(loo)
 ###############################################
 swepath <- "C:\\Users\\hkropp\\Google Drive\\GIS"
 
-modDir <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\analysis\\run21"
+modDir <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\analysis\\run22"
 
 ###############################################
 ### add in unique id for model              ###
