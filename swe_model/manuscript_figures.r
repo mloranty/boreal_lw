@@ -1002,8 +1002,8 @@ for(i in 1:5){
 	dhvcf[i] <- ceiling(max(sweRate$vcf[sweRate$gcID == i]))
 	dlOnset[i] <- floor(min(sweRate$meltStart[sweRate$gcID == i]))
 	dhOnset[i] <- ceiling(max(sweRate$meltStart[sweRate$gcID == i]))
-	dlMax[i] <- floor(min(sweRate$sweMax[sweRate$gcID == i]))
-	dhMax[i] <- ceiling(max(sweRate$sweMax[sweRate$gcID == i]))
+	dlMax[i] <- floor(min(sweRate$sweMax[sweRate$gcID == i])*10)/10
+	dhMax[i] <- ceiling(max(sweRate$sweMax[sweRate$gcID == i])*10)/10
 	
 	
 }
@@ -1091,16 +1091,17 @@ png(paste0(plotDI,"\\regression.png"), width = 55, height = 32, units = "cm", re
 				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete2[i], pch=19)
 	}
 		for(i in plotTree){	
-		
-			polygon(c(MaxMean[MaxMean >= dlMax[i] & MaxMean <= dhMax[i]],
-				rev(MaxMean[MaxMean >= dlMax[i] & MaxMean<= dhMax[i]])),
-				c(rep(beta0$X2.5.[i], length(MaxMean[MaxMean >= dlMax[i] & MaxMean<= dhMax[i]])),
-				rep(beta0$X97.5[i], length(MaxMean[MaxMean >= dlMax[i] & MaxMean <= dhMax[i]]))),
-				border=NA, col=vegePallete3[i])
-		
-			points(MaxMean[MaxMean >= MaxMean[i] & MaxMean <= dhMax[i]],
-				rep(beta0$Mean[i], length(MaxMean[MaxMean >= dlMax[i] & MaxMean <= dhMax[i]])),
-				type="l", lwd=mlw, lty=3, col=vegePallete[i])		
+		  MaxMeans <- MaxMean[MaxMean >= dlMax[i] & MaxMean <= dhMax[i]]
+		  mu.Maxs <- mu.Max[MaxMean >= dlMax[i] & MaxMean <= dhMax[i],]
+		  polygon(c(MaxMeans,
+		            rev(MaxMeans)),
+		          c(mu.Maxs$X2.5.[mu.Maxs$gcID == i],
+		            rev(mu.Maxs$X97.5[mu.Maxs$gcID == i])),
+		          border=NA, col=vegePallete3[i])
+		  
+		  points(MaxMeans,
+		         mu.Maxs$Mean[mu.Maxs$gcID == i],
+		         type="l", lwd=mlw, col=vegePallete[i])	
 		
 	}
 		box(which="plot")
@@ -1191,17 +1192,20 @@ png(paste0(plotDI,"\\regression.png"), width = 55, height = 32, units = "cm", re
 		points(	sweRate$sweMax[sweRate$gcID == i],
 				sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete2[i], pch=19)
 	}
+	
+	
 		for(i in plotTun){	
-
-			polygon(c(MaxMean[MaxMean >= dlMax[i] & MaxMean <= dhMax[i]],
-				rev(MaxMean[MaxMean >= dlMax[i] & MaxMean<= dhMax[i]])),
-				c(mu.Max$X2.5.[mu.Max$gcID == i],
-				  rev(mu.Max$X97.5[mu.Max$gcID == i ])),
-				border=NA, col=vegePallete3[i])
-				
-			points(MaxMean[MaxMean >= dlMax[i] & MaxMean <= dhMax[i]],
-				rep(beta0$Mean[i], length(MaxMean[MaxMean >= dlMax[i] & MaxMean <= dhMax[i]])),
-				type="l", lwd=mlw, lty=3, col=vegePallete[i])		
+		  MaxMeans <- MaxMean[MaxMean >= dlMax[i] & MaxMean <= dhMax[i]]
+		 mu.Maxs <- mu.Max[MaxMean >= dlMax[i] & MaxMean <= dhMax[i],]
+		   polygon(c(MaxMeans,
+		            rev(MaxMeans)),
+		          c(mu.Maxs$X2.5.[mu.Maxs$gcID == i],
+		            rev(mu.Maxs$X97.5[mu.Maxs$gcID == i])),
+		          border=NA, col=vegePallete3[i])
+		  
+		  points(MaxMeans,
+		         mu.Maxs$Mean[mu.Maxs$gcID == i],
+		         type="l", lwd=mlw, col=vegePallete[i])	
 				
 	}
 		box(which="plot")
@@ -1246,7 +1250,7 @@ tlw <- 2
 
 png(paste0(plotDI,"\\intercepts1.png"), width = 20, height = 20, units = "cm", res=300)
 	layout(matrix(c(1),ncol=1, byrow=TRUE), width=lcm(wd1),height=lcm(hd1))
-	plot(c(0,1),c(0,1), xlim=c(0,11), ylim=c(.2,0.6), axes=FALSE, type="n", xlab = " ", ylab= " ",
+	plot(c(0,1),c(0,1), xlim=c(0,11), ylim=c(.2,0.7), axes=FALSE, type="n", xlab = " ", ylab= " ",
 		xaxs="i", yaxs="i")
 		
 	for(j in 1:5){
@@ -1390,3 +1394,35 @@ mtext("Day of year", side=1, line=5, cex=2)
 #run on plot
 plot(c(0,1),c(0,1))
 legend("bottomright", paste(IDSglc$name2[c(1,2,4,3,5)]), col=vegePallete[c(1,2,4,3,5)],cex=2, lwd=2,lty=1, bty="n", bg="white")
+
+
+
+###############################
+#fit
+
+#pull out slope rep
+bRep <- datC[datC$parm=="rep.b0",]			
+
+plot(cellSwe7$logAbsRate,bRep$Mean)	
+
+summary(fit)
+fit <- lm(	cellSwe7$logAbsRate ~ bRep$Mean)
+ftN <- summary(fit)
+ftr <- round(ftN$r.squared,3)
+
+png(paste0(plotDI,"\\fit.png"), width = 20, height = 20, units = "cm", res=300)
+
+plot(bRep$Mean,cellSwe7$logAbsRate,pch=19, col=rgb(.5,.5,.5,.25,maxColorValue = 1),
+     xlab=expression(paste(" Predicted log(Melt Rate (cm day"^"-1","))")),
+      ylab=expression(paste(" Measured log(Melt Rate (cm day"^"-1","))")))	
+text(1,-2.5, paste0("Measured = ",round(ftN$coefficients[1,1],2),
+                 "+", round(ftN$coefficients[2,1],2),"Predicted"))
+text(1,-3, expression(paste("R"^"2"~"=")))
+text(1.35,-3, paste(ftr))
+abline(0,1,col="red", lwd=3)
+abline(fit, col="black",lwd=3,lty=2)
+legend("topleft", c("1:1", "fit"), lwd=3, col=c("red","black"),lty=c(1,2),
+       bty="n")
+dev.off()
+
+
