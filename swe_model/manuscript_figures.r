@@ -28,7 +28,7 @@ library(plyr)
 ###############################################
 swepath <- "C:\\Users\\hkropp\\Google Drive\\GIS\\swe_mudryk_blended"
 
-modDir <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\analysis\\run21"
+modDir <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\analysis\\run22"
 plotDI <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\final_figures"
 
 ###############################################
