@@ -1426,3 +1426,17 @@ legend("topleft", c("1:1", "fit"), lwd=3, col=c("red","black"),lty=c(1,2),
 dev.off()
 
 
+###############################
+#stats on variables
+
+sweRate <- aggregate(cellSwe7$meltRateCM, by=list(cellSwe7$name2),
+                       FUN="quantile",probs=0.5)
+
+sweMaxMed <- aggregate(cellSwe7$sweMax, by=list(cellSwe7$name2),
+                       FUN="quantile",probs=0.5)
+
+meltTemp <- aggregate(cellSwe7$tair, by=list(cellSwe7$name2),
+                       FUN="quantile",probs=0.5)
+
+meltOnset <- aggregate(cellSwe7$meltStart, by=list(cellSwe7$name2),
+                      FUN="quantile",probs=0.5)
