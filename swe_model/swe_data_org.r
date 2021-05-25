@@ -15,7 +15,8 @@ library(plyr)
 ###############################################
 ### set up file paths                       ###
 ###############################################
-swepath <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\data"
+
+swepath <- "e:\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\data"
 
 #######################################################
 # data info                                           #
@@ -23,7 +24,7 @@ swepath <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\bor
 
 
 #linux data directory first option, windows second optioon
-DDdir <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\data"
+DDdir <- "e:\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\data"
 
 #######################################################
 # read in and filter data                             #

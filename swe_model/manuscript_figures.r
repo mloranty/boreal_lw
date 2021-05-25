@@ -26,10 +26,10 @@ library(plyr)
 ###############################################
 ### set up file paths                       ###
 ###############################################
-swepath <- "C:\\Users\\hkropp\\Google Drive\\GIS\\swe_mudryk_blended"
+swepath <- "e:\\Users\\hkropp\\Google Drive\\GIS\\swe_mudryk_blended"
 
-modDir <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\analysis\\run22"
-plotDI <- "C:\\Users\\hkropp\\Google Drive\\research\\projects\\boreal_swe\\final_figures"
+modDir <- "e:\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\analysis\\run22"
+plotDI <- "e:\\Google Drive\\research\\projects\\boreal_swe\\final_figures"
 
 ###############################################
 ### define color palette                    ###
