@@ -30,7 +30,9 @@ swepath <- "e:\\Users\\hkropp\\Google Drive\\GIS\\swe_mudryk_blended"
 
 modDir <- "e:\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\analysis\\run22"
 plotDI <- "e:\\Google Drive\\research\\projects\\boreal_swe\\final_figures"
+#read in topo mask
 
+topoM <- raster("e:\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\data\\ETOPO1_Ice_c_50km_ease_mtn_mask.tif")
 ###############################################
 ### define color palette                    ###
 ###############################################
@@ -1440,3 +1442,20 @@ meltTemp <- aggregate(cellSwe7$tair, by=list(cellSwe7$name2),
 
 meltOnset <- aggregate(cellSwe7$meltStart, by=list(cellSwe7$name2),
                       FUN="quantile",probs=0.5)
+
+
+################################
+
+##look at topo mask
+plot(topoM)
+unique(getValues(topoM))
+
+library(tmap)
+
+tm_shape(topoM)+
+  tm_raster(palette=c("orangered1","orangered4","goldenrod4","lightskyblue"),
+            breaks=c(-0.005,-0.002,0,.5,1),
+            colorNA="grey70",
+           labels=c("-0.0047",
+                            "-0.0016", "0","1"))+
+  tm_layout(legend.outside = TRUE)
