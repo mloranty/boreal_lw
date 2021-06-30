@@ -1462,3 +1462,36 @@ tm_shape(topoM)+
   tm_shape(rasterMeltMean)+
   tm_raster(alpha=0.65)
 
+plot(pr)
+
+checkCell <- unique(data.frame(cell=sweRate$cell,Lat=sweRate$Lat,Lon=sweRate$Lon))
+#just look at cell
+str(pr)
+swe.files[1]
+library(sf)
+
+checkSP <- SpatialPoints(data.frame(x=checkCell$Lon,y=checkCell$Lat), CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"))
+
+checkSPp <- spTransform(checkSP, topoM@crs)        
+
+library(sf)
+checkSF <- st_as_sf(checkSPp)
+
+plot(topoM)
+plot(checkSPp,add=TRUE,pch=19, col=rgb(.5,.5,.5,.1))
+
+tm_shape(checkSF)+
+  tm_bubbles(size=0.05, alpha=0.5)
+
+tm_shape(topoM)+
+  tm_raster(palette=c("orangered1","orangered4","white","lightskyblue"),
+            breaks=c(-0.005,-0.002,0,.5,1),
+            colorNA="grey70",
+            labels=c("-0.0047",
+                     "-0.0016", "0","1"))+
+  tm_layout(legend.outside = TRUE)+
+  tm_shape(checkSF)+
+  tm_bubbles(size=0.05, alpha=0.5, col="royalblue")+
+  tm_add_legend("symbol",
+                size=0.1, alpha=0.5, col="royalblue",
+                labels="lat/long swe data")
