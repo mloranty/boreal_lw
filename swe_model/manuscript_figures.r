@@ -26,7 +26,7 @@ library(plyr)
 ###############################################
 ### set up file paths                       ###
 ###############################################
-swepath <- "e:\\Users\\hkropp\\Google Drive\\GIS\\swe_mudryk_blended"
+swepath <- "e:\\Google Drive\\GIS\\swe_mudryk_blended"
 
 modDir <- "e:\\Google Drive\\research\\projects\\boreal_swe\\boreal_swe_z\\analysis\\run22"
 plotDI <- "e:\\Google Drive\\research\\projects\\boreal_swe\\final_figures"
@@ -129,7 +129,7 @@ cellSwe3 <- join(cellSwe2, IDSyears, by="year",type="left")
 # https://epsg.io/6931
 laea <- "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs" 
 
-swe.files <- list.files(pattern =".nc",path =paste0(swepath),full.names=T)
+swe.files <- list.files(swepath, pattern =".nc", full.names=TRUE)
 
 # read one file in to use for reprojecting
 pr <- raster(swe.files[1])
@@ -1453,9 +1453,12 @@ unique(getValues(topoM))
 library(tmap)
 
 tm_shape(topoM)+
-  tm_raster(palette=c("orangered1","orangered4","goldenrod4","lightskyblue"),
+  tm_raster(palette=c("orangered1","orangered4","white","lightskyblue"),
             breaks=c(-0.005,-0.002,0,.5,1),
             colorNA="grey70",
            labels=c("-0.0047",
                             "-0.0016", "0","1"))+
-  tm_layout(legend.outside = TRUE)
+  tm_layout(legend.outside = TRUE)+
+  tm_shape(rasterMeltMean)+
+  tm_raster(alpha=0.65)
+
