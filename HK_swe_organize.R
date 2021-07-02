@@ -173,12 +173,31 @@ tm_shape(glc.maj2)+
 pr.m2 <- mask(pr.m, glcP.mask,maskvalue=NA)
 plot(pr.m2)
 
+
+######match all variables to masked area ----
+vcf.mask <- mask(vcf,glc.maj2)
+
+
+####### daily swe data ----
+sweDates <- as.Date(names(sweAll[[1]]), "X%Y.%m.%d")
+sweDOY <- yday(sweDates)
+sweMonth <- month(sweDates)
+plot(sweAll[[1]][[1]])
+#subset stack to be only the melt period
+swePeriod <-sweAll[[1]][[which(sweMonth >= 2 & sweMonth <=6)]]
+plot(swePeriod)
 #work with all swe data
 #start with just 1
-sweA.ease <- projectRaster(sweAll[[1]], pr)
-#verify reduction of area
-sweA.mask <- mask(sweA.ease, topo.maskR,maskvalue=0)
-sweA.mask2 <- mask(sweA.ease, glc.maj2)
-plot(sweA.mask[[1]])
-plot(sweA.mask2[[1]], add=TRUE, col="black")
+sweA.ease <- projectRaster(swePeriod, pr)
+#apply mask for glc and land cover
+sweA.mask <- mask(sweA.ease, glc.maj2)
+
+
+#get max and min throughout the period
+
+sweA.Max <- calc(sweA.mask, fun=max, na.rm=TRUE )
+sweA.Min <- calc(sweA.mask, fun=min, na.rm=TRUE )
+
+#create a mask for snow extent
+
 
