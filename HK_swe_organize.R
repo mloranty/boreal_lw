@@ -3,6 +3,7 @@ require(ncdf4)
 require(rgdal)
 require(gdalUtils)
 require(lubridate)
+library(tmap)
 
 
 # define the projection - EASE2.0 equal area grid - will use 50km resolution
@@ -124,8 +125,24 @@ glc.mode2.freq.ease <- projectRaster(glc.mode2.freq,pr,method='ngb')
 #12: Shrub Cover, closed-open, deciduous
 #13: Herbaceous Cover, closed-open
 
-glc.reclass <- reclassify
+#create function
+glcSub <- function(x){
+  ifelse(x == 4 | x == 5 | x == 6 | x == 12 | x == 13, x, NA)
+  
+}
 
+
+glc.reclass <- calc(glc.mode.ease, glcSub)
+
+
+tm_shape(glc.reclass)+
+  tm_raster(style="cat",palette="Pastel1", 
+            labels=c("4: Tree Cover, needle-leaved, evergreen",
+              "5: Tree Cover, needle-leaved, deciduous",
+              "6: Tree Cover, mixed leaf type",
+              "12: Shrub Cover, closed-open, deciduous",
+              "13: Herbaceous Cover, closed-open"))+
+  tm_layout(legend.outside = TRUE)
 
 
 #calculate proportion of most frequent glc
@@ -140,12 +157,27 @@ glcP.mask <- reclassify(glc.mode.p.ease, matrix(c(0,0.5,NA,
 plot(glcP.mask)
 
 #add to topo mask
+glc.maj <- mask(glc.reclass,glcP.mask)
+glc.maj2 <- mask(glc.maj, topo.maskR)
+
+tm_shape(glc.maj2)+
+  tm_raster(style="cat",palette="Pastel1", 
+            labels=c("4: Tree Cover, needle-leaved, evergreen",
+                     "5: Tree Cover, needle-leaved, deciduous",
+                     "6: Tree Cover, mixed leaf type",
+                     "12: Shrub Cover, closed-open, deciduous",
+                     "13: Herbaceous Cover, closed-open"))+
+  tm_layout(legend.outside = TRUE, title = "Majority LC no mnts")
+
 pr.m2 <- mask(pr.m, glcP.mask,maskvalue=NA)
 plot(pr.m2)
 
 #work with all swe data
 #start with just 1
 sweA.ease <- projectRaster(sweAll[[1]], pr)
+#verify reduction of area
 sweA.mask <- mask(sweA.ease, topo.maskR,maskvalue=0)
-plot(sweA.mask)
+sweA.mask2 <- mask(sweA.ease, glc.maj2)
+plot(sweA.mask[[1]])
+plot(sweA.mask2[[1]], add=TRUE, col="black")
 
