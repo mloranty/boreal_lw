@@ -151,13 +151,14 @@ glc.mode2.p.ease <- glc.mode2.freq.ease/3136
 
 plot(glc.mode.p.ease)
 plot(glc.mode2.p.ease)
-
+#takes only majority land cover
 glcP.mask <- reclassify(glc.mode.p.ease, matrix(c(0,0.5,NA,
                                                   0.5,1,1), byrow=TRUE, ncol=3))
 plot(glcP.mask)
 
-#add to topo mask
+#get only majority land cover
 glc.maj <- mask(glc.reclass,glcP.mask)
+#get land cover not in mnts
 glc.maj2 <- mask(glc.maj, topo.maskR)
 
 tm_shape(glc.maj2)+
