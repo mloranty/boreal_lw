@@ -13,25 +13,44 @@ laea <- "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0
 
 ###########################################
 # read in data
-
-
-########## SWE data from Mudryk ##########
-# swe data in m from Mudryk
-# daily mean SWE (GS2,MERRA2,Brown,Crocus)
 # list the monthly files
 swe.files <- list.files(pattern =".nc",path ="E:/Google Drive/GIS/swe_mudryk_blended",full.names=TRUE)
 
 # read one file in to use for reprojecting
 pr <- raster(swe.files[1])
+
+#https://www.ngdc.noaa.gov/mgg/global/global.html
+# info on grid vs. cell registration
+topo <- raster("E:/Google Drive/GIS/boreal_swe_all_data/ETOPO1_Ice_c_geotiff.tif")
+
+#modis tree cover
+vcf.ease <- raster("E:/Google Drive/GIS/boreal_swe_all_data/archive/data/MOD44B_2014_mosaic_50km_ease.tif")
+
+#glc 2000
+glc <- raster("E:/Google Drive/GIS/boreal_swe_all_data/glc2000_v1_1.tif")
+
+#read in swe files
+sweAll <- list(stack("E:/Google Drive/GIS/swe_mudryk_blended/SWE_obsMEAN4x.2000.nc"),
+ stack("E:/Google Drive/GIS/swe_mudryk_blended/SWE_obsMEAN4x.2001.nc"),
+ stack("E:/Google Drive/GIS/swe_mudryk_blended/SWE_obsMEAN4x.2002.nc"),
+ stack("E:/Google Drive/GIS/swe_mudryk_blended/SWE_obsMEAN4x.2003.nc"),
+ stack("E:/Google Drive/GIS/swe_mudryk_blended/SWE_obsMEAN4x.2004.nc"),
+ stack("E:/Google Drive/GIS/swe_mudryk_blended/SWE_obsMEAN4x.2005.nc"),
+ stack("E:/Google Drive/GIS/swe_mudryk_blended/SWE_obsMEAN4x.2006.nc"),
+ stack("E:/Google Drive/GIS/swe_mudryk_blended/SWE_obsMEAN4x.2007.nc"),
+ stack("E:/Google Drive/GIS/swe_mudryk_blended/SWE_obsMEAN4x.2008.nc"),
+ stack("E:/Google Drive/GIS/swe_mudryk_blended/SWE_obsMEAN4x.2009.nc"))
+
+
+
+########## SWE data from Mudryk ##########
 # crop to boreal region
 pr <- crop(pr,c(-180,180,50,90))
 # reproject to 50km EASE2.0 gird
 pr <- projectRaster(pr,res=50000,crs=laea,progress='text')
 
 ########## ETOPO1 Elevation ##########
-#https://www.ngdc.noaa.gov/mgg/global/global.html
-# info on grid vs. cell registration
-topo <- raster("E:/Google Drive/GIS/boreal_swe_all_data/ETOPO1_Ice_c_geotiff.tif")
+
 topo@crs <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 topoN <- crop(topo, extent(-180,180,45,90))
 
@@ -44,13 +63,89 @@ topo.sd <- aggregate(topo.ease,fact=50000/res(topo.ease),fun=sd)
 topo.mask <- reclassify(topo.sd, matrix(c(0,200,1,
                                         200.00001,3000,0),byrow=TRUE))
 
-
+#final mask
 topo.maskR <- resample(topo.mask, pr, method="ngb")
 
-
-
-
+#test mask
 pr.m <- mask(pr, topo.maskR,maskvalue=0)
+ 
+########### GLC -----
+
+#define projection
+projection(glc) <- '+proj=longlat +datum=WGS84 +ellps=WGS84 '
+#crop
+glc <- crop(glc,c(-180,180,50,90))
+
+## write function to calculate mode, for resampling
+get.mode <- function(x,na.rm=T){
+  f <- table(x)
+  as.numeric(names(f)[which.max(f)])
+}
+
+get.mode2 <- function(x,na.rm=T){
+  f <- table(x)
+  as.numeric(names(sort(f,decreasing=T))[2])
+}
+
+## write function to calculate frequency of mode, for resampling
+get.mode.freq <- function(x,na.rm=T){
+  f <- table(x)
+  (f)[which.max(f)]
+}
+
+get.mode2.freq <- function(x,na.rm=T){
+  f <- table(x)
+  sort(f,decreasing=T)[2]
+}
+
+## aggregate GLC2000 to ~0.5 degree resolution using mode, and make a map of the frequency
+glc.mode <- aggregate(glc,fact=56,fun=get.mode)  
+glc.mode.freq <- aggregate(glc,fact=56,fun=get.mode.freq) 
+
+glc.mode2 <- aggregate(glc,fact=56,fun=get.mode2)  
+glc.mode2.freq <- aggregate(glc,fact=56,fun=get.mode2.freq) 
 
 
-plot(pr.m)
+## reproject aggregated GLC2000 to EASE grid resolution
+glc.mode.ease <- projectRaster(glc.mode,pr,method='ngb')
+
+glc.mode.freq.ease <- projectRaster(glc.mode.freq,pr,method='ngb')
+
+glc.mode2.ease <- projectRaster(glc.mode2,pr,method='ngb')
+
+glc.mode2.freq.ease <- projectRaster(glc.mode2.freq,pr,method='ngb')
+
+
+#subset most frequent landclass of interest
+#
+#4: Tree Cover, needle-leaved, evergreen
+#5: Tree Cover, needle-leaved, deciduous
+#6: Tree Cover, mixed leaf type
+#12: Shrub Cover, closed-open, deciduous
+#13: Herbaceous Cover, closed-open
+
+glc.reclass <- reclassify
+
+
+
+#calculate proportion of most frequent glc
+glc.mode.p.ease <- glc.mode.freq.ease/3136
+glc.mode2.p.ease <- glc.mode2.freq.ease/3136
+
+plot(glc.mode.p.ease)
+plot(glc.mode2.p.ease)
+
+glcP.mask <- reclassify(glc.mode.p.ease, matrix(c(0,0.5,NA,
+                                                  0.5,1,1), byrow=TRUE, ncol=3))
+plot(glcP.mask)
+
+#add to topo mask
+pr.m2 <- mask(pr.m, glcP.mask,maskvalue=NA)
+plot(pr.m2)
+
+#work with all swe data
+#start with just 1
+sweA.ease <- projectRaster(sweAll[[1]], pr)
+sweA.mask <- mask(sweA.ease, topo.maskR,maskvalue=0)
+plot(sweA.mask)
+
