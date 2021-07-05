@@ -192,14 +192,19 @@ sweA.ease <- projectRaster(swePeriod, pr)
 #apply mask for glc and land cover
 sweA.mask <- mask(sweA.ease, glc.maj2)
 
+# reclass to set  values less than 1cm to NA
+sweA.mask2 <- reclassify(sweA.mask,rcl=c(-Inf,0.01,NA))
+plot(sweA.mask2)
+
+
+#get max and min throughout the period
+
+sweA.Max <- calc(sweA.mask2, fun=max, na.rm=TRUE )
+sweA.Min <- calc(sweA.mask2, fun=min, na.rm=TRUE )
+
 ##########################
 ##### Filter point  #####
 ##########################
-#get max and min throughout the period
-
-sweA.Max <- calc(sweA.mask, fun=max, na.rm=TRUE )
-sweA.Min <- calc(sweA.mask, fun=min, na.rm=TRUE )
-
 
 #exclude sites that don't get over 4 cm of swe
 #swe units in meters
@@ -211,16 +216,40 @@ max.thresh <- function(x){
 yearMask1 <- calc(sweA.Max, fun=max.thresh )
 
 #now apply mask to Max, Min and sweA.mask
-sweA.mask2 <- mask(sweA.mask, yearMask1)
+sweA.mask3 <- mask(sweA.mask2, yearMask1)
 sweMax.mask <- mask(sweA.Max, yearMask1)
 sweMin.mask <- mask(sweA.Min, yearMask1)
+
+##########################
+##### Filter point  #####
+##########################
+
+#any sites less 30 days of swe observations (due to <0.1) 
+#get actual observation count
+obsTable <- getValues(sweA.mask3)
+
+NA.func <- function(x){
+ length(na.omit(x)) 
+}
+
+obsCount <- apply(obsTable, 1, NA.func)
+#add count of number of observations
+ObsRaster <- setValues(sweMax.mask, obsCount)
+#create mask
+ObsMask <- reclassify(ObsRaster, c(-1,29,NA))
+#mask 
+#now apply mask to Max, Min and sweA.mask
+sweA.mask4 <- mask(sweA.mask3, yearMask1)
+sweMax.mask2 <- mask(sweMax.mask , yearMask1)
+sweMin.mask2 <- mask(sweMin.mask , yearMask1)
+plot(sweMax.mask)
 
 #get last day of within 80 % of max
 thrsh80 <- function(x, y){
   ifelse(x >= 0.8*y,1,NA )
 }
 #get function if swe is within the 80% threshold
-swe80 <- overlay(sweA.mask2,sweMax.mask, fun=thrsh80)
+swe80 <- overlay(sweA.mask4,sweMax.mask, fun=thrsh80)
 #put in table
 swe80Table <- getValues(swe80)
 #get doy for swe in data set
@@ -232,15 +261,29 @@ layer80 <- function(x){
 #apply to table
 swe80Layer <- apply(swe80Table,1,layer80)
 swe80LayerA <- ifelse(swe80Layer == -Inf,NA,swe80Layer)
+#get layer with swe
+sweValues <- getValues(sweA.mask4)
+#get swe from layer of last day
+#get first NA if all missing
+startLayers <- ifelse(is.na(swe80LayerA),1,swe80LayerA)
+sweVs <- numeric()
+for(i in 1:nrow(sweValues)){
+  sweVs <- sweValues[i,startLayers[i]]
+}
+sweVs <- sweValues[ 9959 ,startLayers[ 9959 ]]
+
+#get layer day
+meltStartDay <- numeric()
+for(i in 1:length(swe80LayerA)){
+  meltStartDay <- ifelse(is.na(swe80LayerA),NA,sweADoy[swe80LayerA])
+}
+
 #add back into the raster
-meltStartDay <- setValues(sweMax.mask,swe80LayerA )
-plot(meltStartDay)
+meltStart <- setValues(sweMax.mask,meltStartDay )
+plot(meltStart)
 #get actual swe value on start of melt day
 
 
-##??? need this? also currently don't need original filter 4
-# reclass to set  values less than 1cm to NA
-swe <- reclassify(swe,rcl=c(-Inf,0.01,NA))
 
 
 tm_shape(sweMax.mask)+
