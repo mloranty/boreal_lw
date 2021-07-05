@@ -242,21 +242,25 @@ ObsMask <- reclassify(ObsRaster, c(-1,29,NA))
 sweA.mask4 <- mask(sweA.mask3, yearMask1)
 sweMax.mask2 <- mask(sweMax.mask , yearMask1)
 sweMin.mask2 <- mask(sweMin.mask , yearMask1)
-plot(sweMax.mask)
+plot(sweMax.mask2)
+
+#################
+#start of melt  #
+#################
 
 #get last day of within 80 % of max
 thrsh80 <- function(x, y){
   ifelse(x >= 0.8*y,1,NA )
 }
 #get function if swe is within the 80% threshold
-swe80 <- overlay(sweA.mask4,sweMax.mask, fun=thrsh80)
+swe80 <- overlay(sweA.mask4,sweMax.mask2, fun=thrsh80)
 #put in table
 swe80Table <- getValues(swe80)
 #get doy for swe in data set
 sweADoy <- yday(as.Date(names(swePeriod), "X%Y.%m.%d"))
 #function to get last day in column equal to 1
 layer80 <- function(x){
- max(which(x == 1))
+  max(which(x == 1))
 }
 #apply to table
 swe80Layer <- apply(swe80Table,1,layer80)
@@ -268,9 +272,11 @@ sweValues <- getValues(sweA.mask4)
 startLayers <- ifelse(is.na(swe80LayerA),1,swe80LayerA)
 sweVs <- numeric()
 for(i in 1:nrow(sweValues)){
-  sweVs <- sweValues[i,startLayers[i]]
+  sweVs[i] <- sweValues[i,startLayers[i]]
 }
-sweVs <- sweValues[ 9959 ,startLayers[ 9959 ]]
+#add back into raster
+sweStart <- setValues(sweMax.mask2,sweVs )
+plot(sweStart)
 
 #get layer day
 meltStartDay <- numeric()
@@ -279,12 +285,77 @@ for(i in 1:length(swe80LayerA)){
 }
 
 #add back into the raster
-meltStart <- setValues(sweMax.mask,meltStartDay )
+meltStart <- setValues(sweMax.mask2,meltStartDay )
 plot(meltStart)
-#get actual swe value on start of melt day
+
+#################
+#end of melt  #
+#################
+#get first day within 20 % of max
+thrsh20 <- function(x, y){
+  ifelse(x <= 0.2*y,1,NA )
+}
+#get function if swe is within the 20% threshold
+swe20 <- overlay(sweA.mask4,sweMax.mask2, fun=thrsh20)
+#put in table
+swe20Table <- getValues(swe20)
+
+#function to get first day in column equal to 1
+layer20 <- function(x){
+ min(which(x == 1))
+}
+#apply to table
+swe20Layer <- apply(swe20Table,1,layer20)
+swe20LayerA <- ifelse(swe20Layer == Inf,NA,swe20Layer)
+
+#get swe from layer of last day
+#get first NA if all missing
+endLayers <- ifelse(is.na(swe20LayerA),1,swe20LayerA)
+sweVe <- numeric()
+for(i in 1:nrow(sweValues)){
+  sweVe[i] <- sweValues[i,endLayers[i]]
+}
+#add back into raster
+sweEnd <- setValues(sweMax.mask2,sweVe )
+plot(sweEnd)
+
+#get layer day
+meltEndDay <- numeric()
+for(i in 1:length(swe20LayerA)){
+  meltEndDay <- ifelse(is.na(swe20LayerA),NA,sweADoy[swe20LayerA])
+}
+
+#add back into the raster
+meltEnd <- setValues(sweMax.mask2,meltEndDay )
 
 
 
+#################
+#melt calc      #
+#################
+
+MeltPeriod <- meltEnd - meltStart
+
+sweDecline <- sweEnd - sweStart
+
+Melt.meter.day <- sweDecline/MeltPeriod
+
+Melt.cm.day <- (sweDecline*100)/MeltPeriod
+
+plot(meltEnd)
+plot(meltStart)
+
+plot(MeltPeriod)
+
+plot(sweDecline)
+
+tm_shape(Melt.cm.day)+
+  tm_raster(title="2000 melt rate (cm/day)", palette= "BuPu", style = "quantile")+
+  tm_layout(legend.outside=TRUE)
+
+tm_shape(MeltPeriod)+
+  tm_raster(title="2000 melt days", palette= "BuPu",style="quantile")+
+  tm_layout(legend.outside=TRUE)
 
 tm_shape(sweMax.mask)+
   tm_raster(title="2000 Maximum swe", palette= "BuPu",style="quantile")+
