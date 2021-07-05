@@ -217,18 +217,25 @@ sweMin.mask <- mask(sweA.Min, yearMask1)
 
 #get last day of within 80 % of max
 thrsh80 <- function(x, y){
-  ifelse(x >= 0.8*y,1,0 )
+  ifelse(x >= 0.8*y,1,NA )
 }
 #get function if swe is within the 80% threshold
-test <- overlay(sweA.mask2,sweMax.mask, fun=thrsh80)
-plot(test)
-  
-swe80 <- list()
-for(i in 1:nlayers(sweA.mask2)){
-  swe80[[i]] <- overlay
-    
-  
+swe80 <- overlay(sweA.mask2,sweMax.mask, fun=thrsh80)
+#put in table
+swe80Table <- getValues(swe80)
+#get doy for swe in data set
+sweADoy <- yday(as.Date(names(swePeriod), "X%Y.%m.%d"))
+#function to get last day in column equal to 1
+layer80 <- function(x){
+ max(which(x == 1))
 }
+#apply to table
+swe80Layer <- apply(swe80Table,1,layer80)
+swe80LayerA <- ifelse(swe80Layer == -Inf,NA,swe80Layer)
+#add back into the raster
+meltStartDay <- setValues(sweMax.mask,swe80LayerA )
+plot(meltStartDay)
+#get actual swe value on start of melt day
 
 
 ##??? need this? also currently don't need original filter 4
