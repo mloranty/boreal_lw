@@ -215,13 +215,25 @@ sweA.mask2 <- mask(sweA.mask, yearMask1)
 sweMax.mask <- mask(sweA.Max, yearMask1)
 sweMin.mask <- mask(sweA.Min, yearMask1)
 
-#remove missing observations and check length
-na.proto <- function(x){
-  sum(ifelse(is.na(x),1,0))
+#get last day of within 80 % of max
+thrsh80 <- function(x, y){
+  ifelse(x >= 0.8*y,1,0 )
 }
-#verified only missing is in mask
-swe.naCount <- calc(sweA.mask2, fun=na.proto)  
-plot(swe.naCount)
+#get function if swe is within the 80% threshold
+test <- overlay(sweA.mask2,sweMax.mask, fun=thrsh80)
+plot(test)
+  
+swe80 <- list()
+for(i in 1:nlayers(sweA.mask2)){
+  swe80[[i]] <- overlay
+    
+  
+}
+
+
+##??? need this? also currently don't need original filter 4
+# reclass to set  values less than 1cm to NA
+swe <- reclassify(swe,rcl=c(-Inf,0.01,NA))
 
 
 tm_shape(sweMax.mask)+
