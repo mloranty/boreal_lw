@@ -292,11 +292,16 @@ plot(meltStart)
 #end of melt  #
 #################
 #get first day within 20 % of max
+
+#get first day within 20 % of max
 thrsh20 <- function(x, y){
   ifelse(x <= 0.2*y,1,NA )
 }
 #get function if swe is within the 20% threshold
 swe20 <- overlay(sweA.mask4,sweMax.mask2, fun=thrsh20)
+
+#get function if swe is within the 20% threshold
+swe20 <- overlay(sweA.mask4,sweMT, fun=thrsh20)
 #put in table
 swe20Table <- getValues(swe20)
 
