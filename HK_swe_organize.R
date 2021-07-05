@@ -162,7 +162,7 @@ glc.maj <- mask(glc.reclass,glcP.mask)
 glc.maj2 <- mask(glc.maj, topo.maskR)
 
 tm_shape(glc.maj2)+
-  tm_raster(style="cat",palette="Pastel1", 
+  tm_raster(style="cat",palette="Pastel1", colorNA = "grey90", 
             labels=c("4: Tree Cover, needle-leaved, evergreen",
                      "5: Tree Cover, needle-leaved, deciduous",
                      "6: Tree Cover, mixed leaf type",
@@ -192,12 +192,41 @@ sweA.ease <- projectRaster(swePeriod, pr)
 #apply mask for glc and land cover
 sweA.mask <- mask(sweA.ease, glc.maj2)
 
-
+##########################
+##### Filter point  #####
+##########################
 #get max and min throughout the period
 
 sweA.Max <- calc(sweA.mask, fun=max, na.rm=TRUE )
 sweA.Min <- calc(sweA.mask, fun=min, na.rm=TRUE )
 
+
+#exclude sites that don't get over 4 cm of swe
+#swe units in meters
+#adds to glc.maj2 since those are already excluded from swe
+max.thresh <- function(x){
+  ifelse(x <= 0.04, NA, x)
+}
+
+yearMask1 <- calc(sweA.Max, fun=max.thresh )
+
+#now apply mask to Max, Min and sweA.mask
+sweA.mask2 <- mask(sweA.mask, yearMask1)
+sweMax.mask <- mask(sweA.Max, yearMask1)
+sweMin.mask <- mask(sweA.Min, yearMask1)
+
+#remove missing observations and check length
+na.proto <- function(x){
+  sum(ifelse(is.na(x),1,0))
+}
+#verified only missing is in mask
+swe.naCount <- calc(sweA.mask2, fun=na.proto)  
+plot(swe.naCount)
+
+
+tm_shape(sweMax.mask)+
+  tm_raster(title="2000 Maximum swe", palette= "BuPu",style="quantile")+
+  tm_layout(legend.outside=TRUE)
 #create a mask for snow extent
 
 
