@@ -426,6 +426,7 @@ for(i in 1:NYears){
 MeltPeriod <- list()
 MeltPeriodm <- list()
 sweDecline <- list()
+sweDeclinem <- list()
 Melt.m.day <- list()
 Melt.mm.day<- list()
 
@@ -435,9 +436,11 @@ MeltPeriod[[i]] <- meltEnd[[i]] - meltStart[[i]]
 ###### Filter point: exclude melt period with less than 5 days
 #unreliable for this analysis and outlier
 
-MeltPeriodm[[i]] <- reclassify(MeltPeriod[[i]], c(0,5,NA))
+MeltPeriodm[[i]] <- reclassify(MeltPeriod[[i]], c(-Inf,5,NA))
 #total swe decline
 sweDecline[[i]] <- sweEnd[[i]] - sweStart[[i]]
+#make sure that any melt rates of zero or increases in snow would be excluded
+sweDeclinem[[i]] <- reclassify(sweDecline[[i]] , c(0,Inf,NA), include.lowest=TRUE)
 }
 
 
@@ -446,12 +449,15 @@ Melt.m.day <- list()
 Melt.mm.day<- list()
 for(i in 1:NYears){  
 #melt rate in meter per day
-Melt.m.day[[i]] <- sweDecline[[i]]/MeltPeriodm[[i]]
+Melt.m.day[[i]] <- sweDeclinem[[i]]/MeltPeriodm[[i]]
 #melt rate in millimeter per day
-Melt.mm.day[[i]] <- (sweDecline[[i]]*1000)/MeltPeriod[[i]]
+Melt.mm.day[[i]] <- (sweDeclinem[[i]]*1000)/MeltPeriodm[[i]]
 }
+range(na.omit(getValues(Melt.m.day[[2]])))
+
 
 test1 <- stack(Melt.mm.day)
+names(test1) <- paste("year",seq(2000,2009))
 plot(test1)
 
 plot(sweDecline[[1]])
