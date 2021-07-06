@@ -5,15 +5,19 @@ require(gdalUtils)
 require(lubridate)
 library(tmap)
 
-
-# define the projection - EASE2.0 equal area grid - will use 50km resolution
+###########################################
+########## define projection ------
+#  EASE2.0 equal area grid - will use 50km resolution
 # https://epsg.io/6931
 laea <- "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs" 
 #EPSG: 6931
 
 
+
 ###########################################
-# read in data
+########## read in data          ----- 
+
+
 # list the monthly files
 swe.files <- list.files(pattern =".nc",path ="E:/Google Drive/GIS/swe_mudryk_blended",full.names=TRUE)
 
@@ -42,35 +46,42 @@ sweAll <- list(stack("E:/Google Drive/GIS/swe_mudryk_blended/SWE_obsMEAN4x.2000.
  stack("E:/Google Drive/GIS/swe_mudryk_blended/SWE_obsMEAN4x.2008.nc"),
  stack("E:/Google Drive/GIS/swe_mudryk_blended/SWE_obsMEAN4x.2009.nc"))
 
+#legnth of stack
+NYears <- 10
 
-
-########## SWE data from Mudryk ##########
+###########################################
+########## SWE prep -------
 # crop to boreal region
 pr <- crop(pr,c(-180,180,50,90))
 # reproject to 50km EASE2.0 gird
 pr <- projectRaster(pr,res=50000,crs=laea,progress='text')
 
-########## ETOPO1 Elevation ##########
 
+###########################################
+########## ETOPO1 Elevation -------
+
+# topo needs projection defined
 topo@crs <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+# crop to general area
 topoN <- crop(topo, extent(-180,180,45,90))
-
-
+# reproject
 topo.ease <- projectRaster(topoN, crs=laea)
-
+# aggregate and get sd
 topo.sd <- aggregate(topo.ease,fact=50000/res(topo.ease),fun=sd)
 
-
+#anything below 200 can be used 1= use
 topo.mask <- reclassify(topo.sd, matrix(c(0,200,1,
                                         200.00001,3000,0),byrow=TRUE))
 
-#final mask
+#resample to match swe data
 topo.maskR <- resample(topo.mask, pr, method="ngb")
 
-#test mask
+#mask any area with sd over 2000
 pr.m <- mask(pr, topo.maskR,maskvalue=0)
  
-########### GLC -----
+
+###########################################
+########## GLC -----
 
 #define projection
 projection(glc) <- '+proj=longlat +datum=WGS84 +ellps=WGS84 '
@@ -174,57 +185,77 @@ pr.m2 <- mask(pr.m, glcP.mask,maskvalue=NA)
 plot(pr.m2)
 
 
-######match all variables to masked area ----
+
+###########################################
+########## VCF ----
 vcf.mask <- mask(vcf,glc.maj2)
 
 
-####### daily swe data ----
-sweDates <- as.Date(names(sweAll[[1]]), "X%Y.%m.%d")
-sweDOY <- yday(sweDates)
-sweMonth <- month(sweDates)
-plot(sweAll[[1]][[1]])
-#subset stack to be only the melt period
-swePeriod <-sweAll[[1]][[which(sweMonth >= 2 & sweMonth <=6)]]
-plot(swePeriod)
-#work with all swe data
-#start with just 1
-sweA.ease <- projectRaster(swePeriod, pr)
-#apply mask for glc and land cover
-sweA.mask <- mask(sweA.ease, glc.maj2)
 
-# reclass to set  values less than 1cm to NA
-sweA.mask2 <- reclassify(sweA.mask,rcl=c(-Inf,0.01,NA))
-plot(sweA.mask2)
+###########################################
+########## SWE melt calculations ----
+sweDates <- list()
+sweDOY <- list()
+sweMonth <- list()
+swePeriod <- list()
+sweA.ease <- list()
+sweA.mask <- list()
+sweA.mask2 <- list()
+sweA.Max <- list()
+sweA.Min<- list()
+for(i in 1:NYears){
+  #get date information from layer names
+  sweDates[[i]] <- as.Date(names(sweAll[[i]]), "X%Y.%m.%d")
+  sweDOY[[i]] <- yday(sweDates[[i]])
+  sweMonth[[i]] <- month(sweDates[[i]])
+  
+
+  #subset stack to be only the melt period
+  swePeriod[[i]] <-sweAll[[i]][[which(sweMonth[[i]] >= 2 & sweMonth[[i]] <=6)]]
+  
+  #work with all swe data
+  #start with just 1
+  sweA.ease[[i]] <- projectRaster(swePeriod[[i]], pr)
+  #apply mask for glc and land cover
+  sweA.mask[[i]] <- mask(sweA.ease[[i]], glc.maj2)
+  
+  # reclass to set  values less than 1cm to NA
+  #since these values
+  sweA.mask2[[i]] <- reclassify(sweA.mask[[i]],rcl=c(-Inf,0.01,NA))
+  
+  #get max and min throughout the period
+  
+  sweA.Max[[i]] <- calc(sweA.mask2[[i]], fun=max, na.rm=TRUE )
+  sweA.Min[[i]] <- calc(sweA.mask2[[i]], fun=min, na.rm=TRUE )
+}
 
 
-#get max and min throughout the period
+##### Filter point 1:
+##### SWE max must be greater than 0.04m in a cell
 
-sweA.Max <- calc(sweA.mask2, fun=max, na.rm=TRUE )
-sweA.Min <- calc(sweA.mask2, fun=min, na.rm=TRUE )
-
-##########################
-##### Filter point  #####
-##########################
-
-#exclude sites that don't get over 4 cm of swe
-#swe units in meters
-#adds to glc.maj2 since those are already excluded from swe
+#set max values below or equal to 0.04 to an NA
 max.thresh <- function(x){
   ifelse(x <= 0.04, NA, x)
 }
+#apply to raster and use as a mask
+yearMask1 <- list()
+sweA.mask3  <- list()
+sweMax.mask  <- list()
+sweMin.mask  <- list()
+for(i in 1:NYears){
+  #adds to glc.maj2 since those are already excluded from swe
+  yearMask1[[i]] <- calc(sweA.Max[[i]], fun=max.thresh )
+  
+  #now apply mask to Max, Min and sweA.mask
+  sweA.mask3[[i]] <- mask(sweA.mask2[[i]], yearMask1[[i]])
+  sweMax.mask[[i]] <- mask(sweA.Max[[i]], yearMask1[[i]])
+  sweMin.mask[[i]] <- mask(sweA.Min[[i]], yearMask1[[i]])
+}
 
-yearMask1 <- calc(sweA.Max, fun=max.thresh )
+=
+##### Filter point 2:
+##### any sites less 30 days of swe observations (due to <0.01) 
 
-#now apply mask to Max, Min and sweA.mask
-sweA.mask3 <- mask(sweA.mask2, yearMask1)
-sweMax.mask <- mask(sweA.Max, yearMask1)
-sweMin.mask <- mask(sweA.Min, yearMask1)
-
-##########################
-##### Filter point  #####
-##########################
-
-#any sites less 30 days of swe observations (due to <0.1) 
 #get actual observation count
 obsTable <- getValues(sweA.mask3)
 
@@ -367,4 +398,7 @@ tm_shape(sweMax.mask)+
   tm_layout(legend.outside=TRUE)
 #create a mask for snow extent
 
-
+#raw swe reprojected
+sweA.ease
+#raw swe with mask
+sweA.mask
