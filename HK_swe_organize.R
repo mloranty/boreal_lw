@@ -4,6 +4,7 @@ require(rgdal)
 require(gdalUtils)
 require(lubridate)
 library(tmap)
+library(sf)
 
 ###########################################
 ########## define projection ------
@@ -453,7 +454,73 @@ Melt.m.day[[i]] <- sweDeclinem[[i]]/MeltPeriodm[[i]]
 #melt rate in millimeter per day
 Melt.mm.day[[i]] <- (sweDeclinem[[i]]*1000)/MeltPeriodm[[i]]
 }
-range(na.omit(getValues(Melt.m.day[[2]])))
+
+##organize output
+#daily swe in EASE projection All
+dailySwe <- sweA.ease
+#raw swe with mask
+dailySwe.mask <- sweA.mask4 
+
+#stacks out melt and calc
+melt.mm.day <- stack(Melt.mm.day)
+names(melt.mm.day ) <- paste("year",seq(2000,2009))
+
+
+#length of melt
+meltDuration <- stack(MeltPeriodm)
+names(meltDuration ) <- paste("year",seq(2000,2009))
+#doy start if melt
+doyStart<- stack(meltStart)
+names(doyStart ) <- paste("year",seq(2000,2009))
+#glc info
+glc2000 <- glc.maj2
+glcID <- data.frame(glc=c(4,5,6,12,13),
+                    c("Tree Cover, needle-leaved, evergreen",
+                      "Tree Cover, needle-leaved, deciduous",
+                      "Tree Cover, mixed leaf type",
+                      "Shrub Cover, closed-open, deciduous",
+                      "Herbaceous Cover, closed-open"))
+#swe Max
+maxSwe <- stack( sweMax.mask2)
+names(maxSwe) <- paste("year",seq(2000,2009))
+plot(maxSwe)
+
+#organize data frame for analysis
+#need vcf and air temp
+dataAll2000 <- stack(melt.mm.day[[1]],glc2000,doyStart[[1]],maxSwe[[1]])
+names(dataAll2000) <- c("melt.mm.day","glc","doyStart","maxSwe.m")
+plot(dataAll2000)
+dataDF <- getValues(dataAll2000)
+coordinatesDF <- data.frame(coordinates(glc2000) )
+coordinatesSF <- st_as_sf(coordinatesDF, coords=c("x","y"), crs=st_crs(pr) )
+#transform to lat/long
+coordinatesLL <- st_transform(coordinatesSF, 4326)
+
+#convert to lat long
+
+dataDFc <- cbind(dataDF, coordinatesDF)
+
+new.dat <- cbind(rep(1:ncell(swe),nlayers(swe)),
+                 rep(coordinates(swe)[,1],nlayers(swe)),
+                 rep(coordinates(swe)[,2],nlayers(swe)),
+                 rep(d[,1],each=ncell(swe)),
+                 rep(d[,3],each=ncell(swe)),
+                 as.vector(getValues(swe)),
+                 as.vector(getValues(era.d)),
+                 rep(getValues(vcf),nlayers(swe)),
+                 rep(getValues(glc.mode),nlayers(swe)),
+                 rep(getValues(glc.mode.freq),nlayers(swe)),
+                 rep(getValues(glc.mode2),nlayers(swe)),
+                 rep(getValues(glc.mode2.freq),nlayers(swe)))
+
+rm(list=setdiff(ls(), c("dailySwe",
+                        "dailySwe.mask",
+                        "melt.mm.day",
+                        "meltDuration",
+                        "doyStart",
+                        "glc2000",
+                        "glcID",
+                        "maxSwe")))
 
 
 test1 <- stack(Melt.mm.day)
@@ -480,7 +547,7 @@ tm_shape(sweMax.mask)+
 #raw swe reprojected
 sweA.ease
 #raw swe with mask
-sweA.mask
+sweA.mask4
 #swe at start of melt
 sweStart
 #swe at the end of melt
