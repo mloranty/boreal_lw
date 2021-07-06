@@ -492,9 +492,10 @@ names(dataAll2000) <- c("melt.mm.day","glc","doyStart","maxSwe.m")
 plot(dataAll2000)
 dataDF <- getValues(dataAll2000)
 coordinatesDF <- data.frame(coordinates(glc2000) )
-coordinatesSF <- st_as_sf(coordinatesDF, coords=c("x","y"), crs=st_crs(pr) )
+coordinatesSF <- st_as_sf(coordinatesDF, coords=c("x","y") )
+x = coordinatesSF <- st_as_sf(coordinatesDF, coords=c("x","y") ) %>% st_set_crs(6931) %>% st_transform(4326)
 #transform to lat/long
-coordinatesLL <- st_transform(coordinatesSF, 4326)
+coordinatesLL <- st_transform(coordinatesSF, "+init=")
 
 #convert to lat long
 
