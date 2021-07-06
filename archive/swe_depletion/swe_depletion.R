@@ -145,7 +145,7 @@ swe.files <- list.files(pattern =".nc",path ="swe_mudryk_blended/",full.names=T)
 era.files <- list.files(pattern = ".nc", path = "era_interim/air_temp_2m_spring/",full.names=T)
 
 ## read in file from first year
-swe <- brick(swe.files[1])
+swe <- stack(swe.files[1])
 ## get date
 ts <- swe@z
 ts <- strptime(ts$Date,"%Y-%m-%d",tz="GMT")
@@ -267,17 +267,12 @@ vcf.2014.e <- raster('MODIS/MOD44B/hdf_tiles/MOD44B_2014_east_mosaic_sin.tif')
 
 r <- matrix(c(101,255,NA),ncol=3)
 
-vcf.2014.w <- reclassify(vcf.2014.w,r,progress='text', 
-                         filename='MODIS/MOD44B/hdf_tiles/MOD44B_2014_west_mosaic_sin_rcl.tif')
+vcf.2014.w <- reclassify(vcf.2014.w,r,progress='text')
 
-vcf.2014.w.ease <- projectRaster(vcf.2014.w,cru.dif,progress='text',
-                                 filename='MODIS/MOD44B/hdf_tiles/MOD44B_2014_west_mosaic_ease.tif')
+vcf.2014.e <- reclassify(vcf.2014.e,r,progress='text')
 
-vcf.2014.e <- reclassify(vcf.2014.e,r,progress='text',overwrite=T,  
-                         filename='MODIS/MOD44B/hdf_tiles/MOD44B_2014_east_mosaic_sin_rcl.tif')
-
-vcf.2014.e.ease <- projectRaster(vcf.2014.e,cru.dif,progress='text',overwrite=T,  
-                                 filename='MODIS/MOD44B/hdf_tiles/MOD44B_2014_east_mosaic_ease.tif')
+vcf.2014.w.ease <- projectRaster(vcf.2014.w,pr,progress='text')
+vcf.2014.e.ease <- projectRaster(vcf.2014.e,pr,progress='text')
 
 vcf.2014.ease <- mosaic(vcf.2014.w.ease,vcf.2014.e.ease,fun=mean,overwrite=T,  
                         filename='MODIS/MOD44B/hdf_tiles/MOD44B_2014_mosaic_ease.tif')
