@@ -67,5 +67,8 @@ MODIStsp(
 )
 
 
+### work with data from NASA HEG tools ----
 
+vcf <- raster("MOD44B_50km_lambert_GRID_v2.tif")
+vcf.rcl <- reclassify(vcf,matrix(c(101,255,NA), ncol = 3))
 
