@@ -1,8 +1,53 @@
+###########################################################
+###########################################################
+###########################################################
+############ SWE data organize v2.0            ############  
+############ modified from v1.0                ############
+############ H. Kropp and M. Loranty           ############
+###########################################################
+###########################################################
+############ This script processes a blended   ############
+############ swe product with covariates to    ############
+############ analyze melt rates. The script    ############
+############ organizes data and calculates     ############
+############ melt rates. Final data products   ############
+############ are raster stacks and a data      ############
+############ frame of melt rates and covariates############
+############ for statistical analysis.         ############
+###########################################################
+###########################################################
+############ Data outputs:                     ############
+############  A: Raster stacks:                ############
+############    1: dailySwe                    ############
+############      yearly list stack daily swe  ############
+############    2: dailySwe.mask               ############
+############      masked daily swe for analysis############
+############    3: melt.mm.day                 ############
+############      annual spring melt rate      ############
+############    4: meltDuration                ############
+############      annual duration of melt      ############
+############    5: doyStart                    ############
+############      annual start of melt         ############
+############    6: glc2000                     ############
+############      land cover of interest       ############
+############    7: maxSwe                      ############
+############      annual maximum               ############
+############      Swe at start melt            ############
+############  B: Dataframes:                   ############
+############    1: glcID                       ############
+############      table of glcID codes         ############
+############    2: analysisDF                  ############
+############      table with no missing data   ############
+############      table with no missing data   ############
+###########################################################
+###########################################################
+
+
 library(raster)
-require(ncdf4)
-require(rgdal)
-require(gdalUtils)
-require(lubridate)
+library(ncdf4)
+library(rgdal)
+library(gdalUtils)
+library(lubridate)
 library(tmap)
 library(sp)
 
@@ -486,42 +531,38 @@ names(maxSwe) <- paste("year",seq(2000,2009))
 plot(maxSwe)
 
 #organize data frame for analysis
-#need vcf and air temp code from mike
+#need vcf and air temp code from mik
 
-#set up dataframes
-dataA
 
-dataAll2000 <- stack(melt.mm.day[[1]],glc2000,doyStart[[1]],maxSwe[[1]])
-names(dataAll2000) <- c("melt.mm.day","glc","doyStart","maxSwe.m")
-plot(dataAll2000)
-dataDF <- getValues(dataAll2000)
+#data frame of cell coordinates
 coordinatesDF <- data.frame(coordinates(glc2000) )
 coordinatesSP <- SpatialPoints(unique(data.frame(x=coordinatesDF$x,y=coordinatesDF$y)), CRS(laea))
 #transform to lat/long
 coordinatesLL <- spTransform(coordinatesSP, "+init=epsg:4326")
-plot(coordinatesLL)
-
 LatLong <- data.frame(lat=coordinatesLL@coords[,2],lon=coordinatesLL@coords[,1])
+Years <- seq(2000,2009)
+dataAll <- list()
+dataDF <- list()
+dataAllFinal <- list()
+dataAllFinal1 <- list()
+dataAllFinal2 <- list()
+YearDF <- list()
+for(i in 1:NYears){
+  dataAll[[i]] <- stack(melt.mm.day[[i]],glc2000,doyStart[[i]],maxSwe[[i]])
+  names(dataAll[[i]]) <- c("melt.mm.day","glc","doyStart","maxSwe.m")
+  dataDF[[i]] <-  getValues(dataAll[[i]])
+  YearDF[[i]] <- data.frame(year=rep(Years[i], nrow(dataDF[[i]])))
+  dataAllFinal1[[i]] <- cbind(dataDF[[i]],LatLong)
+  dataAllFinal2[[i]] <- cbind(dataAllFinal1[[i]],cell=rep(1:ncell(pr),nlayers(pr)))
+  dataAllFinal[[i]] <- cbind(dataAllFinal2[[i]],YearDF[[i]])
+}
 
-dataAll2000b <- cbind(dataDF,LatLong)
-dataAll2000c <- na.omit(dataAll2000b)
-plot(dataAll2000c$lon,dataAll2000c$lat)
-#convert to lat long
+#unlist and remove NA
+analysisDF <- na.omit(rbind(dataAllFinal[[1]],dataAllFinal[[2]],dataAllFinal[[3]],
+                    dataAllFinal[[4]],dataAllFinal[[5]],dataAllFinal[[6]],
+                    dataAllFinal[[7]],dataAllFinal[[8]],dataAllFinal[[9]],
+                    dataAllFinal[[10]]))
 
-dataDFc <- cbind(dataDF, coordinatesDF)
-
-new.dat <- cbind(rep(1:ncell(swe),nlayers(swe)),
-                 rep(coordinates(swe)[,1],nlayers(swe)),
-                 rep(coordinates(swe)[,2],nlayers(swe)),
-                 rep(d[,1],each=ncell(swe)),
-                 rep(d[,3],each=ncell(swe)),
-                 as.vector(getValues(swe)),
-                 as.vector(getValues(era.d)),
-                 rep(getValues(vcf),nlayers(swe)),
-                 rep(getValues(glc.mode),nlayers(swe)),
-                 rep(getValues(glc.mode.freq),nlayers(swe)),
-                 rep(getValues(glc.mode2),nlayers(swe)),
-                 rep(getValues(glc.mode2.freq),nlayers(swe)))
 
 rm(list=setdiff(ls(), c("dailySwe",
                         "dailySwe.mask",
@@ -530,39 +571,6 @@ rm(list=setdiff(ls(), c("dailySwe",
                         "doyStart",
                         "glc2000",
                         "glcID",
-                        "maxSwe")))
+                        "maxSwe",
+                        "analysisDF")))
 
-
-test1 <- stack(Melt.mm.day)
-names(test1) <- paste("year",seq(2000,2009))
-plot(test1)
-
-plot(sweDecline[[1]])
-
-plot(sweDecline)
-
-tm_shape(Melt.cm.day)+
-  tm_raster(title="2000 melt rate (cm/day)", palette= "BuPu", style = "quantile")+
-  tm_layout(legend.outside=TRUE)
-
-tm_shape(MeltPeriod)+
-  tm_raster(title="2000 melt days", palette= "BuPu",style="quantile")+
-  tm_layout(legend.outside=TRUE)
-
-tm_shape(sweMax.mask)+
-  tm_raster(title="2000 Maximum swe", palette= "BuPu",style="quantile")+
-  tm_layout(legend.outside=TRUE)
-#create a mask for snow extent
-
-#raw swe reprojected
-sweA.ease
-#raw swe with mask
-sweA.mask4
-#swe at start of melt
-sweStart
-#swe at the end of melt
-sweEnd
-#doy of melt end
-meltEnd 
-#doy of mel start
-meltStart
