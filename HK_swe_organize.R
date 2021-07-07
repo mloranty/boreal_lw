@@ -4,7 +4,7 @@ require(rgdal)
 require(gdalUtils)
 require(lubridate)
 library(tmap)
-library(sf)
+library(sp)
 
 ###########################################
 ########## define projection ------
@@ -492,11 +492,16 @@ names(dataAll2000) <- c("melt.mm.day","glc","doyStart","maxSwe.m")
 plot(dataAll2000)
 dataDF <- getValues(dataAll2000)
 coordinatesDF <- data.frame(coordinates(glc2000) )
-coordinatesSF <- st_as_sf(coordinatesDF, coords=c("x","y") )
-x = coordinatesSF <- st_as_sf(coordinatesDF, coords=c("x","y") ) %>% st_set_crs(6931) %>% st_transform(4326)
+coordinatesSP <- SpatialPoints(unique(data.frame(x=coordinatesDF$x,y=coordinatesDF$y)), CRS(laea))
 #transform to lat/long
-coordinatesLL <- st_transform(coordinatesSF, "+init=")
+coordinatesLL <- spTransform(coordinatesSP, "+init=epsg:4326")
+plot(coordinatesLL)
 
+LatLong <- data.frame(lat=coordinatesLL@coords[,2],lon=coordinatesLL@coords[,1])
+
+dataAll2000b <- cbind(dataDF,LatLong)
+dataAll2000c <- na.omit(dataAll2000b)
+plot(dataAll2000c$lon,dataAll2000c$lat)
 #convert to lat long
 
 dataDFc <- cbind(dataDF, coordinatesDF)
