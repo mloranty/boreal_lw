@@ -95,6 +95,7 @@ sweAll <- list(stack("E:/Google Drive/GIS/swe_mudryk_blended/SWE_obsMEAN4x.2000.
 #legnth of stack
 NYears <- 10
 
+print("finish reading in data")
 ###########################################
 ########## SWE prep -------
 # crop to boreal region
@@ -125,7 +126,7 @@ topo.maskR <- resample(topo.mask, pr, method="ngb")
 #mask any area with sd over 2000
 pr.m <- mask(pr, topo.maskR,maskvalue=0)
  
-
+print("finish topo mask")
 ###########################################
 ########## GLC -----
 
@@ -206,12 +207,11 @@ tm_shape(glc.reclass)+
 glc.mode.p.ease <- glc.mode.freq.ease/3136
 glc.mode2.p.ease <- glc.mode2.freq.ease/3136
 
-plot(glc.mode.p.ease)
-plot(glc.mode2.p.ease)
+
 #takes only majority land cover
 glcP.mask <- reclassify(glc.mode.p.ease, matrix(c(0,0.5,NA,
                                                   0.5,1,1), byrow=TRUE, ncol=3))
-plot(glcP.mask)
+
 
 #get only majority land cover
 glc.maj <- mask(glc.reclass,glcP.mask)
@@ -231,13 +231,13 @@ pr.m2 <- mask(pr.m, glcP.mask,maskvalue=NA)
 plot(pr.m2)
 
 
-
+print("finish glc mask")
 ###########################################
 ########## VCF ----
-vcf.mask <- mask(vcf,glc.maj2)
+vcf.mask <- mask(vcf.ease,glc.maj2)
 
 
-
+print("finish vcf")
 ###########################################
 ########## SWE melt calculations ----
 sweDates <- list()
@@ -337,7 +337,7 @@ for(i in 1:NYears){
 }
 
 
-
+print("finish swe mask")
 ##### Start of melt calculation
 
 #get last day of within 80 % of max
@@ -500,6 +500,7 @@ Melt.m.day[[i]] <- sweDeclinem[[i]]/MeltPeriodm[[i]]
 Melt.mm.day[[i]] <- (sweDeclinem[[i]]*1000)/MeltPeriodm[[i]]
 }
 
+print("finish melt calc")
 ##organize output
 #daily swe in EASE projection All
 dailySwe <- sweA.ease
@@ -563,7 +564,7 @@ analysisDF <- na.omit(rbind(dataAllFinal[[1]],dataAllFinal[[2]],dataAllFinal[[3]
                     dataAllFinal[[7]],dataAllFinal[[8]],dataAllFinal[[9]],
                     dataAllFinal[[10]]))
 
-
+print("data done and ready for analysis")
 rm(list=setdiff(ls(), c("dailySwe",
                         "dailySwe.mask",
                         "melt.mm.day",
