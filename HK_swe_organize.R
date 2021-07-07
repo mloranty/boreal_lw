@@ -486,7 +486,11 @@ names(maxSwe) <- paste("year",seq(2000,2009))
 plot(maxSwe)
 
 #organize data frame for analysis
-#need vcf and air temp
+#need vcf and air temp code from mike
+
+#set up dataframes
+dataA
+
 dataAll2000 <- stack(melt.mm.day[[1]],glc2000,doyStart[[1]],maxSwe[[1]])
 names(dataAll2000) <- c("melt.mm.day","glc","doyStart","maxSwe.m")
 plot(dataAll2000)
