@@ -11,4 +11,5 @@
 #read in swe data
 source("c:/Users/hkropp/Documents/GitHub/boreal_lw/HK_swe_organize.R")
 
-
+#libraries
+library(sf)
