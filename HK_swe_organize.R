@@ -95,6 +95,20 @@ sweAll <- list(stack("E:/Google Drive/GIS/swe_mudryk_blended/SWE_obsMEAN4x.2000.
 #legnth of stack
 NYears <- 10
 
+#read in ERA data
+ERADir <- "E:/Google Drive/GIS/boreal_swe_all_data/era_interim_air_temp_2m_daily"
+ERAstack <- list(stack(paste0(ERADir, "/interim_2000-02-01to2000-06-30_daily.grd")),
+                 stack(paste0(ERADir, "/interim_2001-02-01to2001-06-30_daily.grd")),
+                 stack(paste0(ERADir, "/interim_2002-02-01to2002-06-30_daily.grd")),
+                 stack(paste0(ERADir, "/interim_2003-02-01to2003-06-30_daily.grd")),
+                 stack(paste0(ERADir, "/interim_2004-02-01to2004-06-30_daily.grd")),
+                 stack(paste0(ERADir, "/interim_2005-02-01to2005-06-30_daily.grd")),
+                 stack(paste0(ERADir, "/interim_2006-02-01to2006-06-30_daily.grd")),
+                 stack(paste0(ERADir, "/interim_2007-02-01to2007-06-30_daily.grd")),
+                 stack(paste0(ERADir, "/interim_2008-02-01to2008-06-30_daily.grd")),
+                stack(paste0(ERADir, "/interim_2009-02-01to2009-06-30_daily.grd")))
+                
+
 print("finish reading in data")
 ###########################################
 ########## SWE prep -------
