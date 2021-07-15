@@ -207,15 +207,6 @@ glcSub <- function(x){
 glc.reclass <- calc(glc.mode.ease, glcSub)
 
 
-tm_shape(glc.reclass)+
-  tm_raster(style="cat",palette="Pastel1", 
-            labels=c("4: Tree Cover, needle-leaved, evergreen",
-              "5: Tree Cover, needle-leaved, deciduous",
-              "6: Tree Cover, mixed leaf type",
-              "12: Shrub Cover, closed-open, deciduous",
-              "13: Herbaceous Cover, closed-open"))+
-  tm_layout(legend.outside = TRUE)
-
 
 #calculate proportion of most frequent glc
 glc.mode.p.ease <- glc.mode.freq.ease/3136
@@ -515,6 +506,9 @@ Melt.mm.day[[i]] <- (sweDeclinem[[i]]*1000)/MeltPeriodm[[i]]
 }
 
 print("finish melt calc")
+
+###########################################
+########## organize output spatial data ----
 ##organize output
 #daily swe in EASE projection All
 dailySwe <- sweA.ease
@@ -545,6 +539,57 @@ maxSwe <- stack( sweMax.mask2)
 names(maxSwe) <- paste("year",seq(2000,2009))
 plot(maxSwe)
 
+
+print("finish melt calc")
+
+###########################################
+########## calculate melt period temp ----
+
+#average temps during the melt period
+
+eraDates <- list()
+eraDOY <- list()
+eraDF <- list()
+startDF <- list()
+endDF <- list()
+for(i in 1:NYears){  
+  #get era dates
+  eraDates[[i]] <- as.Date(names(ERAstack[[i]]), "X%Y.%m.%d")
+  eraDOY[[i]] <- yday(eraDates[[i]])
+  #subset days in melt period
+  
+  eraDF[[i]] <- getValues(ERAstack[[i]])
+  startDF[[i]] <- getValues(meltStart[[i]])
+  endDF[[i]] <- getValues(meltEnd[[i]])
+}
+
+#pull out melt period and average
+layersERA <- numeric()
+
+  #961
+layersERA <- numeric() 
+  for(k in 1:nrow(eraDF[[1]])){
+    layersERA[k] <- mean(eraDF[[1]][,which(eraDOY[[1]] >= startDF[[1]][k] & eraDOY[[1]] <= endDF[[1]][k])])
+  }
+  
+testERA <- setValues(layersERA,pr)
+
+eraSub <- numeric()
+for(i in 1:NYears){ 
+  for(k in 1:nrow(sweValues[[i]])){
+   sweVe[k] <- sweValues[[i]][k,endLayers[[i]][k]]
+  }
+}  
+
+
+sweVe <- numeric()
+for(k in 1:nrow(sweValues[[i]])){
+  sweVe[k] <- sweValues[[i]][k,endLayers[[i]][k]]
+}
+
+
+###########################################
+########## organize output table data ----
 #organize data frame for analysis
 #need vcf and air temp code from mik
 
