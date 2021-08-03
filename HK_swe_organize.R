@@ -545,6 +545,8 @@ print("finish melt calc")
 ###########################################
 ########## calculate melt period temp ----
 
+
+
 #average temps during the melt period
 
 eraDates <- list()
@@ -558,34 +560,26 @@ for(i in 1:NYears){
   eraDOY[[i]] <- yday(eraDates[[i]])
   #subset days in melt period
   
-  eraDF[[i]] <- getValues(ERAstack[[i]])
+  eraDF[[i]] <- getValues(ERAstack[[i]])-273.15
   startDF[[i]] <- getValues(meltStart[[i]])
   endDF[[i]] <- getValues(meltEnd[[i]])
 }
 
 #pull out melt period and average
-layersERA <- numeric()
-
-  #961
-layersERA <- numeric() 
-  for(k in 1:nrow(eraDF[[1]])){
-    layersERA[k] <- mean(eraDF[[1]][,which(eraDOY[[1]] >= startDF[[1]][k] & eraDOY[[1]] <= endDF[[1]][k])])
+#set temp values outside of melt as NA
+meltMeanV <- numeric(0)
+meltMean <- list()
+for(i in 1:NYears){
+  for(k in 1:nrow(eraDF[[i]])){
+    meltMeanV[k] <- ifelse(is.na(startDF[[i]][k]) | is.na(endDF[[i]][k]),NA, 
+                           mean(ifelse( eraDOY[[i]] <  startDF[[i]][k] | eraDOY[[i]] >  endDF[[i]][k],NA,eraDF[[i]][k,]),na.rm=TRUE))
+    
   }
-  
-testERA <- setValues(layersERA,pr)
-
-eraSub <- numeric()
-for(i in 1:NYears){ 
-  for(k in 1:nrow(sweValues[[i]])){
-   sweVe[k] <- sweValues[[i]][k,endLayers[[i]][k]]
-  }
-}  
-
-
-sweVe <- numeric()
-for(k in 1:nrow(sweValues[[i]])){
-  sweVe[k] <- sweValues[[i]][k,endLayers[[i]][k]]
+  meltMean[[i]] <- setValues(pr,as.numeric(meltMeanV))
 }
+
+meltMeanT <- stack(meltMean)
+names(meltMeanT) <- paste("year",seq(2000,2009))
 
 
 ###########################################
@@ -608,8 +602,8 @@ dataAllFinal1 <- list()
 dataAllFinal2 <- list()
 YearDF <- list()
 for(i in 1:NYears){
-  dataAll[[i]] <- stack(melt.mm.day[[i]],glc2000,doyStart[[i]],maxSwe[[i]])
-  names(dataAll[[i]]) <- c("melt.mm.day","glc","doyStart","maxSwe.m")
+  dataAll[[i]] <- stack(melt.mm.day[[i]],glc2000,doyStart[[i]],maxSwe[[i]],meltMeanT[[i]])
+  names(dataAll[[i]]) <- c("melt.mm.day","glc","doyStart","maxSwe.m","meltTempC")
   dataDF[[i]] <-  getValues(dataAll[[i]])
   YearDF[[i]] <- data.frame(year=rep(Years[i], nrow(dataDF[[i]])))
   dataAllFinal1[[i]] <- cbind(dataDF[[i]],LatLong)
