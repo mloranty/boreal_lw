@@ -95,6 +95,21 @@ sweAll <- list(stack("E:/Google Drive/GIS/swe_mudryk_blended/SWE_obsMEAN4x.2000.
 #legnth of stack
 NYears <- 10
 
+#read in ERA data
+ERADir <- "E:/Google Drive/GIS/boreal_swe_all_data/era_interim_air_temp_2m_daily"
+ERAstack <- list(stack(paste0(ERADir, "/interim_2000-02-01to2000-06-30_daily.grd")),
+                 stack(paste0(ERADir, "/interim_2001-02-01to2001-06-30_daily.grd")),
+                 stack(paste0(ERADir, "/interim_2002-02-01to2002-06-30_daily.grd")),
+                 stack(paste0(ERADir, "/interim_2003-02-01to2003-06-30_daily.grd")),
+                 stack(paste0(ERADir, "/interim_2004-02-01to2004-06-30_daily.grd")),
+                 stack(paste0(ERADir, "/interim_2005-02-01to2005-06-30_daily.grd")),
+                 stack(paste0(ERADir, "/interim_2006-02-01to2006-06-30_daily.grd")),
+                 stack(paste0(ERADir, "/interim_2007-02-01to2007-06-30_daily.grd")),
+                 stack(paste0(ERADir, "/interim_2008-02-01to2008-06-30_daily.grd")),
+                stack(paste0(ERADir, "/interim_2009-02-01to2009-06-30_daily.grd")))
+                
+
+print("finish reading in data")
 ###########################################
 ########## SWE prep -------
 # crop to boreal region
@@ -125,7 +140,7 @@ topo.maskR <- resample(topo.mask, pr, method="ngb")
 #mask any area with sd over 2000
 pr.m <- mask(pr, topo.maskR,maskvalue=0)
  
-
+print("finish topo mask")
 ###########################################
 ########## GLC -----
 
@@ -192,26 +207,16 @@ glcSub <- function(x){
 glc.reclass <- calc(glc.mode.ease, glcSub)
 
 
-tm_shape(glc.reclass)+
-  tm_raster(style="cat",palette="Pastel1", 
-            labels=c("4: Tree Cover, needle-leaved, evergreen",
-              "5: Tree Cover, needle-leaved, deciduous",
-              "6: Tree Cover, mixed leaf type",
-              "12: Shrub Cover, closed-open, deciduous",
-              "13: Herbaceous Cover, closed-open"))+
-  tm_layout(legend.outside = TRUE)
-
 
 #calculate proportion of most frequent glc
 glc.mode.p.ease <- glc.mode.freq.ease/3136
 glc.mode2.p.ease <- glc.mode2.freq.ease/3136
 
-plot(glc.mode.p.ease)
-plot(glc.mode2.p.ease)
+
 #takes only majority land cover
 glcP.mask <- reclassify(glc.mode.p.ease, matrix(c(0,0.5,NA,
                                                   0.5,1,1), byrow=TRUE, ncol=3))
-plot(glcP.mask)
+
 
 #get only majority land cover
 glc.maj <- mask(glc.reclass,glcP.mask)
@@ -231,13 +236,13 @@ pr.m2 <- mask(pr.m, glcP.mask,maskvalue=NA)
 plot(pr.m2)
 
 
-
+print("finish glc mask")
 ###########################################
 ########## VCF ----
-vcf.mask <- mask(vcf,glc.maj2)
+vcf.mask <- mask(vcf.ease,glc.maj2)
 
 
-
+print("finish vcf")
 ###########################################
 ########## SWE melt calculations ----
 sweDates <- list()
@@ -337,7 +342,7 @@ for(i in 1:NYears){
 }
 
 
-
+print("finish swe mask")
 ##### Start of melt calculation
 
 #get last day of within 80 % of max
@@ -500,6 +505,10 @@ Melt.m.day[[i]] <- sweDeclinem[[i]]/MeltPeriodm[[i]]
 Melt.mm.day[[i]] <- (sweDeclinem[[i]]*1000)/MeltPeriodm[[i]]
 }
 
+print("finish melt calc")
+
+###########################################
+########## organize output spatial data ----
 ##organize output
 #daily swe in EASE projection All
 dailySwe <- sweA.ease
@@ -530,6 +539,51 @@ maxSwe <- stack( sweMax.mask2)
 names(maxSwe) <- paste("year",seq(2000,2009))
 plot(maxSwe)
 
+
+print("finish melt calc")
+
+###########################################
+########## calculate melt period temp ----
+
+
+
+#average temps during the melt period
+
+eraDates <- list()
+eraDOY <- list()
+eraDF <- list()
+startDF <- list()
+endDF <- list()
+for(i in 1:NYears){  
+  #get era dates
+  eraDates[[i]] <- as.Date(names(ERAstack[[i]]), "X%Y.%m.%d")
+  eraDOY[[i]] <- yday(eraDates[[i]])
+  #subset days in melt period
+  
+  eraDF[[i]] <- getValues(ERAstack[[i]])-273.15
+  startDF[[i]] <- getValues(meltStart[[i]])
+  endDF[[i]] <- getValues(meltEnd[[i]])
+}
+
+#pull out melt period and average
+#set temp values outside of melt as NA
+meltMeanV <- numeric(0)
+meltMean <- list()
+for(i in 1:NYears){
+  for(k in 1:nrow(eraDF[[i]])){
+    meltMeanV[k] <- ifelse(is.na(startDF[[i]][k]) | is.na(endDF[[i]][k]),NA, 
+                           mean(ifelse( eraDOY[[i]] <  startDF[[i]][k] | eraDOY[[i]] >  endDF[[i]][k],NA,eraDF[[i]][k,]),na.rm=TRUE))
+    
+  }
+  meltMean[[i]] <- setValues(pr,as.numeric(meltMeanV))
+}
+
+meltMeanT <- stack(meltMean)
+names(meltMeanT) <- paste("year",seq(2000,2009))
+
+
+###########################################
+########## organize output table data ----
 #organize data frame for analysis
 #need vcf and air temp code from mik
 
@@ -548,8 +602,8 @@ dataAllFinal1 <- list()
 dataAllFinal2 <- list()
 YearDF <- list()
 for(i in 1:NYears){
-  dataAll[[i]] <- stack(melt.mm.day[[i]],glc2000,doyStart[[i]],maxSwe[[i]])
-  names(dataAll[[i]]) <- c("melt.mm.day","glc","doyStart","maxSwe.m")
+  dataAll[[i]] <- stack(melt.mm.day[[i]],glc2000,doyStart[[i]],maxSwe[[i]],meltMeanT[[i]])
+  names(dataAll[[i]]) <- c("melt.mm.day","glc","doyStart","maxSwe.m","meltTempC")
   dataDF[[i]] <-  getValues(dataAll[[i]])
   YearDF[[i]] <- data.frame(year=rep(Years[i], nrow(dataDF[[i]])))
   dataAllFinal1[[i]] <- cbind(dataDF[[i]],LatLong)
@@ -563,7 +617,7 @@ analysisDF <- na.omit(rbind(dataAllFinal[[1]],dataAllFinal[[2]],dataAllFinal[[3]
                     dataAllFinal[[7]],dataAllFinal[[8]],dataAllFinal[[9]],
                     dataAllFinal[[10]]))
 
-
+print("data done and ready for analysis")
 rm(list=setdiff(ls(), c("dailySwe",
                         "dailySwe.mask",
                         "melt.mm.day",
