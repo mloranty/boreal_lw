@@ -626,5 +626,6 @@ rm(list=setdiff(ls(), c("dailySwe",
                         "glc2000",
                         "glcID",
                         "maxSwe",
+                        "meltMeanT",
                         "analysisDF")))
 
