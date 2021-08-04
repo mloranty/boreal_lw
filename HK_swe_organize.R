@@ -44,8 +44,7 @@
 ############      table with no missing data   ############
 ###########################################################
 ###########################################################
-startTime <- Sys.time()
-startTime
+
 
 library(raster)
 library(ncdf4)
@@ -634,6 +633,11 @@ rm(list=setdiff(ls(), c("dailySwe",
                         "analysisDF",
                         "startTime")))
 
-endTime <- Sys.time()
-endTime
-startTime
+plot(doyStart)
+plot(glc2000)
+plot(maxSwe)
+plot(melt.mm.day)
+plot(meltDuration)
+plot(meltMeanT)
+plot(dailySwe.mask[[1]])
+plot(doyStart)
