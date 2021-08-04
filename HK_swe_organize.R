@@ -630,14 +630,6 @@ rm(list=setdiff(ls(), c("dailySwe",
                         "glcID",
                         "maxSwe",
                         "meltMeanT",
-                        "analysisDF",
-                        "startTime")))
+                        "analysisDF")))
 
-plot(doyStart)
-plot(glc2000)
-plot(maxSwe)
-plot(melt.mm.day)
-plot(meltDuration)
-plot(meltMeanT)
-plot(dailySwe.mask[[1]])
-plot(doyStart)
+
