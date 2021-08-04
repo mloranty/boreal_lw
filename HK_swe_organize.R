@@ -16,6 +16,9 @@
 ############ for statistical analysis.         ############
 ###########################################################
 ###########################################################
+############ runtime approx: 14 min            ############
+###########################################################
+###########################################################
 ############ Data outputs:                     ############
 ############  A: Raster stacks:                ############
 ############    1: dailySwe                    ############
@@ -232,7 +235,7 @@ tm_shape(glc.maj2)+
                      "13: Herbaceous Cover, closed-open"))+
   tm_layout(legend.outside = TRUE, title = "Majority LC no mnts")
 
-pr.m2 <- mask(pr.m, glcP.mask,maskvalue=NA)
+pr.m2 <- mask(pr.m, glc.maj2,maskvalue=NA)
 plot(pr.m2)
 
 
@@ -602,8 +605,8 @@ dataAllFinal1 <- list()
 dataAllFinal2 <- list()
 YearDF <- list()
 for(i in 1:NYears){
-  dataAll[[i]] <- stack(melt.mm.day[[i]],glc2000,doyStart[[i]],maxSwe[[i]],meltMeanT[[i]])
-  names(dataAll[[i]]) <- c("melt.mm.day","glc","doyStart","maxSwe.m","meltTempC")
+  dataAll[[i]] <- stack(melt.mm.day[[i]],glc2000,vcf.mask,doyStart[[i]],maxSwe[[i]],meltMeanT[[i]])
+  names(dataAll[[i]]) <- c("melt.mm.day","glc","vcf","doyStart","maxSwe.m","meltTempC")
   dataDF[[i]] <-  getValues(dataAll[[i]])
   YearDF[[i]] <- data.frame(year=rep(Years[i], nrow(dataDF[[i]])))
   dataAllFinal1[[i]] <- cbind(dataDF[[i]],LatLong)
@@ -626,5 +629,8 @@ rm(list=setdiff(ls(), c("dailySwe",
                         "glc2000",
                         "glcID",
                         "maxSwe",
+                        "meltMeanT",
+                        "vcf.mask",
                         "analysisDF")))
+
 
