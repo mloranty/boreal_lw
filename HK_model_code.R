@@ -9,8 +9,7 @@ model{
     rep.b0[i] ~ dnorm(mu.b0[i],tau.b0[glcIDB[i]])
     #empirical regression
     mu.b0[i] <- betaB0[glcIDB[i]] + betaB1[glcIDB[i]]*TempAB[i] + betaB2[glcIDB[i]]*(CanopyB[i]-20) +
-      betaB3[glcIDB[i]]*(sweDay[i]-107) + betaB4[glcIDB[i]]*(SweMax[i]-0.15) +
-      eps.b[GCyearB[i]] + eps.s[cellID[i]]
+      betaB3[glcIDB[i]]*(sweDay[i]-107) + betaB4[glcIDB[i]]*(SweMax[i]-0.15) 
     #posterior predictive loss
     Sqdiff[i] <- pow(rep.b0[i] - b0[i],2)
     #log likelihood for waic
@@ -20,25 +19,7 @@ model{
   ####################
   #####priors    #####
   ####################
-  #### year random effects ####
-  #year random effects
-  for(i in 1:Ngcyear){
-    #year random effects
-    #with sweeping
-    
-    eps.b[i] ~ dnorm(0,tau.eb[ygcIDB[i]])
-    
-    eps.bS[i] <- eps.b[i] - epsb.bar[ygcIDB[i]]
-  }
-  for(i in 1:Nglc){
-    #calculate means
-    epsb.bar[i] <- mean(eps.b[startb[i]:endb[i]]) 	
-    
-    #variance terms for random effects
-    tau.eb[i] <- pow(sig.eb[i],-2)
-    sig.eb[i] ~ dgamma(0.0001,0.0001)
-    
-  }
+
   #### regression ####
   for(i in 1:Nglc){
     #slope regression priors
@@ -53,30 +34,14 @@ model{
     sig.b0[i] ~ dunif(0,100)
     
     #calculate identifiable intercepts
-    betaB0S[i] <- betaB0[i] + epsb.bar[i] + epsS.bar
+    betaB0S[i] <- betaB0[i] 
     #look at intercept not on log scale
     trB0[i] <- exp(betaB0S[i])
     
   }
   
   
-  ####################
-  #####cell      #####
-  #####random    #####
-  #####effects   #####
-  ####################
-  
-  for(j in 1:Ncell){
-    #specify means
-    eps.s[j] ~ dnorm(0,tau.es)
-    #specify identifiable parameters
-    eps.sS[j] <- eps.s[j]-epsS.bar
-  }
-  #variance terms for random effects
-  tau.es <- pow(sig.es,-2)
-  sig.es ~ dgamma(0.0001,0.0001)
-  
-  epsS.bar <- mean(eps.s[])	
+ 
   ####################
   ####hyper-priors####
   ####################
