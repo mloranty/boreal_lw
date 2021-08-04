@@ -131,7 +131,7 @@ MaxMean <- seq(0,0.5, length.out=200)
 #jags mixed effects regression
 #organize into list
   datalist <- list(Nobs= dim(analysisDFm1)[1],
-                   b0=analysisDFm1$logAbsRate,
+                   b0=analysisDFm1$log.melt,
                    glcIDB=analysisDFm1$gcID,
                    TempAB=analysisDFm1$meltTempC,#centered around 0
                    CanopyB=analysisDFm1$vcf,#centered at 20
@@ -148,9 +148,9 @@ MaxMean <- seq(0,0.5, length.out=200)
                    SdayMean=SdayMean,
                    MaxMean=MaxMean)
 
-  inits <- list(list(tau.eb=rep(1,dim(gcIndT)[1])),
-                list(tau.eb=rep(1.4,dim(gcIndT)[1])),
-                list(tau.eb=rep(2,dim(gcIndT)[1])))
+  #inits <- list(list(tau.eb=rep(1,dim(gcIndT)[1])),
+   #             list(tau.eb=rep(1.4,dim(gcIndT)[1])),
+     #           list(tau.eb=rep(2,dim(gcIndT)[1])))
   
   
   parms <- c("betaB0S","betaB1","betaB2","betaB3","betaB4",
