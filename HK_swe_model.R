@@ -188,4 +188,53 @@ MaxMean <- seq(0,0.5, length.out=200)
   chain2<-as.matrix(curve.sample[[2]])
   write.table(chain2,paste0(modDir,"\\chain2_coda.csv"), sep=",")
   chain3<-as.matrix(curve.sample[[3]])
-  write.table(chain3,paste0(modDir,"\\chain3_coda.csv"), sep=",")		 
+  write.table(chain3,paste0(modDir,"\\chain3_coda.csv"), sep=",")	
+  
+  
+  ###############################################
+  ### read in regression results              ###
+  ### check goodness of fit
+  ###############################################
+  
+  #read in model output
+  datS <- read.csv(paste0(modDir,"/curve_mod_stats.csv"))
+  datQ <- read.csv(paste0(modDir,"/curve_mod_quant.csv"))
+  
+  #combine data frames
+  datC <- cbind(datS,datQ)
+  #pull out parameter names
+  dexps<-"\\[*[[:digit:]]*\\]"
+  datC$parm <- gsub(dexps,"",rownames(datC))
+  
+  #pull out betaB2
+  betaCov <- datC[datC$parm=="betaB2",] 
+  #pull out slope rep
+  bRep <- datC[datC$parm=="rep.b0",]			
+  
+  plot(analysisDFm1$log.melt,bRep$Mean)	
+  fit <- lm(bRep$Mean~	analysisDFm1$log.melt)	
+  summary(fit)	
+  
+  
+  abline(0,1,col="red",lwd=2) 
+  
+  
+  #coda for correlation between predictors check
+  chains <- rbind(chain1,chain2,chain3)
+  
+betaB0S <- chains[,grep("betaB0S",colnames(chains))]
+betaB1 <- chains[,grep("betaB1",colnames(chains))]
+betaB2 <- chains[,grep("betaB2",colnames(chains))]
+betaB3 <- chains[,grep("betaB3",colnames(chains))]
+betaB4 <- chains[,grep("betaB4",colnames(chains))]
+
+#turn into single matrix
+#mu.betas get added on
+betaComp <- data.frame(B0 = as.vector(betaB0S),
+                       B1 = as.vector(betaB1[,1:5]),
+                       B2 = as.vector(betaB2[,1:5]),
+                       B3 = as.vector(betaB3[,1:5]),
+                       B4 = as.vector(betaB4[,1:5]))
+                      
+pairs(betaComp)
+  
