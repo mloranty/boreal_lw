@@ -161,10 +161,10 @@ MaxMean <- seq(0,0.5, length.out=200)
   
   curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\HK_model_code.r",
                           data=datalist,
-                          n.adapt=10000,
+                          n.adapt=20000,
                           n.chains=3)
   
-  curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=3000,thin=1)						
+  curve.sample <- coda.samples(curve.mod,variable.names=parms,n.iter=90000,thin=30)						
   
   mcmcplot(curve.sample, parms=c(
     "betaB0S","betaB1","betaB2","betaB3","betaB4",

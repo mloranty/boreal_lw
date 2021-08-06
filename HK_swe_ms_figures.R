@@ -46,10 +46,11 @@ library(sf)
 library(maps)
 library(rgeos)
 library(raster)
+library(BAMMtools)
 
 ###########################################
 ########## Directories       -----
-outDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/figures"
+plotDI <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/figures"
 
 
 ###########################################
@@ -111,7 +112,7 @@ mu.Canopy <- datC[datC$parm2 == "mu.Canopy[,]",]
 
 ###########################################
 ########## Map boundaries      -----
-
+laea <- "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 
 #make a circle for the polar region
 #max missing is predominately zero throughout the entire map. Not worth showing
@@ -193,8 +194,84 @@ mx <- 2
 #line for panel label
 pll <- .5
 #vege type breaks
-vegeBr <- c(0,1,2,3,4,5)
+vegeBr <- c(0,4.5,5.5,6.5,12.5,13.5)
+vegeBri <- seq(0,5)
 canopyBr <- c(0,10,20,30,40,50,60,70,80)
-sweBr <-c(0.01,0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5)
+
 #size of axis
 cxa <- 1.75
+
+
+plot(vcf.mask)
+plot(glc2000)
+
+
+png(paste0(plotDI,"\\figure1_data_maps.png"), width = 17, height = 7, units = "in", res=300)
+layout(matrix(seq(1,4),ncol=4), width=c(lcm(wd1),lcm(wd2),lcm(wd1),lcm(wd2)),height=lcm(hd))
+#set up empty plot
+### plot 1 vegetation type ###
+par(mai=c(0,0,0,0))
+plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4150000,4150000),ylim=c(-4150000,4150000))
+#color background
+polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
+#boundaries
+points(world, type="l", lwd=2, col="grey65")
+#continent color
+polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
+#plot points
+image(glc2000,breaks=vegeBr,col=vegePallete,add=TRUE )
+mtext("A",at=4100000,side=2,line=pll, las=2,cex=mx)
+plot(PolyBlock, col="white",border="white", add=TRUE)
+### plot 1 legend ###
+par(mai=c(0,.25,0,2))
+plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
+for(i in 1:(length(vegeBr)-1)){
+  polygon(c(0,0,1,1), 
+          c(vegeBri[i]/(length(vegeBri)-1),vegeBri[i+1]/(length(vegeBri)-1),vegeBri[i+1]/(length(vegeBri)-1),vegeBri[i]/(length(vegeBri)-1)),
+          col=vegePallete[i],border=NA)
+}
+axis(4,(vegeBri[1:5]/5)+.1,glcID$name2,cex.axis=cxa,las=2)
+mtext("Vegetation cover", side=3, line=1, cex=2)
+
+### plot 2 canopy cover ###
+par(mai=c(0,0,0,0))
+plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4150000,4150000),ylim=c(-4150000,4150000))
+#color background
+polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
+#boundaries
+points(world, type="l", lwd=2, col="grey65")
+#continent color
+polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
+#plot points
+image(vcf.mask, breaks=canopyBr, col=treePallete, add=TRUE)
+mtext("B",at=4100000,side=2,line=pll, las=2,cex=mx)
+plot(PolyBlock, col="white",border="white", add=TRUE)
+### plot 2 legend ###
+par(mai=c(0,.25,0,2))
+plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
+for(i in 1:(length(canopyBr)-1)){
+  polygon(c(0,0,1,1), 
+          c(canopyBr[i]/canopyBr[length(canopyBr)],canopyBr[i+1]/canopyBr[length(canopyBr)],canopyBr[i+1]/canopyBr[length(canopyBr)],canopyBr[i]/canopyBr[length(canopyBr)]),
+          col=treePallete[i],border=NA)
+}
+axis(4,canopyBr/canopyBr[length(canopyBr)],canopyBr,cex.axis=cxa,las=2)	
+mtext("Canopy cover (%)", side=3, line=1, cex=2)
+dev.off()
+
+
+
+###########################################
+########## Figure 2: map of melt ##########
+########## rate & swe max with   ##########
+########## violins               ##########
+########## Figure 2       -----
+
+
+#average melt over 10 year time period
+melt.ave <- calc(melt.mm.day, fun=mean,na.rm=TRUE)
+melt.sd <- calc(melt.mm.day, fun=sd,na.rm=TRUE)
+melt.count <- calc(melt.mm.day, fun=function(x){length(x[!is.na(x)])})
+
+
+#average swe max over 10 year time period
+
