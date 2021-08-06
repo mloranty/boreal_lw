@@ -181,9 +181,20 @@ swePallete <- rev(c(rgb(178,24,43,max=255),
                     rgb(146,197,222,max=255),
                     rgb(67,147,195,max=255),
                     rgb(33,102,172,max=255)))
+#alice blue: rgb(149/255,218/255,255/255)
+#option 2: "#c0d6df"
+#option 3: "#d6e2e9"
+#option 4: water <- "#f0f8ff"
+#option 5: water <- "#80C5DE85"
+water <- "#80C5DE20"
 
-#add better names
-glcID$name2 <- c("Evergreen needleleaf", "Deciduous needleleaf","Mixed boreal","Deciduous shrub","Herbaceous")
+#option 1: land <-"#f1e7dd"
+#option 2: land <-"#d9d9d9"
+#option 4: land <- "#fff7f0"
+land <-"#ccc5b9"
+
+
+
 
 
 
@@ -197,8 +208,7 @@ glcID$name2 <- c("Evergreen needleleaf", "Deciduous needleleaf","Mixed boreal","
 hd <- 12
 wd1 <- 12
 wd2 <- 8
-water <- rgb(149/255,218/255,255/255,.3)
-land <- rgb(250,230,190, max=255)
+
 #size of panel label
 mx <- 2
 #line for panel label
@@ -305,6 +315,7 @@ analysisDF$maxSwe.mm <- analysisDF$maxSwe.m * 1000
 histL <- list()
 densityH <- numeric(0)
 maxS <- numeric(0)
+minS <- numeric(0)
 quant <- list()
 for(i in 1:nrow(glcID)){
   
@@ -314,7 +325,7 @@ for(i in 1:nrow(glcID)){
   densityH[i] <- max(histL[[i]]$density)
   histL[[i]]$densityScale <-histL[[i]]$density*(0.5/ densityH[i])
   maxS[i] <- round(max(analysisDF$absRate[analysisDF$glc == glcID$glc[i]]),1)
-
+  minS[i] <- floor(min(analysisDF$absRate[analysisDF$glc == glcID$glc[i]]))
   #create box plot quantiles
 
   quant[[i]] <- quantile(analysisDF$absRate[analysisDF$glc == glcID$glc[i]], probs=c(0.025,0.25,0.50,0.75,0.975))
@@ -329,6 +340,7 @@ for(i in 1:nrow(glcID)){
 histLM <- list()
 densityHM <- numeric(0)
 maxSM <- numeric(0)
+minSM <- numeric(0)
 quantM <- list()
 for(i in 1:nrow(glcID)){
   
@@ -338,7 +350,7 @@ for(i in 1:nrow(glcID)){
   densityHM[i] <- max(histLM[[i]]$density)
   histLM[[i]]$densityScale <-histLM[[i]]$density*(0.5/ densityHM[i])
   maxSM[i] <- round(max(analysisDF$maxSwe.mm[analysisDF$glc == glcID$glc[i]]),1)
-  
+  minSM[i] <- floor(min(analysisDF$maxSwe.mm[analysisDF$glc == glcID$glc[i]]))
   #create box plot quantiles
   
   quantM[[i]] <- quantile(analysisDF$maxSwe.mm[analysisDF$glc == glcID$glc[i]], probs=c(0.025,0.25,0.50,0.75,0.975))
@@ -353,8 +365,7 @@ sweMaxBr <- round(getJenksBreaks(getValues(max.mm.ave),9),2)
 hd <- 22
 wd1 <- 22
 wd2 <- 8
-water <- rgb(149/255,218/255,255/255,.3)
-land <- rgb(250,230,190, max=255)
+
 #size of panel label
 mx <- 4
 #line for panel label
@@ -414,17 +425,17 @@ for(i in 1:(length(sweBr)-1)){
             i/length(sweBr)),
           col=swePallete[i],border=NA)
 }
-axis(4,seq(1,length(sweBr))/length(sweBr),sweBr,cex.axis=cxa,las=2)	
+axis(4,seq(1,length(sweBr))/length(sweBr),round(sweBr,0),cex.axis=cxa,las=2)	
 
 plot(c(0,1),c(0,1), xlim=c(0,12), ylim=c(ylV,yhV), axes=FALSE, type="n", xlab = " ", ylab= " ",
      xaxs="i", yaxs="i")
 for(j in 1:5){
   #if plot order needs to be changed do so here
   i <- j
-  polygon(c(xseqV[j]+(0-histL[[i]]$densityScale[histL[[i]]$mids<=maxS[i]]), 
-            rev(xseqV[j]+(histL[[i]]$densityScale[histL[[i]]$mids<=maxS[i]]))),
-          c(histL[[i]]$mids[histL[[i]]$mids<=maxS[i]],
-            rev(histL[[i]]$mids[histL[[i]]$mids<=maxS[i]])), 
+  polygon(c(xseqV[j]+(0-histL[[i]]$densityScale[histL[[i]]$mids<=maxS[i] & histL[[i]]$mids >= minS[i]]), 
+            rev(xseqV[j]+(histL[[i]]$densityScale[histL[[i]]$mids<=maxS[i] & histL[[i]]$mids >= minS[i]]))),
+          c(histL[[i]]$mids[histL[[i]]$mids<=maxS[i] & histL[[i]]$mids >= minS[i]],
+            rev(histL[[i]]$mids[histL[[i]]$mids<=maxS[i] & histL[[i]]$mids >= minS[i]])), 
           lwd=0.75,  col=vegePallete3[i])
   arrows(	xseqV[j],quant[[i]][1], xseqV[j],quant[[i]][5], code=0, lwd=1)
   polygon(c(xseqV[j]-0.15,xseqV[j]-0.15,xseqV[j]+0.15,xseqV[j]+0.15),
@@ -475,10 +486,10 @@ plot(c(0,1),c(0,1), xlim=c(0,12), ylim=c(ylVC,yhVC), axes=FALSE, type="n", xlab 
      xaxs="i", yaxs="i")
 for(j in 1:5){
   i <- j
-  polygon(c(xseqV[j]+(0-histLM[[i]]$densityScale[histLM[[i]]$mids<=maxSM[i]]), 
-            rev(xseqV[j]+(histLM[[i]]$densityScale[histLM[[i]]$mids<=maxSM[i]]))),
-          c(histLM[[i]]$mids[histLM[[i]]$mids<=maxSM[i]],
-            rev(histLM[[i]]$mids[histLM[[i]]$mids<=maxSM[i]])), 
+  polygon(c(xseqV[j]+(0-histLM[[i]]$densityScale[histLM[[i]]$mids<=maxSM[i] & histLM[[i]]$mids>=minSM[i] ]), 
+            rev(xseqV[j]+(histLM[[i]]$densityScale[histLM[[i]]$mids<=maxSM[i] & histLM[[i]]$mids>=minSM[i]]))),
+          c(histLM[[i]]$mids[histLM[[i]]$mids<=maxSM[i] & histLM[[i]]$mids>=minSM[i]],
+            rev(histLM[[i]]$mids[histLM[[i]]$mids<=maxSM[i] & histLM[[i]]$mids>=minSM[i]])), 
           lwd=0.75,  col=vegePallete3[i])
   arrows(	xseqV[j],quantM[[i]][1], xseqV[j],quantM[[i]][5], code=0, lwd=1)
   polygon(c(xseqV[j]-0.15,xseqV[j]-0.15,xseqV[j]+0.15,xseqV[j]+0.15),
