@@ -25,6 +25,8 @@
 ############      Swe at start melt            ############
 ############    8: vcf.mask                    ############
 ############      % tree cover                 ############
+############    9: meltMeanT                   ############
+############     ave temp melt period (c)      ############
 ############  B: Dataframes:                   ############
 ############    1: glcID                       ############
 ############      table of glcID codes         ############
@@ -281,10 +283,11 @@ dev.off()
 
 
 ###########################################
-########## Figure 2: map of melt ##########
-########## rate & swe max with   ##########
-########## violins               ##########
-########## Figure 2       -----
+########## Figure 2&3: map of     #########
+########## melt rate & swe max    #########
+########## temp & doy start       #########
+########## with violins           #########
+########## Figure 2 & 3      -----
 #break up names 
 nameSplit1 <- character(0)
 nameSplit2 <- character(0)
@@ -305,6 +308,13 @@ melt.count <- calc(melt.mm.day, fun=function(x){length(x[!is.na(x)])})
 max.ave <- calc(maxSwe, fun=mean,na.rm=TRUE)
 max.mm.ave <- max.ave * 1000
 
+
+#average doy start
+doyS.ave <- calc(doyStart, fun=mean, na.rm=TRUE)
+
+
+#average melt temp
+temp.ave <- calc(meltMeanT, fun=mean,na.rm=TRUE)
 
 #set up violin plots
 #look at absoulute melt
@@ -356,11 +366,58 @@ for(i in 1:nrow(glcID)){
   quantM[[i]] <- quantile(analysisDF$maxSwe.mm[analysisDF$glc == glcID$glc[i]], probs=c(0.025,0.25,0.50,0.75,0.975))
 }
 
+quantT <- list()
+for(i in 1:5){
+  quantT[[i]] <- quantile(analysisDF$meltTempC[analysisDF$glc == glcID$glc[i]], probs=c(0.025,0.25,0.50,0.75,0.975),na.rm=TRUE)
+}
+
+histLT <- list()
+densityHT <- numeric(0)
+maxST <- numeric(0)
+minST <- numeric(0)
+
+for(i in 1:5){
+  
+  histLT[[i]] <- hist(analysisDF$meltTempC[analysisDF$glc == glcID$glc[i]], breaks=seq(-9,15, by=0.5))
+  #get max and min
+  
+  densityHT[i] <- max(histLT[[i]]$density)
+  histLT[[i]]$densityScale <-histLT[[i]]$density*(0.5/ densityHT[i])
+  maxST[i] <- round(max(analysisDF$meltTempC[analysisDF$glc == glcID$glc[i]], na.rm=TRUE),1)
+  minST[i] <- floor(min(analysisDF$meltTempC[analysisDF$glc == glcID$glc[i]]*10, na.rm=TRUE))/10
+}
+
+
+#get quantiles for onset
+quantO <- list()
+for(i in 1:5){
+  quantO[[i]] <- quantile(analysisDF$doyStart[analysisDF$glc == glcID$glc[i]], probs=c(0.025,0.25,0.50,0.75,0.975),na.rm=TRUE)
+}
+histLO <- list()
+densityHO <- numeric(0)
+maxSO <- numeric(0)
+minSO <- numeric()
+
+for(i in 1:5){
+  
+  histLO[[i]] <- hist(analysisDF$doyStart[analysisDF$glc == glcID$glc[i]], breaks=seq(30,170, by=4))
+  #get max and min
+  
+  densityHO[i] <- max(histLO[[i]]$density)
+  histLO[[i]]$densityScale <-histLO[[i]]$density*(0.5/ densityHO[i])
+  maxSO[i] <- round(max(analysisDF$doyStart[analysisDF$glc == glcID$glc[i]], na.rm=TRUE),1)
+  minSO[i] <- floor(min(analysisDF$doyStart[analysisDF$glc == glcID$glc[i]], na.rm=TRUE))
+}
+
+
+
+
 
 #set up figures
 sweBr <- round(getJenksBreaks(getValues(melt.ave),9),2)	
 sweMaxBr <- round(getJenksBreaks(getValues(max.mm.ave),9),2)
-
+meltTBr <- round(getJenksBreaks(getValues(temp.ave),9),2)
+OnsetBr <- round(getJenksBreaks(getValues(doyS.ave),9),0)
 
 hd <- 22
 wd1 <- 22
@@ -508,4 +565,115 @@ mtext(expression(paste("Maximum SWE (mm)")), side=2, line=lll, cex=lcx)
 mtext("Landcover type", side=1, line=lllx, cex=lcx)
 text(0.5,470,"D",cex=mx)
 dev.off()	
+
+##########Map plots part 2
+
+png(paste0(plotDI,"\\figure3_maps_swe_p2.png"), width = 25, height = 20, units = "in", res=300)
+layout(matrix(seq(1,6),ncol=3, byrow=TRUE), width=c(lcm(wd1),lcm(wd2),lcm(wd1V)),height=c(lcm(hd),lcm(hd)))	
+
+### plot 1 swe ave ###
+par(mai=c(.5,.5,.5,.5))
+plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4150000,4150000),ylim=c(-4150000,4150000))
+#color background
+polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
+#boundaries
+points(world, type="l", lwd=2, col="grey65")
+#continent color
+polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
+#plot points
+image(temp.ave,breaks=meltTBr, col=swePallete, add=TRUE)
+
+plot(PolyBlock, col="white",border="white", add=TRUE)
+text(-4150000,4150000,"A",cex=mx)
+### legent plot 1 swe ave ###
+par(mai=c(0.5,0.5,0.5,2))
+plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
+for(i in 1:(length(meltTBr)-1)){
+  polygon(c(0,0,1,1), 
+          c(i/length(meltTBr),
+            (i+1)/length(meltTBr),
+            (i+1)/length(meltTBr),
+            i/length(meltTBr)),
+          col=swePallete[i],border=NA)
+}
+axis(4,seq(1,length(meltTBr))/length(meltTBr),round(meltTBr,1),cex.axis=cxa,las=2)	
+
+plot(c(0,1),c(0,1), xlim=c(0,12), ylim=c(ylT,yhT), axes=FALSE, type="n", xlab = " ", ylab= " ",
+     xaxs="i", yaxs="i")
+for(j in 1:5){
+  i <- j
+  polygon(c(xseqV[j]+(0-histLT[[i]]$densityScale[histLT[[i]]$mids<=maxST[i] & histLT[[i]]$mids>=minST[i]]), 
+            rev(xseqV[j]+(histLT[[i]]$densityScale[histLT[[i]]$mids<=maxST[i] & histLT[[i]]$mids>=minST[i]]))),
+          c(histLT[[i]]$mids[histLT[[i]]$mids<=maxST[i] & histLT[[i]]$mids>=minST[i]],
+            rev(histLT[[i]]$mids[histLT[[i]]$mids<=maxST[i] & histLT[[i]]$mids>=minST[i]])), 
+          lwd=0.75,  col=vegePallete3[i])
+  arrows(	xseqV[j],quantT[[i]][1], xseqV[j],quantT[[i]][5], code=0, lwd=1)
+  polygon(c(xseqV[j]-0.15,xseqV[j]-0.15,xseqV[j]+0.15,xseqV[j]+0.15),
+          c(quantT[[i]][2],quantT[[i]][4],quantT[[i]][4],quantT[[i]][2]),
+          border=NA, col=rgb(0.25,0.25,0.25,0.5))
+  
+  arrows( xseqV[j]-0.15,quantT[[i]][3], xseqV[j]+0.15,quantT[[i]][3],code=0, lwd=4, col=vegePallete[i])	
+}	
+
+axis(1, xseqV, rep(" ",length(xseqV)),lwd.ticks=tlw)
+axis(2, seq(-9,15, by=3),rep(" ",length(seq(-9,15, by=3))),lwd.ticks=tlw)
+mtext(paste(nameSplit1),at=xseqV,side=1,line=al1,cex=cax)
+mtext(paste(nameSplit2),at=xseqV,side=1,line=al2,cex=cax)
+mtext(seq(-9,15, by=3), at=seq(-9,15, by=3), side=2, las=2, line=al1, cex=cax)
+mtext(expression(paste("Average temperature (",degree,"C )")), side=2, line=lll, cex=lcx)
+mtext("Landcover type", side=1, line=lllx, cex=lcx)
+text(0.5,14.5,"B",cex=mx)
+### plot 2 swe sd ###
+par(mai=c(.5,.5,.5,.5))
+plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ",xlim=c(-4150000,4150000),ylim=c(-4150000,4150000))
+#color background
+polygon(c(-5000000,-5000000,5000000,5000000),c(-5000000,5000000,5000000,-5000000), border=NA, col=water)
+#boundaries
+points(world, type="l", lwd=2, col="grey65")
+#continent color
+polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
+#plot points
+image(doyS.ave,breaks=OnsetBr, col=swePallete, add=TRUE)
+
+plot(PolyBlock, col="white",border="white", add=TRUE)
+text(-4150000,4150000,"C",cex=mx)
+### legent plot 1 swe ave ###
+par(mai=c(0.5,0.5,0.5,2))
+plot(c(0,1),c(0,1),type="n",axes=FALSE,xlab=" ", ylab=" ", xlim=c(0,1),ylim=c(0,1)) 
+for(i in 1:(length(OnsetBr)-1)){
+  polygon(c(0,0,1,1), 
+          c(i/length(OnsetBr),
+            (i+1)/length(OnsetBr),
+            (i+1)/length(OnsetBr),
+            i/length(OnsetBr)),
+          col=swePallete[i],border=NA)
+}
+axis(4,seq(1,length(OnsetBr))/length(OnsetBr),floor(OnsetBr),cex.axis=cxa,las=2)		
+par(mai=c(0.5,0.5,0.5,0.5))
+plot(c(0,1),c(0,1), xlim=c(0,12), ylim=c(ylO,yhO), axes=FALSE, type="n", xlab = " ", ylab= " ",
+     xaxs="i", yaxs="i")
+for(j in 1:5){
+  i <- j
+  polygon(c(xseqV[j]+(0-histLO[[i]]$densityScale[histLO[[i]]$mids<=maxSO[i] & histLO[[i]]$mids >= minSO[i]]), 
+            rev(xseqV[j]+(histLO[[i]]$densityScale[histLO[[i]]$mids<=maxSO[i]& histLO[[i]]$mids >= minSO[i]]))),
+          c(histLO[[i]]$mids[histLO[[i]]$mids<=maxSO[i]& histLO[[i]]$mids >= minSO[i]],
+            rev(histLO[[i]]$mids[histLO[[i]]$mids<=maxSO[i]& histLO[[i]]$mids >= minSO[i]])), 
+          lwd=0.75,  col=vegePallete3[i])
+  arrows(	xseqV[j],quantO[[i]][1], xseqV[j],quantO[[i]][5], code=0, lwd=1)
+  polygon(c(xseqV[j]-0.15,xseqV[j]-0.15,xseqV[j]+0.15,xseqV[j]+0.15),
+          c(quantO[[i]][2],quantO[[i]][4],quantO[[i]][4],quantO[[i]][2]),
+          border=NA, col=rgb(0.25,0.25,0.25,0.5))
+  
+  arrows( xseqV[j]-0.15,quantO[[i]][3], xseqV[j]+0.15,quantO[[i]][3],code=0, lwd=4, col=vegePallete[i])		
+}	
+
+axis(1, xseqV, rep(" ",length(xseqV)),lwd.ticks=tlw)
+axis(2, seq(30,160, by=30),rep(" ",length(seq(30,160, by=30))),lwd.ticks=tlw)
+mtext(paste(nameSplit1),at=xseqV,side=1,line=al1,cex=cax)
+mtext(paste(nameSplit2),at=xseqV,side=1,line=al2,cex=cax)
+mtext(seq(30,160, by=30), at=seq(30,160, by=30), side=2, las=2, line=al1, cex=cax)
+mtext(expression(paste("Melt Onset Day")), side=2, line=lll, cex=lcx)
+mtext("Landcover type", side=1, line=lllx, cex=lcx)
+text(0.5,167,"D",cex=mx)
+dev.off()
 
