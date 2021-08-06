@@ -32,7 +32,7 @@ library(dplyr)
 
 #model out directory
 
-modDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/model/run1"
+modDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/model/run2"
 
 
 ###########################################
@@ -137,26 +137,26 @@ MaxMean <- seq(0,0.5, length.out=200)
                    CanopyB=analysisDFm1$vcf,#centered at 20
                    SweMax= analysisDFm1$maxSwe.m, #centered at 0.15
                    sweDay=analysisDFm1$doyStart, #centered at 107
-                   #GCyearB=analysisDFm1$gcyearID,
-                   #Ngcyear=dim(epsTable)[1],
+                   GCyearB=analysisDFm1$gcyearID,
+                   Ngcyear=dim(epsTable)[1],
                    Nglc=dim(glcID)[1],
-                   #ygcIDB=epsTable$gcID,
-                   #startb=startID,
-                   #endb=endID,
+                   ygcIDB=epsTable$gcID,
+                   startb=startID,
+                   endb=endID,
                    TempMean=tempMean,
                    CanopyMean=CanopyMean,
                    SdayMean=SdayMean,
                    MaxMean=MaxMean)
 
-  #inits <- list(list(tau.eb=rep(1,dim(gcIndT)[1])),
-   #             list(tau.eb=rep(1.4,dim(gcIndT)[1])),
-     #           list(tau.eb=rep(2,dim(gcIndT)[1])))
+  inits <- list(list(tau.eb=rep(1,dim(gcIndT)[1])),
+               list(tau.eb=rep(1.4,dim(gcIndT)[1])),
+               list(tau.eb=rep(2,dim(gcIndT)[1])))
   
   
   parms <- c("betaB0S","betaB1","betaB2","betaB3","betaB4",
              "mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3","mu.betaB4",
              "sig.B0","sig.B1","sig.B2","sig.B3","sig.B4","trB0",
-             "rep.b0","Dsum","loglike",
+             "rep.b0","Dsum","loglike","eps.bS","sig.eb",
              "mu.Temp","mu.Canopy","mu.Onset","mu.Max")
   
   curve.mod <- jags.model(file="c:\\Users\\hkropp\\Documents\\GitHub\\boreal_lw\\HK_model_code.r",
