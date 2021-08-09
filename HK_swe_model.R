@@ -279,4 +279,5 @@ betaCompGC5 <- data.frame(
 
 pairs(betaCompGC5)
 cor(betaCompGC5)
+
 glcID
