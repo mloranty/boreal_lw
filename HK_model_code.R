@@ -8,8 +8,8 @@ model{
     b0[i] ~ dnorm(mu.b0[i],tau.b0[glcIDB[i]])
     rep.b0[i] ~ dnorm(mu.b0[i],tau.b0[glcIDB[i]])
     #empirical regression
-    mu.b0[i] <- betaB0[glcIDB[i]] + betaB1[glcIDB[i]]*TempAB[i] + betaB2[glcIDB[i]]*(CanopyB[i]-20) +
-      betaB3[glcIDB[i]]*(sweDay[i]-107) + betaB4[glcIDB[i]]*(SweMax[i]-0.15)  +
+    mu.b0[i] <- betaB0[glcIDB[i]] + betaB1[glcIDB[i]]*TempAB[i] + betaB2[glcIDB[i]]*(CanopyB[i]) +
+      betaB3[glcIDB[i]]*(sweDay[i]) + betaB4[glcIDB[i]]*(SweMax[i])  +
       eps.b[GCyearB[i]]
     #posterior predictive loss
     Sqdiff[i] <- pow(rep.b0[i] - b0[i],2)

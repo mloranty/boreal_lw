@@ -118,13 +118,18 @@ for(i in 1:dim(gcIndT)[1]){
 analysisDFm1 <- left_join(analysisDFm1, epsTable, by=c("gcID","year"))
 
 #set up data for plotting
-tempMean <- seq(floor(range(analysisDFm1$meltTempC)[1]),ceiling(range(analysisDFm1$meltTempC)[2]), length.out=200)
-CanopyMean <- seq(floor(range(analysisDFm1$vcf)[1]),ceiling(range(analysisDFm1$vcf)[2]), length.out=200)
-SdayMean <- seq(floor(range(analysisDFm1$doyStart)[1]),ceiling(range(analysisDFm1$doyStart)[2]), length.out=200)
-MaxMean <- seq(0,0.5, length.out=200)
-
-
-
+tempPlot <- seq(floor(range(analysisDFm1$meltTempC)[1]),ceiling(range(analysisDFm1$meltTempC)[2]), length.out=200)
+CanopyPlot <- seq(floor(range(analysisDFm1$vcf)[1]),ceiling(range(analysisDFm1$vcf)[2]), length.out=200)
+SdayPlot <- seq(floor(range(analysisDFm1$doyStart)[1]),ceiling(range(analysisDFm1$doyStart)[2]), length.out=200)
+MaxPlot <- seq(0,0.5, length.out=200)
+LatPlot <- seq(50,85, length.out)
+plot(analysisDFm1$lat,analysisDFm1$log.melt)
+plot(analysisDFm1$doyStart,analysisDFm1$log.melt)
+plot(analysisDFm1$vcf,analysisDFm1$log.melt)
+plot(analysisDFm1$doyStart,analysisDFm1$vcf)
+plot(analysisDFm1$doyStart,analysisDFm1$meltTempC)
+plot(analysisDFm1$doyStart,analysisDFm1$vcf)
+plot(analysisDFm1$sweMax,analysisDFm1$vcf)
 
 ###########################################
 ########## Model        -----
@@ -143,10 +148,10 @@ MaxMean <- seq(0,0.5, length.out=200)
                    ygcIDB=epsTable$gcID,
                    startb=startID,
                    endb=endID,
-                   TempMean=tempMean,
-                   CanopyMean=CanopyMean,
-                   SdayMean=SdayMean,
-                   MaxMean=MaxMean)
+                   TempMean=tempPlot,
+                   CanopyMean=CanopyPlot,
+                   SdayMean=SdayPlot,
+                   MaxMean=MaxPlot)
 
   inits <- list(list(tau.eb=rep(1,dim(gcIndT)[1])),
                list(tau.eb=rep(1.4,dim(gcIndT)[1])),
@@ -237,4 +242,5 @@ betaComp <- data.frame(B0 = as.vector(betaB0S),
                        B4 = as.vector(betaB4[,1:5]))
                       
 pairs(betaComp)
+cor(betaComp)
   
