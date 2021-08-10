@@ -56,35 +56,40 @@ pairs(formula= ~ melt.mm.day +
         vcf +
         lat + 
         meltTempC + 
-        maxSwe.m, data=analysisDF[glcID == 4,])
+        maxSwe.m, data=analysisDF[analysisDF$glc == 4,])
+cor(analysisDF[analysisDF$glc == 4,])
 
 pairs(formula= ~ melt.mm.day + 
         log.melt + 
         vcf +
         lat + 
         meltTempC + 
-        maxSwe.m, data=analysisDF[glcID == 5,])
+        maxSwe.m, data=analysisDF[analysisDF$glc == 5,])
+cor(analysisDF[analysisDF$glc == 5,])
 
 pairs(formula= ~ melt.mm.day + 
         log.melt + 
         vcf +
         lat + 
         meltTempC + 
-        maxSwe.m, data=analysisDF[glcID == 6,])
+        maxSwe.m, data=analysisDF[analysisDF$glc == 6,])
+cor(analysisDF[analysisDF$glc == 6,])
 
 pairs(formula= ~ melt.mm.day + 
         log.melt + 
         vcf +
         lat + 
         meltTempC + 
-        maxSwe.m, data=analysisDF[glcID == 12,])
+        maxSwe.m, data=analysisDF[analysisDF$glc == 12,])
+cor(analysisDF[analysisDF$glc == 12,])
 
 pairs(formula= ~ melt.mm.day + 
         log.melt + 
         vcf +
         lat + 
         meltTempC + 
-        maxSwe.m, data=analysisDF[glcID == 13,])
+        maxSwe.m, data=analysisDF[analysisDF$glc == 13,])
+cor(analysisDF[analysisDF$glc == 13,])
 
 #check correlation
 cor(analysisDF)
@@ -118,13 +123,18 @@ for(i in 1:dim(gcIndT)[1]){
 analysisDFm1 <- left_join(analysisDFm1, epsTable, by=c("gcID","year"))
 
 #set up data for plotting
-tempMean <- seq(floor(range(analysisDFm1$meltTempC)[1]),ceiling(range(analysisDFm1$meltTempC)[2]), length.out=200)
-CanopyMean <- seq(floor(range(analysisDFm1$vcf)[1]),ceiling(range(analysisDFm1$vcf)[2]), length.out=200)
-SdayMean <- seq(floor(range(analysisDFm1$doyStart)[1]),ceiling(range(analysisDFm1$doyStart)[2]), length.out=200)
-MaxMean <- seq(0,0.5, length.out=200)
+tempPlot <- seq(floor(range(analysisDFm1$meltTempC)[1]),ceiling(range(analysisDFm1$meltTempC)[2]), length.out=200)
+CanopyPlot <- seq(floor(range(analysisDFm1$vcf)[1]),ceiling(range(analysisDFm1$vcf)[2]), length.out=200)
+SdayPlot <- seq(floor(range(analysisDFm1$doyStart)[1]),ceiling(range(analysisDFm1$doyStart)[2]), length.out=200)
+MaxPlot <- seq(0,0.5, length.out=200)
 
-
-
+plot(analysisDFm1$lat,analysisDFm1$log.melt)
+plot(analysisDFm1$doyStart,analysisDFm1$log.melt)
+plot(analysisDFm1$vcf,analysisDFm1$log.melt)
+plot(analysisDFm1$doyStart,analysisDFm1$vcf)
+plot(analysisDFm1$doyStart,analysisDFm1$meltTempC)
+plot(analysisDFm1$doyStart,analysisDFm1$vcf)
+plot(analysisDFm1$sweMax,analysisDFm1$vcf)
 
 ###########################################
 ########## Model        -----
@@ -143,10 +153,10 @@ MaxMean <- seq(0,0.5, length.out=200)
                    ygcIDB=epsTable$gcID,
                    startb=startID,
                    endb=endID,
-                   TempMean=tempMean,
-                   CanopyMean=CanopyMean,
-                   SdayMean=SdayMean,
-                   MaxMean=MaxMean)
+                   TempMean=tempPlot,
+                   CanopyMean=CanopyPlot,
+                   SdayMean=SdayPlot,
+                   MaxMean=MaxPlot)
 
   inits <- list(list(tau.eb=rep(1,dim(gcIndT)[1])),
                list(tau.eb=rep(1.4,dim(gcIndT)[1])),
@@ -230,11 +240,49 @@ betaB4 <- chains[,grep("betaB4",colnames(chains))]
 
 #turn into single matrix
 #mu.betas get added on
-betaComp <- data.frame(B0 = as.vector(betaB0S),
-                       B1 = as.vector(betaB1[,1:5]),
-                       B2 = as.vector(betaB2[,1:5]),
-                       B3 = as.vector(betaB3[,1:5]),
-                       B4 = as.vector(betaB4[,1:5]))
+betaCompGC1 <- data.frame(
+                       B1 = as.vector(betaB1[,1]),
+                       B2 = as.vector(betaB2[,1]),
+                       B3 = as.vector(betaB3[,1]),
+                       B4 = as.vector(betaB4[,1]))
                       
-pairs(betaComp)
-  
+pairs(betaCompGC1)
+cor(betaCompGC1)
+
+betaCompGC2 <- data.frame(
+  B1 = as.vector(betaB1[,2]),
+  B2 = as.vector(betaB2[,2]),
+  B3 = as.vector(betaB3[,2]),
+  B4 = as.vector(betaB4[,2]))
+
+pairs(betaCompGC2)
+cor(betaCompGC2)
+
+betaCompGC3 <- data.frame(
+  B1 = as.vector(betaB1[,3]),
+  B2 = as.vector(betaB2[,3]),
+  B3 = as.vector(betaB3[,3]),
+  B4 = as.vector(betaB4[,3]))
+
+pairs(betaCompGC3)
+cor(betaCompGC3)
+
+betaCompGC4 <- data.frame(
+  B1 = as.vector(betaB1[,4]),
+  B2 = as.vector(betaB2[,4]),
+  B3 = as.vector(betaB3[,4]),
+  B4 = as.vector(betaB4[,4]))
+
+pairs(betaCompGC4)
+cor(betaCompGC4)
+
+betaCompGC5 <- data.frame(
+  B1 = as.vector(betaB1[,5]),
+  B2 = as.vector(betaB2[,5]),
+  B3 = as.vector(betaB3[,5]),
+  B4 = as.vector(betaB4[,5]))
+
+pairs(betaCompGC5)
+cor(betaCompGC5)
+
+glcID
