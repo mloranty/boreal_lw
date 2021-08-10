@@ -56,35 +56,40 @@ pairs(formula= ~ melt.mm.day +
         vcf +
         lat + 
         meltTempC + 
-        maxSwe.m, data=analysisDF[glcID == 4,])
+        maxSwe.m, data=analysisDF[analysisDF$glc == 4,])
+cor(analysisDF[analysisDF$glc == 4,])
 
 pairs(formula= ~ melt.mm.day + 
         log.melt + 
         vcf +
         lat + 
         meltTempC + 
-        maxSwe.m, data=analysisDF[glcID == 5,])
+        maxSwe.m, data=analysisDF[analysisDF$glc == 5,])
+cor(analysisDF[analysisDF$glc == 5,])
 
 pairs(formula= ~ melt.mm.day + 
         log.melt + 
         vcf +
         lat + 
         meltTempC + 
-        maxSwe.m, data=analysisDF[glcID == 6,])
+        maxSwe.m, data=analysisDF[analysisDF$glc == 6,])
+cor(analysisDF[analysisDF$glc == 6,])
 
 pairs(formula= ~ melt.mm.day + 
         log.melt + 
         vcf +
         lat + 
         meltTempC + 
-        maxSwe.m, data=analysisDF[glcID == 12,])
+        maxSwe.m, data=analysisDF[analysisDF$glc == 12,])
+cor(analysisDF[analysisDF$glc == 12,])
 
 pairs(formula= ~ melt.mm.day + 
         log.melt + 
         vcf +
         lat + 
         meltTempC + 
-        maxSwe.m, data=analysisDF[glcID == 13,])
+        maxSwe.m, data=analysisDF[analysisDF$glc == 13,])
+cor(analysisDF[analysisDF$glc == 13,])
 
 #check correlation
 cor(analysisDF)
