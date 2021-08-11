@@ -32,7 +32,7 @@ library(dplyr)
 
 #model out directory
 
-modDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/model/run2"
+modDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/model/run3"
 
 
 ###########################################
@@ -43,6 +43,9 @@ analysisDF$abs.melt <- abs(analysisDF$melt.mm.day)
 
 #log transform
 analysisDF$log.melt <- log(analysisDF$abs.melt)
+#log transform max swe
+analysisDF$log.max <- log(analysisDF$maxSwe.m)
+
 #check covariate correlation
 pairs(formula= ~ melt.mm.day + 
         log.melt + 
@@ -56,7 +59,7 @@ pairs(formula= ~ melt.mm.day +
         vcf +
         lat + 
         meltTempC + 
-        maxSwe.m, data=analysisDF[analysisDF$glc == 4,])
+        log.max, data=analysisDF[analysisDF$glc == 4,])
 cor(analysisDF[analysisDF$glc == 4,])
 
 pairs(formula= ~ melt.mm.day + 
@@ -64,7 +67,7 @@ pairs(formula= ~ melt.mm.day +
         vcf +
         lat + 
         meltTempC + 
-        maxSwe.m, data=analysisDF[analysisDF$glc == 5,])
+        log.max, data=analysisDF[analysisDF$glc == 5,])
 cor(analysisDF[analysisDF$glc == 5,])
 
 pairs(formula= ~ melt.mm.day + 
@@ -72,7 +75,7 @@ pairs(formula= ~ melt.mm.day +
         vcf +
         lat + 
         meltTempC + 
-        maxSwe.m, data=analysisDF[analysisDF$glc == 6,])
+        log.max, data=analysisDF[analysisDF$glc == 6,])
 cor(analysisDF[analysisDF$glc == 6,])
 
 pairs(formula= ~ melt.mm.day + 
@@ -80,7 +83,7 @@ pairs(formula= ~ melt.mm.day +
         vcf +
         lat + 
         meltTempC + 
-        maxSwe.m, data=analysisDF[analysisDF$glc == 12,])
+        log.max, data=analysisDF[analysisDF$glc == 12,])
 cor(analysisDF[analysisDF$glc == 12,])
 
 pairs(formula= ~ melt.mm.day + 
@@ -88,7 +91,7 @@ pairs(formula= ~ melt.mm.day +
         vcf +
         lat + 
         meltTempC + 
-        maxSwe.m, data=analysisDF[analysisDF$glc == 13,])
+        log.max, data=analysisDF[analysisDF$glc == 13,])
 cor(analysisDF[analysisDF$glc == 13,])
 
 #check correlation
@@ -126,7 +129,8 @@ analysisDFm1 <- left_join(analysisDFm1, epsTable, by=c("gcID","year"))
 tempPlot <- seq(floor(range(analysisDFm1$meltTempC)[1]),ceiling(range(analysisDFm1$meltTempC)[2]), length.out=200)
 CanopyPlot <- seq(floor(range(analysisDFm1$vcf)[1]),ceiling(range(analysisDFm1$vcf)[2]), length.out=200)
 SdayPlot <- seq(floor(range(analysisDFm1$doyStart)[1]),ceiling(range(analysisDFm1$doyStart)[2]), length.out=200)
-MaxPlot <- seq(0,0.5, length.out=200)
+MaxPlot <- seq(floor(range(analysisDFm1$log.max)[1]*10)/10,ceiling(range(analysisDFm1$log.max)[2]*10)/10, length.out=200)
+ 
 
 plot(analysisDFm1$lat,analysisDFm1$log.melt)
 plot(analysisDFm1$doyStart,analysisDFm1$log.melt)
@@ -134,7 +138,7 @@ plot(analysisDFm1$vcf,analysisDFm1$log.melt)
 plot(analysisDFm1$doyStart,analysisDFm1$vcf)
 plot(analysisDFm1$doyStart,analysisDFm1$meltTempC)
 plot(analysisDFm1$doyStart,analysisDFm1$vcf)
-plot(analysisDFm1$sweMax,analysisDFm1$vcf)
+plot(analysisDFm1$log.max,analysisDFm1$vcf)
 
 ###########################################
 ########## Model        -----
@@ -145,7 +149,7 @@ plot(analysisDFm1$sweMax,analysisDFm1$vcf)
                    glcIDB=analysisDFm1$gcID,
                    TempAB=analysisDFm1$meltTempC,#centered around 0
                    CanopyB=analysisDFm1$vcf,#centered at 20
-                   SweMax= analysisDFm1$maxSwe.m, #centered at 0.15
+                   SweMax= analysisDFm1$log.max, #centered at log(0.15)
                    sweDay=analysisDFm1$doyStart, #centered at 107
                    GCyearB=analysisDFm1$gcyearID,
                    Ngcyear=dim(epsTable)[1],
