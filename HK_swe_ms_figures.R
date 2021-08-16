@@ -53,7 +53,7 @@ library(BAMMtools)
 ###########################################
 ########## Directories       -----
 plotDI <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/figures"
-modDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/model/run2"
+modDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/model/run3"
 
 ###########################################
 ########## Additional data      -----
