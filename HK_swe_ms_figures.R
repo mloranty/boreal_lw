@@ -53,7 +53,7 @@ library(BAMMtools)
 ###########################################
 ########## Directories       -----
 plotDI <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/figures"
-modDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/model/run2"
+modDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/model/run3"
 
 ###########################################
 ########## Additional data      -----
@@ -111,6 +111,11 @@ mu.Onset <- datC[datC$parm2 == "mu.Onset[,]",]
 mu.Max <- datC[datC$parm2 == "mu.Max[,]",]
 mu.Canopy <- datC[datC$parm2 == "mu.Canopy[,]",]	
 
+#regression mean plot
+tempMean <- seq(floor(range(analysisDF$meltTempC)[1]),ceiling(range(analysisDF$meltTempC)[2]), length.out=200)
+CanopyMean <- seq(floor(range(analysisDF$vcf)[1]),ceiling(range(analysisDF$vcf)[2]), length.out=200)
+SdayMean <- seq(floor(range(analysisDF$doyStart)[1]),ceiling(range(analysisDF$doyStart)[2]), length.out=200)
+MaxMean <- seq(0,0.5, length.out=200)
 
 ###########################################
 ########## Map boundaries      -----
@@ -783,13 +788,13 @@ mtext(ys,at=ys, line=tll, cex=alc, side=2,las=2)
 box(which="plot")
 mtext(expression(paste("log(Melt Rate (cm day"^"-1","))")), side=2, outer=TRUE,line= -5, cex=plc)
 text(xl1+(.05*(xh1-xl1)), yh-(.05*(yh-yl)), "a", cex=ttx)
-legend("bottomright", paste(IDSglc$name2[plotTree]), col=vegePallete[plotTree],cex=legcex, lwd=mlw,lty=1, bty="n")
+legend("bottomright", paste(glcID$name2[plotTree]), col=vegePallete[plotTree],cex=legcex, lwd=mlw,lty=1, bty="n")
 #tree cover trees
 par(mai=c(0,0,0,0))	
 plot(c(0,1),c(0,1), type="n", xlim=c(xl2,xh2), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTree){
-  points(	analysisDF$meltTempC[analysisDF$glc == glcID$glc[i]],
+  points(	analysisDF$vcf[analysisDF$glc == glcID$glc[i]],
           analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete2[i], pch=19)
 }
 for(i in plotTree){	
@@ -811,8 +816,9 @@ par(mai=c(0,0,0,0))
 plot(c(0,1),c(0,1), type="n", xlim=c(xl3,xh3), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTree){
-  points(	sweRate$meltStart[sweRate$gcID == i],
-          sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete2[i], pch=19)
+  
+  points(analysisDF$doyStart[analysisDF$glc == glcID$glc[i]],
+          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete2[i], pch=19)
 }
 for(i in plotTree){	
   polygon(c(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
@@ -833,8 +839,8 @@ par(mai=c(0,0,0,0))
 plot(c(0,1),c(0,1), type="n", xlim=c(xl4,xh4), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTree){
-  points(	sweRate$sweMax[sweRate$gcID == i],
-          sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete2[i], pch=19)
+  points(	analysisDF$maxSwe.m[analysisDF$glc == glcID$glc[i]],
+          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete2[i], pch=19)
 }
 for(i in plotTree){	
   MaxMeans <- MaxMean[MaxMean >= dlMax[i] & MaxMean <= dhMax[i]]
@@ -859,8 +865,8 @@ par(mai=c(0,0,0,0))
 plot(c(0,1),c(0,1), type="n", xlim=c(xl1,xh1), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTun){
-  points(	sweRate$tair[sweRate$gcID == i],
-          sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete2[i], pch=19)
+  points(	analysisDF$meltTempC[analysisDF$glc == glcID$glc[i]],
+          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete2[i], pch=19)
 }
 for(i in plotTun){
   polygon(c(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
@@ -880,14 +886,14 @@ mtext(xs1,at=xs1, line=tll, cex=alc, side=1)
 box(which="plot")
 mtext("Temperature (c)", side=1,line= xpl, cex=plc)
 text(xl1+(.05*(xh1-xl1)), yh-(.05*(yh-yl)), "b", cex=ttx)
-legend("bottomright", paste(IDSglc$name2[plotTun]), col=vegePallete[plotTun],cex=legcex, lwd=mlw,lty=1, bty="n")
+legend("bottomright", paste(glcID$name2[plotTun]), col=vegePallete[plotTun],cex=legcex, lwd=mlw,lty=1, bty="n")
 #tree cover tundra
 par(mai=c(0,0,0,0))
 plot(c(0,1),c(0,1), type="n", xlim=c(xl2,xh2), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTun){
-  points(	sweRate$vcf[sweRate$gcID == i],
-          sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete2[i], pch=19)
+  points(		analysisDF$vcf[analysisDF$glc == glcID$glc[i]],
+           analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete2[i], pch=19)
 }
 for(i in plotTun){	
   polygon(c(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
@@ -911,8 +917,8 @@ par(mai=c(0,0,0,0))
 plot(c(0,1),c(0,1), type="n", xlim=c(xl3,xh3), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTun){
-  points(	sweRate$meltStart[sweRate$gcID == i],
-          sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete2[i], pch=19)
+  points(	analysisDF$doyStart[analysisDF$glc == glcID$glc[i]],
+          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete2[i], pch=19)
 }
 for(i in plotTun){	
   polygon(c(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
@@ -935,8 +941,8 @@ par(mai=c(0,0,0,0))
 plot(c(0,1),c(0,1), type="n", xlim=c(xl4,xh4), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTun){
-  points(	sweRate$sweMax[sweRate$gcID == i],
-          sweRate$logAbsRate[sweRate$gcID == i], col=vegePallete2[i], pch=19)
+  points(	analysisDF$maxSwe.m[analysisDF$glc == glcID$glc[i]],
+          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete2[i], pch=19)
 }
 
 
@@ -961,4 +967,5 @@ axis(1, xs4, rep(" ",length(xs4)), lwd.ticks=tlw)
 mtext(xs4,at=xs4, line=tll, cex=alc, side=1)
 mtext("Maximum SWE", side=1,line= xpl, cex=plc)
 dev.off()
+
 
