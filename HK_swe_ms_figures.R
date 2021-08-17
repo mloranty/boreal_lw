@@ -969,7 +969,8 @@ text(xl4+(.05*(xh4-xl4)), yh-(.05*(yh-yl)), "h", cex=ttx)
 
 axis(1, xs4, rep(" ",length(xs4)), lwd.ticks=tlw)
 mtext(xs4,at=xs4, line=tll, cex=alc, side=1)
-mtext("log(Maximum SWE )", side=1,line= xpl, cex=plc)
+mtext("log(Max SWE )", side=1,line= xpl, cex=plc)
+mtext("log(m)", side=1,line= xpl+5, cex=plc)
 dev.off()
 
 
