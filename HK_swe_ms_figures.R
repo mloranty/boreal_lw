@@ -109,13 +109,17 @@ length(which(beta3$sig == 0))
 mu.Temp <- datC[datC$parm2 == "mu.Temp[,]",]
 mu.Onset <- datC[datC$parm2 == "mu.Onset[,]",]
 mu.Max <- datC[datC$parm2 == "mu.Max[,]",]
-mu.Canopy <- datC[datC$parm2 == "mu.Canopy[,]",]	
+mu.Canopy <- datC[datC$parm2 == "mu.Canopy[,]",]
 
+#log transform
+analysisDF$log.melt <- log(analysisDF$abs.melt)
+#log transform max swe
+analysisDF$log.max <- log(analysisDF$maxSwe.m)
 #regression mean plot
 tempMean <- seq(floor(range(analysisDF$meltTempC)[1]),ceiling(range(analysisDF$meltTempC)[2]), length.out=200)
 CanopyMean <- seq(floor(range(analysisDF$vcf)[1]),ceiling(range(analysisDF$vcf)[2]), length.out=200)
 SdayMean <- seq(floor(range(analysisDF$doyStart)[1]),ceiling(range(analysisDF$doyStart)[2]), length.out=200)
-MaxMean <- seq(0,0.5, length.out=200)
+MaxMean <- seq(floor(range(analysisDF$log.max)[1]*10)/10,ceiling(range(analysisDF$log.max)[2]*10)/10, length.out=200)
 
 ###########################################
 ########## Map boundaries      -----
@@ -712,14 +716,14 @@ xl3 <- range(analysisDF$doyStart)[1] - 1
 xh3 <-	range(analysisDF$doyStart)[2] + 1
 
 ###check name of swe Max
-xl4 <- floor(range(analysisDF$maxSwe.m)[1])
-xh4 <- round(range(analysisDF$maxSwe.m)[2],1)
+xl4 <- floor(range(analysisDF$log.max)[1])
+xh4 <- round(range(analysisDF$log.max)[2],1)
 #axis labels
 xs1 <- seq(xl1,xh1-3, by=3)
 xs2 <- seq(xl2,xh2, by= 15)
 xs3 <- seq(60,xh3, by= 30)
 ys <- seq(yl,yh, by = 1)
-xs4 <- seq(xl4,xh4,by=0.1)
+xs4 <- seq(xl4,xh4,by=0.5)
 
 #width of regression line
 mlw <- 4
@@ -753,8 +757,8 @@ for(i in 1:5){
   dhvcf[i] <- ceiling(max(analysisDF$vcf[analysisDF$glc == glcID$glc[i]]))
   dlOnset[i] <- floor(min(analysisDF$doyStart[analysisDF$glc == glcID$glc[i]]))
   dhOnset[i] <- ceiling(max(analysisDF$doyStart[analysisDF$glc == glcID$glc[i]]))
-  dlMax[i] <- floor(min(analysisDF$maxSwe.m[analysisDF$glc == glcID$glc[i]])*10)/10
-  dhMax[i] <- ceiling(max(analysisDF$maxSwe.m[analysisDF$glc == glcID$glc[i]])*10)/10
+  dlMax[i] <- floor(min(analysisDF$log.max[analysisDF$glc == glcID$glc[i]])*10)/10
+  dhMax[i] <- ceiling(max(analysisDF$log.max[analysisDF$glc == glcID$glc[i]])*10)/10
   
   
 }
@@ -839,7 +843,7 @@ par(mai=c(0,0,0,0))
 plot(c(0,1),c(0,1), type="n", xlim=c(xl4,xh4), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTree){
-  points(	analysisDF$maxSwe.m[analysisDF$glc == glcID$glc[i]],
+  points(	analysisDF$log.max[analysisDF$glc == glcID$glc[i]],
           analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete2[i], pch=19)
 }
 for(i in plotTree){	
@@ -941,7 +945,7 @@ par(mai=c(0,0,0,0))
 plot(c(0,1),c(0,1), type="n", xlim=c(xl4,xh4), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTun){
-  points(	analysisDF$maxSwe.m[analysisDF$glc == glcID$glc[i]],
+  points(	analysisDF$log.max[analysisDF$glc == glcID$glc[i]],
           analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete2[i], pch=19)
 }
 
@@ -965,7 +969,8 @@ text(xl4+(.05*(xh4-xl4)), yh-(.05*(yh-yl)), "h", cex=ttx)
 
 axis(1, xs4, rep(" ",length(xs4)), lwd.ticks=tlw)
 mtext(xs4,at=xs4, line=tll, cex=alc, side=1)
-mtext("Maximum SWE", side=1,line= xpl, cex=plc)
+mtext("log(Max SWE )", side=1,line= xpl, cex=plc)
+mtext("log(m)", side=1,line= xpl+5, cex=plc)
 dev.off()
 
 
