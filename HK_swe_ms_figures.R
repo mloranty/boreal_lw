@@ -110,7 +110,7 @@ mu.Temp <- datC[datC$parm2 == "mu.Temp[,]",]
 mu.Onset <- datC[datC$parm2 == "mu.Onset[,]",]
 mu.Max <- datC[datC$parm2 == "mu.Max[,]",]
 mu.Canopy <- datC[datC$parm2 == "mu.Canopy[,]",]
-
+mu.Max[400:500,]
 #log transform
 analysisDF$log.melt <- log(analysisDF$abs.melt)
 #log transform max swe
