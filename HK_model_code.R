@@ -10,10 +10,7 @@ model{
     mu.b0[i] <- betaB0[glcIDB[i]] + betaB1[glcIDB[i]]*TempAB[i] + betaB2[glcIDB[i]]*(CanopyB[i]-20) +
       betaB3[glcIDB[i]]*(sweDay[i]-107) + betaB4[glcIDB[i]]*(SweMax[i]-log(0.15))  +
       eps.b[GCyearB[i]]
-    #posterior predictive loss
-    Sqdiff[i] <- pow(rep.b0[i] - b0[i],2)
-    #log likelihood for waic
-    loglike[i]<-.5*log(tau.b0[glcIDB[i]]/(2*3.141593))-((tau.b0[glcIDB[i]]/2)*pow(b0[i]-mu.b0[i],2))
+
     
   }
   ####################
@@ -82,10 +79,7 @@ model{
   sig.B2 ~ dunif(0,1000)
   sig.B3 ~ dunif(0,1000)
   sig.B4 ~ dunif(0,1000)
-  
-  
-  #Posterior predictive loss is the posterior mean of Dsum, must monitor Dsum
-  Dsum <- sum(Sqdiff[])
+
   ####################
   #####regression#####
   #####mean for  #####
@@ -93,10 +87,10 @@ model{
   ####################
   for(i in 1:Nglc){
     for(j in 1:200){
-      mu.Temp[j,i] <- betaB0[i] + betaB1[i]*TempMean[j] 
-      mu.Canopy[j,i] <- betaB0[i] + betaB2[i]*(CanopyMean[j]-20)
-      mu.Onset[j,i] <- betaB0[i] + betaB3[i]*(SdayMean[j]-107)
-      mu.Max[j,i] <- betaB0[i] + betaB4[i]*(MaxMean[j]-log(0.15))
+      mu.Temp[j,i] <- betaB0S[i] + betaB1[i]*TempMean[j] 
+      mu.Canopy[j,i] <- betaB0S[i] + betaB2[i]*(CanopyMean[j]-20)
+      mu.Onset[j,i] <- betaB0S[i] + betaB3[i]*(SdayMean[j]-107)
+      mu.Max[j,i] <- betaB0S[i] + betaB4[i]*(MaxMean[j]-log(0.15))
     }
   }	
   

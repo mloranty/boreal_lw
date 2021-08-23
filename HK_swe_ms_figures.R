@@ -49,6 +49,7 @@ library(maps)
 library(rgeos)
 library(raster)
 library(BAMMtools)
+library(dplyr)
 
 ###########################################
 ########## Directories       -----
@@ -110,7 +111,7 @@ mu.Temp <- datC[datC$parm2 == "mu.Temp[,]",]
 mu.Onset <- datC[datC$parm2 == "mu.Onset[,]",]
 mu.Max <- datC[datC$parm2 == "mu.Max[,]",]
 mu.Canopy <- datC[datC$parm2 == "mu.Canopy[,]",]
-
+mu.Max[400:500,]
 #log transform
 analysisDF$log.melt <- log(analysisDF$abs.melt)
 #log transform max swe
@@ -206,7 +207,7 @@ land <-"#ccc5b9"
 
 
 
-
+glcID$name2 <- c("Evergreen needleleaf", "Deciduous needleleaf","Mixed boreal","Deciduous shrub", "Herbaceous")
 
 
 
@@ -974,3 +975,104 @@ mtext("log(m)", side=1,line= xpl+5, cex=plc)
 dev.off()
 
 
+###########################################
+########## Figure 5: intercept   ##########
+########## plots of regression   ##########
+########## data                  ##########
+########## Figure 4: -------
+
+beta0NL$gcID <- seq(1,5)
+#join matching
+intercept <- left_join(beta0NL,glcID, by="gcID", type="left")
+plotOrder <- c(1,4,2,3,5)
+
+#break up names 
+nameSplit1 <- character(0)
+nameSplit2 <- character(0)
+for(i in 1:5){
+  nameSplit1[i] <- strsplit(intercept$name2[i], " ")[[1]][1]
+  nameSplit2[i] <- strsplit(intercept$name2[i], " ")[[1]][2]
+}
+nameSplit2 <- ifelse(is.na(nameSplit2), " ", nameSplit2)
+
+xseq <- seq(1,10, by=2)
+
+wd1 <- 18
+hd1 <- 18
+#error bar width
+eew <- 1
+#mean bar width
+mlw <- 2
+#tick arrow width
+tlw <- 2
+
+png(paste0(plotDI,"\\intercepts1.png"), width = 20, height = 20, units = "cm", res=300)
+layout(matrix(c(1),ncol=1, byrow=TRUE), width=lcm(wd1),height=lcm(hd1))
+plot(c(0,1),c(0,1), xlim=c(0,11), ylim=c(0,6), axes=FALSE, type="n", xlab = " ", ylab= " ",
+     xaxs="i", yaxs="i")
+
+for(j in 1:5){
+  i <- j
+  arrows(xseq[j],intercept$X2.5.[i],xseq[j],intercept$X97.5.[i], code=0, lwd=eew)
+  polygon(c(xseq[j]-.5,xseq[j]-.5,xseq[j]+.5,xseq[j]+.5),
+          c(intercept$X25.[i],intercept$X75.[i],intercept$X75.[i],intercept$X25.[i]),
+          border=NA,col=vegePallete3[i])
+  arrows(	xseq[j]-.5,intercept$Mean[i],xseq[j]+.5,	intercept$Mean[i],code=0,lwd=mlw,
+          col=vegePallete[i])
+  
+}
+axis(1, xseq, rep(" ",length(xseq)),lwd.ticks=tlw)
+axis(2,seq(0,6, by=1),rep(" ",length(seq(0,6, by=1))),lwd.ticks=tlw)
+mtext(paste(nameSplit1),at=xseq,side=1,line=1,cex=1)
+mtext(paste(nameSplit2),at=xseq,side=1,line=2,cex=1)
+mtext(seq(0,6, by=1), at=seq(0,6, by=1), side=2, las=2, line=1, cex=1)
+mtext(expression(paste("Melt rate (mm day"^"-1",")")), side=2, line=3, cex=1.5)
+mtext("Landcover type", side=1, line=3, cex=1.5)
+dev.off()		
+
+
+
+###########################################
+########## Tables:   ##########
+########## Figure 4: -------
+#mixed effects parameters
+write.table(intercept,paste0(plotDI,"\\interceptTable.csv"), sep=",")
+betas <- rbind(beta1,beta2,beta3,beta4)
+betas$gcID <- rep(seq(1,5), times=4)
+betas <- left_join(betas,glcID, by="gcID", type="left")
+betas$betaN <- rep(seq(1,4), each=5)
+write.table(betas,paste0(plotDI,"\\betaTable.csv"), sep=",",row.names=FALSE)
+
+#stats on variables
+#get range of swe
+
+#get median values for landcover for melt rate
+#and quantiles
+sweRate <- aggregate(analysisDF$melt.mm.day, by=list(glc=analysisDF$glc),
+                     FUN="quantile",probs=0.5)
+colnames(sweRate)[2] <- "melt.mm.day"
+sweRate  <- left_join(sweRate ,glcID, by="glc", type="left")
+
+
+meltQuant <- quantile(analysisDF$melt.mm.day, 
+                       probs=seq(0,1, by=0.1), na.rm=TRUE)
+
+#median values for temp
+meltTemp <- aggregate(analysisDF$meltTempC, by=list(glc=analysisDF$glc),
+                      FUN="quantile",probs=0.5)
+colnames(meltTemp)[2] <- "tempC"
+meltTemp  <- left_join(meltTemp ,glcID, by="glc", type="left")
+
+#median values for doy start
+
+doyStartM <- aggregate(analysisDF$doyStart, by=list(glc=analysisDF$glc),
+                      FUN="quantile",probs=0.5)
+colnames(doyStartM)[2] <- "doy"
+doyStartM  <- left_join(doyStartM ,glcID, by="glc", type="left")
+
+#median values for max
+
+maxM <- aggregate(analysisDF$maxSwe.m, by=list(glc=analysisDF$glc),
+                       FUN="quantile",probs=0.5)
+colnames(maxM)[2] <- "max.m"
+maxM  <- left_join(maxM ,glcID, by="glc", type="left")

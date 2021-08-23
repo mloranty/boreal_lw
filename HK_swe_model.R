@@ -132,13 +132,7 @@ SdayPlot <- seq(floor(range(analysisDFm1$doyStart)[1]),ceiling(range(analysisDFm
 MaxPlot <- seq(floor(range(analysisDFm1$log.max)[1]*10)/10,ceiling(range(analysisDFm1$log.max)[2]*10)/10, length.out=200)
  
 
-plot(analysisDFm1$lat,analysisDFm1$log.melt)
-plot(analysisDFm1$doyStart,analysisDFm1$log.melt)
-plot(analysisDFm1$vcf,analysisDFm1$log.melt)
-plot(analysisDFm1$doyStart,analysisDFm1$vcf)
-plot(analysisDFm1$doyStart,analysisDFm1$meltTempC)
-plot(analysisDFm1$doyStart,analysisDFm1$vcf)
-plot(analysisDFm1$log.max,analysisDFm1$vcf)
+
 
 ###########################################
 ########## Model        -----
