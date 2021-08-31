@@ -169,11 +169,17 @@ vegePallete2 <-	c(rgb(50/255,80/255,10/255,.1),
                   rgb(250/255,120/255,80/255,.1),
                   rgb(60/255,60/255,110/255,.1),
                   rgb(170/255,190/255,140/255,.1))		
+vegePallete4 <-	c(rgb(50/255,80/255,10/255,.05),	
+                  rgb(130/255,160/255,190/255,.05),
+                  rgb(250/255,120/255,80/255,.05),
+                  rgb(60/255,60/255,110/255,.05),
+                      rgb(170/255,190/255,140/255,.05))		
+
 vegePallete3 <-	c(rgb(50/255,80/255,10/255,.5),	
                   rgb(130/255,160/255,190/255,.5),
                   rgb(250/255,120/255,80/255,.5),
                   rgb(60/255,60/255,110/255,.5),
-                      rgb(170/255,190/255,140/255,.5))		
+                  rgb(170/255,190/255,140/255,.5))
 
 treePallete <- c(rgb(229,245,224,max=255),
                  rgb(199,233,192,max=255),
@@ -699,7 +705,7 @@ dev.off()
 mu.Temp$gcID <- rep(seq(1,5),each=200) 
 mu.Onset$gcID <- rep(seq(1,5),each=200) 
 mu.Max$gcID <- rep(seq(1,5),each=200) 
-
+mu.Canopy$gcID <- rep(seq(1,5),each=200) 
 #intercepts
 
 plotTree <- c(1,2,3)	
@@ -727,7 +733,7 @@ ys <- seq(yl,yh, by = 1)
 xs4 <- seq(xl4,xh4,by=0.5)
 
 #width of regression line
-mlw <- 4
+mlw <- 2
 #width of ticks
 tlw <- 4
 #axis tick label line
@@ -767,7 +773,7 @@ for(i in 1:5){
 
 
 
-png(paste0(plotDI,"\\regression.png"), width = 55, height = 32, units = "cm", res=300)
+png(paste0(plotDI,"\\regression.png"), width = 60, height = 35, units = "cm", res=300)
 layout(matrix(seq(1,8),ncol=4, byrow=TRUE), width=rep(lcm(wd1),4),height=rep(lcm(hd1),2))
 par(mai=c(0,0,0,0))
 #temperature trees
@@ -775,7 +781,7 @@ plot(c(0,1),c(0,1), type="n", xlim=c(xl1,xh1), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTree){
   points(	analysisDF$meltTempC[analysisDF$glc == glcID$glc[i]],
-          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete2[i], pch=19)
+          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete4[i], pch=19)
 }
 for(i in plotTree){	
   polygon(c(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
@@ -791,7 +797,7 @@ for(i in plotTree){
 axis(2, ys, rep(" ",length(ys)), lwd.ticks=tlw)
 mtext(ys,at=ys, line=tll, cex=alc, side=2,las=2)
 box(which="plot")
-mtext(expression(paste("log(Melt Rate (cm day"^"-1","))")), side=2, outer=TRUE,line= -5, cex=plc)
+mtext(expression(paste("log(Melt Rate (mm day"^"-1","))")), side=2, outer=TRUE,line= -5, cex=plc)
 text(xl1+(.05*(xh1-xl1)), yh-(.05*(yh-yl)), "a", cex=ttx)
 legend("bottomright", paste(glcID$name2[plotTree]), col=vegePallete[plotTree],cex=legcex, lwd=mlw,lty=1, bty="n")
 #tree cover trees
@@ -800,9 +806,10 @@ plot(c(0,1),c(0,1), type="n", xlim=c(xl2,xh2), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTree){
   points(	analysisDF$vcf[analysisDF$glc == glcID$glc[i]],
-          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete2[i], pch=19)
+          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete4[i], pch=19)
 }
 for(i in plotTree){	
+  if(beta2$sig[i] == 0){
   polygon(c(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
             rev(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
           c(rep(beta0$X2.5.[i], length(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
@@ -812,7 +819,19 @@ for(i in plotTree){
   points(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
          rep(beta0$Mean[i], length(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
          type="l", lwd=mlw, lty=3, col=vegePallete[i])		
-  
+  }else{
+   
+    polygon(c(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
+              rev(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
+            c(mu.Canopy$X2.5.[mu.Canopy$gcID == i & CanopyMean >=  dlvcf[i] & CanopyMean <=dhvcf[i]],
+              rev(mu.Canopy$X97.5.[mu.Canopy$gcID == i & CanopyMean >=  dlvcf[i] & CanopyMean <=dhvcf[i]])),
+            border=NA, col=vegePallete3[i])
+    
+    points(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
+           mu.Canopy$Mean[mu.Canopy$gcID == i & CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
+           type="l", lwd=mlw, lty=1, col=vegePallete[i])
+    
+  }
 }
 box(which="plot")
 text(xl2+(.05*(xh2-xl2)), yh-(.05*(yh-yl)), "c", cex=ttx)
@@ -823,7 +842,7 @@ plot(c(0,1),c(0,1), type="n", xlim=c(xl3,xh3), ylim=c(yl,yh), xaxs="i",yaxs="i",
 for(i in plotTree){
   
   points(analysisDF$doyStart[analysisDF$glc == glcID$glc[i]],
-          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete2[i], pch=19)
+          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete4[i], pch=19)
 }
 for(i in plotTree){	
   polygon(c(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
@@ -845,7 +864,7 @@ plot(c(0,1),c(0,1), type="n", xlim=c(xl4,xh4), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTree){
   points(	analysisDF$log.max[analysisDF$glc == glcID$glc[i]],
-          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete2[i], pch=19)
+          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete4[i], pch=19)
 }
 for(i in plotTree){	
   MaxMeans <- MaxMean[MaxMean >= dlMax[i] & MaxMean <= dhMax[i]]
@@ -871,7 +890,7 @@ plot(c(0,1),c(0,1), type="n", xlim=c(xl1,xh1), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTun){
   points(	analysisDF$meltTempC[analysisDF$glc == glcID$glc[i]],
-          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete2[i], pch=19)
+          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete4[i], pch=19)
 }
 for(i in plotTun){
   polygon(c(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
@@ -898,18 +917,32 @@ plot(c(0,1),c(0,1), type="n", xlim=c(xl2,xh2), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTun){
   points(		analysisDF$vcf[analysisDF$glc == glcID$glc[i]],
-           analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete2[i], pch=19)
+           analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete4[i], pch=19)
 }
 for(i in plotTun){	
-  polygon(c(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
-            rev(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
-          c(rep(beta0$X2.5.[i], length(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
-            rep(beta0$X97.5[i], length(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]]))),
-          border=NA, col=vegePallete3[i])
-  
-  points(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
-         rep(beta0$Mean[i], length(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
-         type="l", lwd=mlw, lty=3, col=vegePallete[i])		
+  if(beta2$sig[i] == 0){
+    polygon(c(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
+              rev(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
+            c(rep(beta0$X2.5.[i], length(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
+              rep(beta0$X97.5[i], length(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]]))),
+            border=NA, col=vegePallete3[i])
+    
+    points(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
+           rep(beta0$Mean[i], length(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
+           type="l", lwd=mlw, lty=3, col=vegePallete[i])		
+  }else{
+    
+    polygon(c(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
+              rev(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
+            c(mu.Canopy$X2.5.[mu.Canopy$gcID == i & CanopyMean >=  dlvcf[i] & CanopyMean <=dhvcf[i]],
+              rev(mu.Canopy$X97.5.[mu.Canopy$gcID == i & CanopyMean >=  dlvcf[i] & CanopyMean <=dhvcf[i]])),
+            border=NA, col=vegePallete3[i])
+    
+    points(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
+           mu.Canopy$Mean[mu.Canopy$gcID == i & CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
+           type="l", lwd=mlw, lty=1, col=vegePallete[i])
+    
+  }	
   
 }
 axis(1, xs2, rep(" ",length(xs2)), lwd.ticks=tlw)
@@ -923,7 +956,7 @@ plot(c(0,1),c(0,1), type="n", xlim=c(xl3,xh3), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTun){
   points(	analysisDF$doyStart[analysisDF$glc == glcID$glc[i]],
-          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete2[i], pch=19)
+          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete4[i], pch=19)
 }
 for(i in plotTun){	
   polygon(c(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
@@ -947,7 +980,7 @@ plot(c(0,1),c(0,1), type="n", xlim=c(xl4,xh4), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTun){
   points(	analysisDF$log.max[analysisDF$glc == glcID$glc[i]],
-          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete2[i], pch=19)
+          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete4[i], pch=19)
 }
 
 
@@ -1057,6 +1090,10 @@ sweRate  <- left_join(sweRate ,glcID, by="glc", type="left")
 meltQuant <- quantile(analysisDF$melt.mm.day, 
                        probs=seq(0,1, by=0.1), na.rm=TRUE)
 
+melt.ave <- calc(abs(melt.mm.day), fun=mean,na.rm=TRUE)
+decadeAveMelt <- quantile(getValues(melt.ave), 
+                          probs=seq(0,1, by=0.1), na.rm=TRUE)
+
 #median values for temp
 meltTemp <- aggregate(analysisDF$meltTempC, by=list(glc=analysisDF$glc),
                       FUN="quantile",probs=0.5)
@@ -1076,3 +1113,4 @@ maxM <- aggregate(analysisDF$maxSwe.m, by=list(glc=analysisDF$glc),
                        FUN="quantile",probs=0.5)
 colnames(maxM)[2] <- "max.m"
 maxM  <- left_join(maxM ,glcID, by="glc", type="left")
+maxM$max.mm <- maxM$max.m*1000
