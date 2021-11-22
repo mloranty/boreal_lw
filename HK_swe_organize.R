@@ -588,6 +588,11 @@ for(i in 1:NYears){
 meltMeanT <- stack(meltMean)
 names(meltMeanT) <- paste("year",seq(2000,2009))
 
+###########################################
+########## calculate melt a % of max SWE ----
+
+
+
 
 ###########################################
 ########## organize output table data ----
