@@ -210,7 +210,9 @@ MaxPlot <- seq(floor(range(analysisDFm1$log.max)[1]*10)/10,ceiling(range(analysi
   #read in model output
   datS <- read.csv(paste0(modDir,"/curve_mod_stats.csv"))
   datQ <- read.csv(paste0(modDir,"/curve_mod_quant.csv"))
-  
+  chain1 <- read.csv(paste0(modDir,"\\chain1_coda.csv"))
+  chain2 <- read.csv(paste0(modDir,"\\chain2_coda.csv"))
+  chain3 <- read.csv(paste0(modDir,"\\chain3_coda.csv"))
   #combine data frames
   datC <- cbind(datS,datQ)
   #pull out parameter names
