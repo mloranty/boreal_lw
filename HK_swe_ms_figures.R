@@ -56,7 +56,7 @@ library(dplyr)
 ###########################################
 ########## Directories       -----
 plotDI <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/figures"
-modDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/model/run3"
+modDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/model/run4"
 
 ###########################################
 ########## Additional data      -----
@@ -85,7 +85,7 @@ beta0 <- datC[datC$parm == "betaB0S",]
 beta1 <- datC[datC$parm == "betaB1",] 
 beta2 <- datC[datC$parm == "betaB2",] 
 beta3 <- datC[datC$parm == "betaB3",] 
-beta4 <- datC[datC$parm == "betaB4",] 
+
 #add indicator if parameter is significant
 #temp during melt period
 beta1$sig <- ifelse(beta1$X2.5.<0&beta1$X97.5.<0,1,
@@ -96,9 +96,7 @@ beta2$sig <- ifelse(beta2$X2.5.<0&beta2$X97.5.<0,1,
 #onset doy - 107 doy (middle of time period)				
 beta3$sig <- ifelse(beta3$X2.5.<0&beta3$X97.5.<0,1,
                     ifelse(beta3$X2.5.>0&beta3$X97.5.>0,1,0))
-#maximum swe value -0.15m
-beta4$sig <- ifelse(beta4$X2.5.<0&beta4$X97.5.<0,1,
-                    ifelse(beta4$X2.5.>0&beta4$X97.5.>0,1,0))	
+
 
 #check if any nonsignificant slopes to account for
 
