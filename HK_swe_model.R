@@ -32,14 +32,15 @@ library(dplyr)
 
 #model out directory
 
-modDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/model/run3"
+modDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/model/run4"
 
 
 ###########################################
 ########## Set up model data        -----
 
 #calculate Abs melt rate, all values represent decrease in swe
-analysisDF$abs.melt <- abs(analysisDF$melt.mm.day)
+#use the percent of max swe that melts per day
+analysisDF$abs.melt <- abs(analysisDF$melt.per.max)
 
 #log transform
 analysisDF$log.melt <- log(analysisDF$abs.melt)
@@ -47,51 +48,55 @@ analysisDF$log.melt <- log(analysisDF$abs.melt)
 analysisDF$log.max <- log(analysisDF$maxSwe.m)
 
 #check covariate correlation
-pairs(formula= ~ melt.mm.day + 
+pairs(formula= ~ abs.melt + 
         log.melt + 
         vcf +
         lat + 
         meltTempC + 
-        maxSwe.m, data=analysisDF)
+        doyStart, data=analysisDF)
 
-pairs(formula= ~ melt.mm.day + 
+pairs(formula= ~ abs.melt + 
         log.melt + 
         vcf +
         lat + 
         meltTempC + 
-        log.max, data=analysisDF[analysisDF$glc == 4,])
+        doyStart, data=analysisDF[analysisDF$glc == 4,])
+
+
 cor(analysisDF[analysisDF$glc == 4,])
 
-pairs(formula= ~ melt.mm.day + 
+pairs(formula= ~  abs.melt + 
         log.melt + 
         vcf +
         lat + 
         meltTempC + 
-        log.max, data=analysisDF[analysisDF$glc == 5,])
+        doyStart, data=analysisDF[analysisDF$glc ==5,])
+
 cor(analysisDF[analysisDF$glc == 5,])
 
-pairs(formula= ~ melt.mm.day + 
+pairs(formula= ~ abs.melt + 
         log.melt + 
         vcf +
         lat + 
         meltTempC + 
-        log.max, data=analysisDF[analysisDF$glc == 6,])
+        doyStart, data=analysisDF[analysisDF$glc ==6,])
 cor(analysisDF[analysisDF$glc == 6,])
 
-pairs(formula= ~ melt.mm.day + 
+
+pairs(formula= ~ abs.melt + 
         log.melt + 
         vcf +
         lat + 
         meltTempC + 
-        log.max, data=analysisDF[analysisDF$glc == 12,])
+        doyStart, data=analysisDF[analysisDF$glc ==12,])
 cor(analysisDF[analysisDF$glc == 12,])
 
-pairs(formula= ~ melt.mm.day + 
+pairs(formula= ~ abs.melt + 
         log.melt + 
         vcf +
         lat + 
         meltTempC + 
-        log.max, data=analysisDF[analysisDF$glc == 13,])
+        doyStart, data=analysisDF[analysisDF$glc == 13,])
 cor(analysisDF[analysisDF$glc == 13,])
 
 #check correlation
@@ -143,7 +148,6 @@ MaxPlot <- seq(floor(range(analysisDFm1$log.max)[1]*10)/10,ceiling(range(analysi
                    glcIDB=analysisDFm1$gcID,
                    TempAB=analysisDFm1$meltTempC,#centered around 0
                    CanopyB=analysisDFm1$vcf,#centered at 20
-                   SweMax= analysisDFm1$log.max, #centered at log(0.15)
                    sweDay=analysisDFm1$doyStart, #centered at 107
                    GCyearB=analysisDFm1$gcyearID,
                    Ngcyear=dim(epsTable)[1],
@@ -153,17 +157,16 @@ MaxPlot <- seq(floor(range(analysisDFm1$log.max)[1]*10)/10,ceiling(range(analysi
                    endb=endID,
                    TempMean=tempPlot,
                    CanopyMean=CanopyPlot,
-                   SdayMean=SdayPlot,
-                   MaxMean=MaxPlot)
+                   SdayMean=SdayPlot)
 
   inits <- list(list(tau.eb=rep(1,dim(gcIndT)[1])),
                list(tau.eb=rep(1.4,dim(gcIndT)[1])),
                list(tau.eb=rep(2,dim(gcIndT)[1])))
   
   
-  parms <- c("betaB0S","betaB1","betaB2","betaB3","betaB4",
-             "mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3","mu.betaB4",
-             "sig.B0","sig.B1","sig.B2","sig.B3","sig.B4","trB0",
+  parms <- c("betaB0S","betaB1","betaB2","betaB3",
+             "mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
+             "sig.B0","sig.B1","sig.B2","sig.B3","trB0",
              "rep.b0","Dsum","loglike","eps.bS","sig.eb",
              "mu.Temp","mu.Canopy","mu.Onset","mu.Max")
   
@@ -225,7 +228,7 @@ MaxPlot <- seq(floor(range(analysisDFm1$log.max)[1]*10)/10,ceiling(range(analysi
   
   
   abline(0,1,col="red",lwd=2) 
-  
+  abline(fit,col="royalblue",lwd=2) 
   
   #coda for correlation between predictors check
   chains <- rbind(chain1,chain2,chain3)
