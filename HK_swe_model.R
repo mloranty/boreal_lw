@@ -210,7 +210,9 @@ MaxPlot <- seq(floor(range(analysisDFm1$log.max)[1]*10)/10,ceiling(range(analysi
   #read in model output
   datS <- read.csv(paste0(modDir,"/curve_mod_stats.csv"))
   datQ <- read.csv(paste0(modDir,"/curve_mod_quant.csv"))
-  
+  chain1 <- read.csv(paste0(modDir,"\\chain1_coda.csv"))
+  chain2 <- read.csv(paste0(modDir,"\\chain2_coda.csv"))
+  chain3 <- read.csv(paste0(modDir,"\\chain3_coda.csv"))
   #combine data frames
   datC <- cbind(datS,datQ)
   #pull out parameter names
@@ -237,15 +239,14 @@ betaB0S <- chains[,grep("betaB0S",colnames(chains))]
 betaB1 <- chains[,grep("betaB1",colnames(chains))]
 betaB2 <- chains[,grep("betaB2",colnames(chains))]
 betaB3 <- chains[,grep("betaB3",colnames(chains))]
-betaB4 <- chains[,grep("betaB4",colnames(chains))]
+
 
 #turn into single matrix
 #mu.betas get added on
 betaCompGC1 <- data.frame(
                        B1 = as.vector(betaB1[,1]),
                        B2 = as.vector(betaB2[,1]),
-                       B3 = as.vector(betaB3[,1]),
-                       B4 = as.vector(betaB4[,1]))
+                       B3 = as.vector(betaB3[,1]))
                       
 pairs(betaCompGC1)
 cor(betaCompGC1)
@@ -253,8 +254,7 @@ cor(betaCompGC1)
 betaCompGC2 <- data.frame(
   B1 = as.vector(betaB1[,2]),
   B2 = as.vector(betaB2[,2]),
-  B3 = as.vector(betaB3[,2]),
-  B4 = as.vector(betaB4[,2]))
+  B3 = as.vector(betaB3[,2]))
 
 pairs(betaCompGC2)
 cor(betaCompGC2)
@@ -262,8 +262,7 @@ cor(betaCompGC2)
 betaCompGC3 <- data.frame(
   B1 = as.vector(betaB1[,3]),
   B2 = as.vector(betaB2[,3]),
-  B3 = as.vector(betaB3[,3]),
-  B4 = as.vector(betaB4[,3]))
+  B3 = as.vector(betaB3[,3]))
 
 pairs(betaCompGC3)
 cor(betaCompGC3)
@@ -271,8 +270,7 @@ cor(betaCompGC3)
 betaCompGC4 <- data.frame(
   B1 = as.vector(betaB1[,4]),
   B2 = as.vector(betaB2[,4]),
-  B3 = as.vector(betaB3[,4]),
-  B4 = as.vector(betaB4[,4]))
+  B3 = as.vector(betaB3[,4]))
 
 pairs(betaCompGC4)
 cor(betaCompGC4)
@@ -280,8 +278,7 @@ cor(betaCompGC4)
 betaCompGC5 <- data.frame(
   B1 = as.vector(betaB1[,5]),
   B2 = as.vector(betaB2[,5]),
-  B3 = as.vector(betaB3[,5]),
-  B4 = as.vector(betaB4[,5]))
+  B3 = as.vector(betaB3[,5]))
 
 pairs(betaCompGC5)
 cor(betaCompGC5)
