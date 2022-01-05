@@ -55,7 +55,7 @@ library(dplyr)
 
 ###########################################
 ########## Directories       -----
-plotDI <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/figures"
+plotDI <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/figures_norm"
 modDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/model/run4"
 
 ###########################################
@@ -109,18 +109,16 @@ length(which(beta3$sig == 0))
 
 mu.Temp <- datC[datC$parm2 == "mu.Temp[,]",]
 mu.Onset <- datC[datC$parm2 == "mu.Onset[,]",]
-mu.Max <- datC[datC$parm2 == "mu.Max[,]",]
 mu.Canopy <- datC[datC$parm2 == "mu.Canopy[,]",]
 mu.Max[400:500,]
 #log transform
-analysisDF$log.melt <- log(analysisDF$abs.melt)
+analysisDF$log.abs.rate <- log(analysisDF$melt.per.max)
 #log transform max swe
 analysisDF$log.max <- log(analysisDF$maxSwe.m)
 #regression mean plot
 tempMean <- seq(floor(range(analysisDF$meltTempC)[1]),ceiling(range(analysisDF$meltTempC)[2]), length.out=200)
 CanopyMean <- seq(floor(range(analysisDF$vcf)[1]),ceiling(range(analysisDF$vcf)[2]), length.out=200)
 SdayMean <- seq(floor(range(analysisDF$doyStart)[1]),ceiling(range(analysisDF$doyStart)[2]), length.out=200)
-MaxMean <- seq(floor(range(analysisDF$log.max)[1]*10)/10,ceiling(range(analysisDF$log.max)[2]*10)/10, length.out=200)
 
 ###########################################
 ########## Map boundaries      -----
@@ -334,7 +332,7 @@ temp.ave <- calc(meltMeanT, fun=mean,na.rm=TRUE)
 
 #set up violin plots
 #look at absoulute melt
-analysisDF$absRate <- abs(analysisDF$melt.mm.day)
+analysisDF$absRate <- abs(analysisDF$melt.per.max)
 #convert max to mm
 analysisDF$maxSwe.mm <- analysisDF$maxSwe.m * 1000
 
@@ -345,7 +343,7 @@ minS <- numeric(0)
 quant <- list()
 for(i in 1:nrow(glcID)){
   
-  histL[[i]] <- hist(analysisDF$absRate[analysisDF$glc == glcID$glc[i]], breaks=seq(0,32, by=2))
+  histL[[i]] <- hist(analysisDF$absRate[analysisDF$glc == glcID$glc[i]], breaks=seq(0,16, by=2))
   #get max and min
   
   densityH[i] <- max(histL[[i]]$density)
@@ -430,7 +428,7 @@ for(i in 1:5){
 
 
 #set up figures
-sweBr <- round(getJenksBreaks(getValues(melt.ave),9),2)	
+sweBr <- round(getJenksBreaks(getValues(melt.per.max),9),2)	
 sweMaxBr <- round(getJenksBreaks(getValues(max.mm.ave),9),2)
 meltTBr <- round(getJenksBreaks(getValues(temp.ave),9),2)
 OnsetBr <- round(getJenksBreaks(getValues(doyS.ave),9),0)
@@ -454,7 +452,7 @@ xseqV <- seq(1,10, by=2)
 wd1V <-30
 
 ylV <- 0
-yhV <- 31	
+yhV <- 16	
 ylT <- -9
 yhT <- 15
 ylVC <- 0
@@ -483,7 +481,7 @@ points(world, type="l", lwd=2, col="grey65")
 #continent color
 polygon(c(world[,1],rev(world[,1])), c(world[,2],rev(world[,2])),col=land,border=NA)
 #plot points
-image(melt.ave,breaks=sweBr, col=swePallete, add=TRUE)
+image(melt.per.max,breaks=sweBr, col=swePallete, add=TRUE)
 
 plot(PolyBlock, col="white",border="white", add=TRUE)
 text(-4150000,4150000,"A",cex=mx)
@@ -523,7 +521,7 @@ axis(2, seq(0,31, by=2),rep(" ",length(seq(0,31, by=2))),lwd.ticks=tlw)
 mtext(paste(nameSplit1),at=xseqV,side=1,line=al1,cex=cax)
 mtext(paste(nameSplit2),at=xseqV,side=1,line=al2,cex=cax)
 mtext(seq(0,31, by=2), at=seq(0,31, by=2), side=2, las=2, line=al1, cex=cax)
-mtext(expression(paste("Melt rate (mm day"^"-1",")")), side=2, line=lll, cex=lcx)
+mtext(expression(paste("Melt rate (% max day"^"-1",")")), side=2, line=lll, cex=lcx)
 mtext("Landcover type", side=1, line=lllx, cex=lcx)
 text(0.5,30,"B",cex=mx)
 
@@ -704,7 +702,7 @@ dev.off()
 #organize model output
 mu.Temp$gcID <- rep(seq(1,5),each=200) 
 mu.Onset$gcID <- rep(seq(1,5),each=200) 
-mu.Max$gcID <- rep(seq(1,5),each=200) 
+#mu.Max$gcID <- rep(seq(1,5),each=200) 
 mu.Canopy$gcID <- rep(seq(1,5),each=200) 
 #intercepts
 
@@ -764,8 +762,8 @@ for(i in 1:5){
   dhvcf[i] <- ceiling(max(analysisDF$vcf[analysisDF$glc == glcID$glc[i]]))
   dlOnset[i] <- floor(min(analysisDF$doyStart[analysisDF$glc == glcID$glc[i]]))
   dhOnset[i] <- ceiling(max(analysisDF$doyStart[analysisDF$glc == glcID$glc[i]]))
-  dlMax[i] <- floor(min(analysisDF$log.max[analysisDF$glc == glcID$glc[i]])*10)/10
-  dhMax[i] <- ceiling(max(analysisDF$log.max[analysisDF$glc == glcID$glc[i]])*10)/10
+  #dlMax[i] <- floor(min(analysisDF$log.max[analysisDF$glc == glcID$glc[i]])*10)/10
+  #dhMax[i] <- ceiling(max(analysisDF$log.max[analysisDF$glc == glcID$glc[i]])*10)/10
   
   
 }
@@ -774,7 +772,7 @@ for(i in 1:5){
 
 
 png(paste0(plotDI,"\\regression.png"), width = 60, height = 35, units = "cm", res=300)
-layout(matrix(seq(1,8),ncol=4, byrow=TRUE), width=rep(lcm(wd1),4),height=rep(lcm(hd1),2))
+layout(matrix(seq(1,6),ncol=3, byrow=TRUE), width=rep(lcm(wd1),3),height=rep(lcm(hd1),2))
 par(mai=c(0,0,0,0))
 #temperature trees
 plot(c(0,1),c(0,1), type="n", xlim=c(xl1,xh1), ylim=c(yl,yh), xaxs="i",yaxs="i",
@@ -797,7 +795,7 @@ for(i in plotTree){
 axis(2, ys, rep(" ",length(ys)), lwd.ticks=tlw)
 mtext(ys,at=ys, line=tll, cex=alc, side=2,las=2)
 box(which="plot")
-mtext(expression(paste("log(Melt Rate (mm day"^"-1","))")), side=2, outer=TRUE,line= -5, cex=plc)
+mtext(expression(paste("log(Melt Rate (% max day"^"-1","))")), side=2, outer=TRUE,line= -5, cex=plc)
 text(xl1+(.05*(xh1-xl1)), yh-(.05*(yh-yl)), "a", cex=ttx)
 legend("bottomright", paste(glcID$name2[plotTree]), col=vegePallete[plotTree],cex=legcex, lwd=mlw,lty=1, bty="n")
 #tree cover trees
@@ -857,31 +855,6 @@ for(i in plotTree){
 }
 box(which="plot")
 text(xl3+(.05*(xh3-xl3)), yh-(.05*(yh-yl)), "e", cex=ttx)
-
-#max swe trees
-par(mai=c(0,0,0,0))
-plot(c(0,1),c(0,1), type="n", xlim=c(xl4,xh4), ylim=c(yl,yh), xaxs="i",yaxs="i",
-     xlab= " ", ylab=" ", axes=FALSE)
-for(i in plotTree){
-  points(	analysisDF$log.max[analysisDF$glc == glcID$glc[i]],
-          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete4[i], pch=19)
-}
-for(i in plotTree){	
-  MaxMeans <- MaxMean[MaxMean >= dlMax[i] & MaxMean <= dhMax[i]]
-  mu.Maxs <- mu.Max[MaxMean >= dlMax[i] & MaxMean <= dhMax[i],]
-  polygon(c(MaxMeans,
-            rev(MaxMeans)),
-          c(mu.Maxs$X2.5.[mu.Maxs$gcID == i],
-            rev(mu.Maxs$X97.5[mu.Maxs$gcID == i])),
-          border=NA, col=vegePallete3[i])
-  
-  points(MaxMeans,
-         mu.Maxs$Mean[mu.Maxs$gcID == i],
-         type="l", lwd=mlw, col=vegePallete[i])	
-  
-}
-box(which="plot")
-text(xl4+(.05*(xh4-xl4)), yh-(.05*(yh-yl)), "g", cex=ttx)	
 
 
 #temperature tundra
@@ -974,37 +947,9 @@ mtext(xs3,at=xs3, line=tll, cex=alc, side=1)
 box(which="plot")
 mtext("Onset day of year", side=1,line= xpl, cex=plc)
 text(xl3+(.05*(xh3-xl3)), yh-(.05*(yh-yl)), "f", cex=ttx)
-#latitude tundra
-par(mai=c(0,0,0,0))
-plot(c(0,1),c(0,1), type="n", xlim=c(xl4,xh4), ylim=c(yl,yh), xaxs="i",yaxs="i",
-     xlab= " ", ylab=" ", axes=FALSE)
-for(i in plotTun){
-  points(	analysisDF$log.max[analysisDF$glc == glcID$glc[i]],
-          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete4[i], pch=19)
-}
 
 
-for(i in plotTun){	
-  MaxMeans <- MaxMean[MaxMean >= dlMax[i] & MaxMean <= dhMax[i]]
-  mu.Maxs <- mu.Max[MaxMean >= dlMax[i] & MaxMean <= dhMax[i],]
-  polygon(c(MaxMeans,
-            rev(MaxMeans)),
-          c(mu.Maxs$X2.5.[mu.Maxs$gcID == i],
-            rev(mu.Maxs$X97.5[mu.Maxs$gcID == i])),
-          border=NA, col=vegePallete3[i])
-  
-  points(MaxMeans,
-         mu.Maxs$Mean[mu.Maxs$gcID == i],
-         type="l", lwd=mlw, col=vegePallete[i])	
-  
-}
-box(which="plot")
-text(xl4+(.05*(xh4-xl4)), yh-(.05*(yh-yl)), "h", cex=ttx)	
 
-axis(1, xs4, rep(" ",length(xs4)), lwd.ticks=tlw)
-mtext(xs4,at=xs4, line=tll, cex=alc, side=1)
-mtext("log(Max SWE )", side=1,line= xpl, cex=plc)
-mtext("log(m)", side=1,line= xpl+5, cex=plc)
 dev.off()
 
 
@@ -1041,7 +986,7 @@ tlw <- 2
 
 png(paste0(plotDI,"\\intercepts1.png"), width = 20, height = 20, units = "cm", res=300)
 layout(matrix(c(1),ncol=1, byrow=TRUE), width=lcm(wd1),height=lcm(hd1))
-plot(c(0,1),c(0,1), xlim=c(0,11), ylim=c(0,6), axes=FALSE, type="n", xlab = " ", ylab= " ",
+plot(c(0,1),c(0,1), xlim=c(0,11), ylim=c(0,4.5), axes=FALSE, type="n", xlab = " ", ylab= " ",
      xaxs="i", yaxs="i")
 
 for(j in 1:5){
