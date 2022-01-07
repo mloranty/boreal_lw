@@ -32,15 +32,14 @@ library(dplyr)
 
 #model out directory
 
-modDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/model/run4"
+modDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/model/run3"
 
 
 ###########################################
 ########## Set up model data        -----
 
 #calculate Abs melt rate, all values represent decrease in swe
-#use the percent of max swe that melts per day
-analysisDF$abs.melt <- abs(analysisDF$melt.per.max)
+analysisDF$abs.melt <- abs(analysisDF$melt.mm.day)
 
 #log transform
 analysisDF$log.melt <- log(analysisDF$abs.melt)
@@ -48,55 +47,51 @@ analysisDF$log.melt <- log(analysisDF$abs.melt)
 analysisDF$log.max <- log(analysisDF$maxSwe.m)
 
 #check covariate correlation
-pairs(formula= ~ abs.melt + 
+pairs(formula= ~ melt.mm.day + 
         log.melt + 
         vcf +
         lat + 
         meltTempC + 
-        doyStart, data=analysisDF)
+        maxSwe.m, data=analysisDF)
 
-pairs(formula= ~ abs.melt + 
+pairs(formula= ~ melt.mm.day + 
         log.melt + 
         vcf +
         lat + 
         meltTempC + 
-        doyStart, data=analysisDF[analysisDF$glc == 4,])
-
-
+        log.max, data=analysisDF[analysisDF$glc == 4,])
 cor(analysisDF[analysisDF$glc == 4,])
 
-pairs(formula= ~  abs.melt + 
+pairs(formula= ~ melt.mm.day + 
         log.melt + 
         vcf +
         lat + 
         meltTempC + 
-        doyStart, data=analysisDF[analysisDF$glc ==5,])
-
+        log.max, data=analysisDF[analysisDF$glc == 5,])
 cor(analysisDF[analysisDF$glc == 5,])
 
-pairs(formula= ~ abs.melt + 
+pairs(formula= ~ melt.mm.day + 
         log.melt + 
         vcf +
         lat + 
         meltTempC + 
-        doyStart, data=analysisDF[analysisDF$glc ==6,])
+        log.max, data=analysisDF[analysisDF$glc == 6,])
 cor(analysisDF[analysisDF$glc == 6,])
 
-
-pairs(formula= ~ abs.melt + 
+pairs(formula= ~ melt.mm.day + 
         log.melt + 
         vcf +
         lat + 
         meltTempC + 
-        doyStart, data=analysisDF[analysisDF$glc ==12,])
+        log.max, data=analysisDF[analysisDF$glc == 12,])
 cor(analysisDF[analysisDF$glc == 12,])
 
-pairs(formula= ~ abs.melt + 
+pairs(formula= ~ melt.mm.day + 
         log.melt + 
         vcf +
         lat + 
         meltTempC + 
-        doyStart, data=analysisDF[analysisDF$glc == 13,])
+        log.max, data=analysisDF[analysisDF$glc == 13,])
 cor(analysisDF[analysisDF$glc == 13,])
 
 #check correlation
@@ -148,6 +143,7 @@ MaxPlot <- seq(floor(range(analysisDFm1$log.max)[1]*10)/10,ceiling(range(analysi
                    glcIDB=analysisDFm1$gcID,
                    TempAB=analysisDFm1$meltTempC,#centered around 0
                    CanopyB=analysisDFm1$vcf,#centered at 20
+                   SweMax= analysisDFm1$log.max, #centered at log(0.15)
                    sweDay=analysisDFm1$doyStart, #centered at 107
                    GCyearB=analysisDFm1$gcyearID,
                    Ngcyear=dim(epsTable)[1],
@@ -157,16 +153,17 @@ MaxPlot <- seq(floor(range(analysisDFm1$log.max)[1]*10)/10,ceiling(range(analysi
                    endb=endID,
                    TempMean=tempPlot,
                    CanopyMean=CanopyPlot,
-                   SdayMean=SdayPlot)
+                   SdayMean=SdayPlot,
+                   MaxMean=MaxPlot)
 
   inits <- list(list(tau.eb=rep(1,dim(gcIndT)[1])),
                list(tau.eb=rep(1.4,dim(gcIndT)[1])),
                list(tau.eb=rep(2,dim(gcIndT)[1])))
   
   
-  parms <- c("betaB0S","betaB1","betaB2","betaB3",
-             "mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3",
-             "sig.B0","sig.B1","sig.B2","sig.B3","trB0",
+  parms <- c("betaB0S","betaB1","betaB2","betaB3","betaB4",
+             "mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3","mu.betaB4",
+             "sig.B0","sig.B1","sig.B2","sig.B3","sig.B4","trB0",
              "rep.b0","Dsum","loglike","eps.bS","sig.eb",
              "mu.Temp","mu.Canopy","mu.Onset","mu.Max")
   
@@ -210,9 +207,7 @@ MaxPlot <- seq(floor(range(analysisDFm1$log.max)[1]*10)/10,ceiling(range(analysi
   #read in model output
   datS <- read.csv(paste0(modDir,"/curve_mod_stats.csv"))
   datQ <- read.csv(paste0(modDir,"/curve_mod_quant.csv"))
-  chain1 <- read.csv(paste0(modDir,"\\chain1_coda.csv"))
-  chain2 <- read.csv(paste0(modDir,"\\chain2_coda.csv"))
-  chain3 <- read.csv(paste0(modDir,"\\chain3_coda.csv"))
+  
   #combine data frames
   datC <- cbind(datS,datQ)
   #pull out parameter names
@@ -230,7 +225,7 @@ MaxPlot <- seq(floor(range(analysisDFm1$log.max)[1]*10)/10,ceiling(range(analysi
   
   
   abline(0,1,col="red",lwd=2) 
-  abline(fit,col="royalblue",lwd=2) 
+  
   
   #coda for correlation between predictors check
   chains <- rbind(chain1,chain2,chain3)
@@ -239,14 +234,15 @@ betaB0S <- chains[,grep("betaB0S",colnames(chains))]
 betaB1 <- chains[,grep("betaB1",colnames(chains))]
 betaB2 <- chains[,grep("betaB2",colnames(chains))]
 betaB3 <- chains[,grep("betaB3",colnames(chains))]
-
+betaB4 <- chains[,grep("betaB4",colnames(chains))]
 
 #turn into single matrix
 #mu.betas get added on
 betaCompGC1 <- data.frame(
                        B1 = as.vector(betaB1[,1]),
                        B2 = as.vector(betaB2[,1]),
-                       B3 = as.vector(betaB3[,1]))
+                       B3 = as.vector(betaB3[,1]),
+                       B4 = as.vector(betaB4[,1]))
                       
 pairs(betaCompGC1)
 cor(betaCompGC1)
@@ -254,7 +250,8 @@ cor(betaCompGC1)
 betaCompGC2 <- data.frame(
   B1 = as.vector(betaB1[,2]),
   B2 = as.vector(betaB2[,2]),
-  B3 = as.vector(betaB3[,2]))
+  B3 = as.vector(betaB3[,2]),
+  B4 = as.vector(betaB4[,2]))
 
 pairs(betaCompGC2)
 cor(betaCompGC2)
@@ -262,7 +259,8 @@ cor(betaCompGC2)
 betaCompGC3 <- data.frame(
   B1 = as.vector(betaB1[,3]),
   B2 = as.vector(betaB2[,3]),
-  B3 = as.vector(betaB3[,3]))
+  B3 = as.vector(betaB3[,3]),
+  B4 = as.vector(betaB4[,3]))
 
 pairs(betaCompGC3)
 cor(betaCompGC3)
@@ -270,7 +268,8 @@ cor(betaCompGC3)
 betaCompGC4 <- data.frame(
   B1 = as.vector(betaB1[,4]),
   B2 = as.vector(betaB2[,4]),
-  B3 = as.vector(betaB3[,4]))
+  B3 = as.vector(betaB3[,4]),
+  B4 = as.vector(betaB4[,4]))
 
 pairs(betaCompGC4)
 cor(betaCompGC4)
@@ -278,7 +277,8 @@ cor(betaCompGC4)
 betaCompGC5 <- data.frame(
   B1 = as.vector(betaB1[,5]),
   B2 = as.vector(betaB2[,5]),
-  B3 = as.vector(betaB3[,5]))
+  B3 = as.vector(betaB3[,5]),
+  B4 = as.vector(betaB4[,5]))
 
 pairs(betaCompGC5)
 cor(betaCompGC5)
