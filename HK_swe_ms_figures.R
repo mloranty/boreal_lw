@@ -181,6 +181,12 @@ vegePallete3 <-	c(rgb(50/255,80/255,10/255,.5),
                   rgb(60/255,60/255,110/255,.5),
                   rgb(170/255,190/255,140/255,.5))
 
+vegePallete5 <-	c(rgb(50/255,80/255,10/255,.2),	
+                  rgb(130/255,160/255,190/255,.2),
+                  rgb(250/255,120/255,80/255,.2),
+                  rgb(60/255,60/255,110/255,.2),
+                  rgb(170/255,190/255,140/255,.2))	
+
 treePallete <- c(rgb(229,245,224,max=255),
                  rgb(199,233,192,max=255),
                  rgb(161,217,155,max=255),
@@ -1114,3 +1120,150 @@ maxM <- aggregate(analysisDF$maxSwe.m, by=list(glc=analysisDF$glc),
 colnames(maxM)[2] <- "max.m"
 maxM  <- left_join(maxM ,glcID, by="glc", type="left")
 maxM$max.mm <- maxM$max.m*1000
+
+
+###########################################
+########## Figure S1: model      ##########
+########## fit                   ##########
+
+# run separate from plots above
+
+########## Set up model data        -----
+
+#calculate Abs melt rate, all values represent decrease in swe
+analysisDF$abs.melt <- abs(analysisDF$melt.mm.day)
+
+#log transform
+analysisDF$log.melt <- log(analysisDF$abs.melt)
+#log transform max swe
+analysisDF$log.max <- log(analysisDF$maxSwe.m)
+
+#create gcID column in table
+colnames(glcID) <- c("glc","Desc")
+glcID$gcID <- seq(1, nrow(glcID))
+
+#join into analysis DF
+analysisDFm1 <- left_join(analysisDF, glcID, by="glc")
+
+
+#random effects ids
+#need to organize table for eps ids
+epsTable <- unique(data.frame(gcID=analysisDFm1$gcID,year=analysisDFm1$year))
+epsTable <- epsTable[order(epsTable$gcID,epsTable$year),]
+#this order will be by GCID
+epsTable$gcyearID <- seq(1,dim(epsTable)[1])
+
+#create index for averaging eps
+gcIndT <- unique(data.frame(gcID=epsTable$gcID))
+startID <- numeric(0)
+endID <- numeric(0)
+
+for(i in 1:dim(gcIndT)[1]){
+  startID[i] <- head(which(epsTable$gcID==gcIndT$gcID[i]))[1]
+  endID [i] <- tail(which(epsTable$gcID==gcIndT$gcID[i]))[6]
+}
+
+#join back into analysis DF
+analysisDFm1 <- left_join(analysisDFm1, epsTable, by=c("gcID","year"))
+
+
+#pull out slope rep
+bRep <- datC[datC$parm=="rep.b0",]			
+par(mai=c(1,1,1,1))
+plot(analysisDFm1$log.melt,bRep$Mean, ylim=c(-0.5,4.25), xlim=c(-0.5,4.25),
+     xlab = expression(paste("Observed melt rate (log(mm day"^"-1","))")),
+     ylab=expression(paste("Predicted melt rate (log(mm day"^"-1","))")),
+     pch=19, col=rgb(0.5,0.5,0.5,0.25),
+     axes=FALSE, cex.lab=1.5)
+axis(1, seq(-0.5,4,by=0.5), cex.axis=1.25)
+axis(2, seq(-0.5,4,by=0.5), cex.axis=1.25, las=2)
+fit <- lm(bRep$Mean~	analysisDFm1$log.melt)	
+summary(fit)	
+
+
+abline(0,1,col="tomato3",lwd=2) 
+abline(fit, col="royalblue3", lty=2, lwd=2)
+
+legend("topleft", c("model fit", "1:1 line"),
+       col=c("royalblue3","tomato3"), lty=c(2,1), lwd=2, bty="n", cex=1.5)
+
+text(2,4, paste("predicted = ",round(fit$coefficients[1],2),"+",
+                  round(fit$coefficients[2],2),"* observed"), cex=1.5)
+
+text(2,3.75, expression(paste("R"^"2","= 0.612")), cex=1.5)
+
+
+
+###########################################
+########## Figure S2: melt onset ##########
+########## vs latitude           ##########
+
+
+plotTree <- c(1,2,3)	
+plotTun <- c(4,5)	
+xl1 <- 49
+xh1 <-72
+yl <- 40
+yh <- 160
+xs1 <- seq(50,70, by=5)
+ys <- seq(50,150, by=25)
+
+#width of regression line
+mlw <- 2
+#width of ticks
+tlw <- 4
+#axis tick label line
+tll <- 2
+#axis label size
+alc <- 2
+#plot label text size
+plc <- 3
+#x label plot line
+xpl <- 6
+#size of panel letter
+ttx <- 2
+#legend size
+legcex <- 1.5
+
+
+wd1 <- 11
+hd1 <- 11	
+
+png(paste0(plotDI,"\\S2_onset_lat.png"), width = 22, height = 30, units = "cm", res=300)
+layout(matrix(seq(1,2),ncol=1, byrow=TRUE), width=rep(lcm(wd1),1),height=rep(lcm(hd1),2))
+par(mai=c(0,0,0,0))
+
+#trees
+plot(c(0,1),c(0,1), type="n", xlim=c(xl1,xh1), ylim=c(yl,yh), xaxs="i",yaxs="i",
+     xlab= " ", ylab=" ", axes=FALSE)
+for(i in plotTree){
+  points(	analysisDF$lat[analysisDF$glc == glcID$glc[i]],
+          analysisDF$doyStart[analysisDF$glc == glcID$glc[i]], col=vegePallete5[i], pch=19)
+}
+box(which="plot")
+axis(2, ys, rep(" ",length(ys)), lwd.ticks=tlw)
+mtext(ys,at=ys, line=tll, cex=alc, side=2,las=2)
+legend("bottomright", paste(glcID$name2[plotTree]), col=vegePallete[plotTree],cex=legcex, lwd=mlw,lty=1, bty="n")
+text(xl1+(.05*(xh1-xl1)), yh-(.05*(yh-yl)), "a", cex=ttx)
+
+#plot tundra
+par(mai=c(0,0,0,0))
+plot(c(0,1),c(0,1), type="n", xlim=c(xl1,xh1), ylim=c(yl,yh), xaxs="i",yaxs="i",
+     xlab= " ", ylab=" ", axes=FALSE)
+for(i in plotTun){
+  points(	analysisDF$lat[analysisDF$glc == glcID$glc[i]],
+          analysisDF$doyStart[analysisDF$glc == glcID$glc[i]], col=vegePallete5[i], pch=19)
+}
+
+
+mtext("Melt onset day of year", side=2, outer=TRUE,line= -5, cex=plc)
+axis(2, ys, rep(" ",length(ys)), lwd.ticks=tlw)
+mtext(ys,at=ys, line=tll, cex=alc, side=2,las=2)
+axis(1, xs1, rep(" ",length(xs1)), lwd.ticks=tlw)
+mtext(xs1,at=xs1, line=tll, cex=alc, side=1)
+box(which="plot")
+mtext("Latitude (degree)", side=1,line= xpl, cex=plc)
+text(xl1+(.05*(xh1-xl1)), yh-(.05*(yh-yl)), "b", cex=ttx)
+legend("bottomright", paste(glcID$name2[plotTun]), col=vegePallete[plotTun],cex=legcex, lwd=mlw,lty=1, bty="n")
+
+dev.off()
