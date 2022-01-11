@@ -1114,3 +1114,50 @@ maxM <- aggregate(analysisDF$maxSwe.m, by=list(glc=analysisDF$glc),
 colnames(maxM)[2] <- "max.m"
 maxM  <- left_join(maxM ,glcID, by="glc", type="left")
 maxM$max.mm <- maxM$max.m*1000
+
+
+###########################################
+########## Figure S1: model      ##########
+########## fit                   ##########
+
+# run separate from plots above
+
+########## Set up model data        -----
+
+#calculate Abs melt rate, all values represent decrease in swe
+analysisDF$abs.melt <- abs(analysisDF$melt.mm.day)
+
+#log transform
+analysisDF$log.melt <- log(analysisDF$abs.melt)
+#log transform max swe
+analysisDF$log.max <- log(analysisDF$maxSwe.m)
+
+#create gcID column in table
+colnames(glcID) <- c("glc","Desc")
+glcID$gcID <- seq(1, nrow(glcID))
+
+#join into analysis DF
+analysisDFm1 <- left_join(analysisDF, glcID, by="glc")
+
+
+#random effects ids
+#need to organize table for eps ids
+epsTable <- unique(data.frame(gcID=analysisDFm1$gcID,year=analysisDFm1$year))
+epsTable <- epsTable[order(epsTable$gcID,epsTable$year),]
+#this order will be by GCID
+epsTable$gcyearID <- seq(1,dim(epsTable)[1])
+
+#create index for averaging eps
+gcIndT <- unique(data.frame(gcID=epsTable$gcID))
+startID <- numeric(0)
+endID <- numeric(0)
+
+for(i in 1:dim(gcIndT)[1]){
+  startID[i] <- head(which(epsTable$gcID==gcIndT$gcID[i]))[1]
+  endID [i] <- tail(which(epsTable$gcID==gcIndT$gcID[i]))[6]
+}
+
+#join back into analysis DF
+analysisDFm1 <- left_join(analysisDFm1, epsTable, by=c("gcID","year"))
+
+
