@@ -17,6 +17,36 @@ library(MODIStsp)
 library(raster)
 library(ncdf4)
 
+
+### calculat standard deviatin of vcf within 50km grid cells - added 01/11/22
+setwd("L:/data_repo/gis_data/")
+
+# read a topo raster for reprojecting
+topo <- rast("L:/projects/boreal_swe_depletion/data/ETOPO1_Ice_c_50km_ease_mtn_mask.tif")
+# define the projection - EASE2.0 equal area grid - will use 50km resolution
+# https://epsg.io/6931
+
+# read original MODIS sinusoidal mosaic
+vcf <- rast("MODIS/MOD44B/MOD44B_2014_500m_mosaic_sin.tif")
+
+# reproject to EASR grid, retaining 500m resolution
+vcf2 <- project(vcf,"epsg:6931", filename = "MODIS/MOD44B/MOD44B_2014_500m_mosaic_EASE.tif")
+
+# mask non-tree cover pixels
+vcf3 <- classify(vcf2,cbind(101,Inf,NA), "MODIS/MOD44B/MOD44B_2014_500m_mosaic_EASE_mask.tif" )
+
+# aggregate to 50km resolution
+vcf4 <- aggregate(vcf3,fact = 50000/res(vcf3), fun = sd, na.rm = T)
+
+# resample to align with other data sets 
+vcf50e <- resample(vcf4,topo,method = "near", 
+                   filename = "L:/projects/boreal_swe_depletion/data/MOD44B_2014_stdev_mosaic_50km_ease.tif", overwrite = T)
+
+
+# note - aggregating before reprojecting leads to large messy errors near the international date line. 
+
+#-----------------------------------------------------------------------------------#
+# section to try downloading and processing newer mosaics from new collection. 
 #specify download directory and set as working directory
 dd <- "L:/data_repo/gis_data/MODIS/MOD44B/hdf_tiles/V6_2000_boreal/"
 setwd(dd)
