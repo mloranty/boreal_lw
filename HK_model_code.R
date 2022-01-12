@@ -1,4 +1,5 @@
 model{
+  #folder run 3
   for(i in 1:Nobs){
     ####################
     #####likelihood#####
