@@ -1267,3 +1267,248 @@ text(xl1+(.05*(xh1-xl1)), yh-(.05*(yh-yl)), "b", cex=ttx)
 legend("bottomright", paste(glcID$name2[plotTun]), col=vegePallete[plotTun],cex=legcex, lwd=mlw,lty=1, bty="n")
 
 dev.off()
+
+
+
+####################
+# read in vcf sd
+vcfSD <- raster("E:/Google Drive/GIS/boreal_swe_all_data/MOD44B_2014_stdev_mosaic_50km_ease.tif")
+
+plot(vcfSD)
+hist(getValues(vcfSD))
+plot(vcf.mask)
+
+vsd.mask <- mask(vcfSD,vcf.mask)
+plot(vsd.mask)
+hist(getValues(vsd.mask))
+
+melt.ave <- calc(abs(melt.mm.day), fun=mean,na.rm=TRUE)
+
+vcfs <- stack(vcf.mask, vsd.mask, glc2000, melt.ave)
+vcfDF <- getValues(vcfs)
+plot(vcfDF[,1],vcfDF[,2])
+plot(vcfDF[,2] ~ as.factor(vcfDF[,3]))
+
+tree <- lm(log(vcfDF[vcfDF[,3]==5 & vcfDF[,2] <=10,4])~vcfDF[vcfDF[,3]==5 & vcfDF[,2] <=10,1])
+summary(tree)
+
+unique(vcfDF[,3])
+par(mfrow=c(1,2))
+plot(vcfDF[vcfDF[,3]==5,1], log(vcfDF[vcfDF[,3]==5,4]),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Canopy cover in Evergreen needleleaf", main="All data")
+
+plot(vcfDF[vcfDF[,3]==5 & vcfDF[,2] <=10,1], log(vcfDF[vcfDF[,3]==5 & vcfDF[,2] <=10,4]),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Canopy cover in Evergreen needleleaf",main ="SD <=10")
+
+par(mfrow=c(1,2))
+plot(vcfDF[vcfDF[,3]==6,1], log(vcfDF[vcfDF[,3]==6,4]),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Canopy cover in Deciduous needleleaf", main="All data")
+
+plot(vcfDF[vcfDF[,3]==6 & vcfDF[,2] <=10,1], log(vcfDF[vcfDF[,3]==6 & vcfDF[,2] <=10,4]),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Canopy cover in Deciduous needleleaf",main ="SD <=10")
+
+par(mfrow=c(1,2))
+plot(vcfDF[vcfDF[,3]==4,1], log(vcfDF[vcfDF[,3]==4,4]),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Canopy cover in mixed forest", main="All data")
+
+plot(vcfDF[vcfDF[,3]==4 & vcfDF[,2] <=10,1], log(vcfDF[vcfDF[,3]==4 & vcfDF[,2] <=10,4]),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Canopy cover in mixed forest", main="All data")
+
+par(mfrow=c(1,2))
+plot(vcfDF[vcfDF[,3]==12,1], log(vcfDF[vcfDF[,3]==12,4]),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Canopy cover in deciduous shrub tundra", main="All data")
+
+plot(vcfDF[vcfDF[,3]==12 & vcfDF[,2] <=10,1], log(vcfDF[vcfDF[,3]==12 & vcfDF[,2] <=10,4]),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Canopy cover in deciduous shrub tundra", main="SD <=10")
+
+
+par(mfrow=c(1,2))
+plot(vcfDF[vcfDF[,3]==13,1], log(vcfDF[vcfDF[,3]==13,4]),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Canopy cover in herbaceous tundra", main="All data")
+
+plot(vcfDF[vcfDF[,3]==13 & vcfDF[,2] <=10,1], log(vcfDF[vcfDF[,3]==13 & vcfDF[,2] <=10,4]),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Canopy cover in herbaceous tundra", main="SD <=10")
+
+
+par(mfrow=c(3,3))
+
+vcfs <- stack(vcf.mask, vsd.mask, glc2000, melt.mm.day[[1]])
+vcfDF <- getValues(vcfs)
+plot(vcfDF[vcfDF[,3]==5,1], log(abs(vcfDF[vcfDF[,3]==5,4])),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Canopy cover in Evergreen needleleaf", main="year = 2000",ylim=c(0,3.2))
+lm.mod <-lm(log(abs(vcfDF[vcfDF[,3]==5,4]))~vcfDF[vcfDF[,3]==5,1])
+text(55,3,paste("y=",round(lm.mod$coefficients[1],2),"+",round(lm.mod$coefficients[2],3),"*vcf"))
+text(55,2.75,paste("r2=", round(summary(lm.mod)$r.squared,3)))
+
+
+vcfs <- stack(vcf.mask, vsd.mask, glc2000, melt.mm.day[[2]])
+vcfDF <- getValues(vcfs)
+plot(vcfDF[vcfDF[,3]==5,1], log(abs(vcfDF[vcfDF[,3]==5,4])),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Canopy cover in Evergreen needleleaf", main="year = 2001",ylim=c(0,3.2))
+lm.mod <-lm(log(abs(vcfDF[vcfDF[,3]==5,4]))~vcfDF[vcfDF[,3]==5,1])
+text(55,3,paste("y=",round(lm.mod$coefficients[1],2),"+",round(lm.mod$coefficients[2],3),"*vcf"))
+text(55,2.75,paste("r2=", round(summary(lm.mod)$r.squared,3)))
+
+vcfs <- stack(vcf.mask, vsd.mask, glc2000, melt.mm.day[[3]])
+vcfDF <- getValues(vcfs)
+plot(vcfDF[vcfDF[,3]==5,1], log(abs(vcfDF[vcfDF[,3]==5,4])),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Canopy cover in Evergreen needleleaf", main="year = 2002",ylim=c(0,3.2))
+lm.mod <-lm(log(abs(vcfDF[vcfDF[,3]==5,4]))~vcfDF[vcfDF[,3]==5,1])
+text(55,3,paste("y=",round(lm.mod$coefficients[1],2),"+",round(lm.mod$coefficients[2],3),"*vcf"))
+text(55,2.75,paste("r2=", round(summary(lm.mod)$r.squared,3)))
+
+vcfs <- stack(vcf.mask, vsd.mask, glc2000, melt.mm.day[[4]])
+vcfDF <- getValues(vcfs)
+plot(vcfDF[vcfDF[,3]==5,1], log(abs(vcfDF[vcfDF[,3]==5,4])),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Canopy cover in Evergreen needleleaf", main="year = 2003",ylim=c(0,3.2))
+lm.mod <-lm(log(abs(vcfDF[vcfDF[,3]==5,4]))~vcfDF[vcfDF[,3]==5,1])
+text(55,3,paste("y=",round(lm.mod$coefficients[1],2),"+",round(lm.mod$coefficients[2],3),"*vcf"))
+text(55,2.75,paste("r2=", round(summary(lm.mod)$r.squared,3)))
+
+vcfs <- stack(vcf.mask, vsd.mask, glc2000, melt.mm.day[[5]])
+vcfDF <- getValues(vcfs)
+plot(vcfDF[vcfDF[,3]==5,1], log(abs(vcfDF[vcfDF[,3]==5,4])),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Canopy cover in Evergreen needleleaf", main="year = 2004",ylim=c(0,3.2))
+lm.mod <-lm(log(abs(vcfDF[vcfDF[,3]==5,4]))~vcfDF[vcfDF[,3]==5,1])
+text(55,3,paste("y=",round(lm.mod$coefficients[1],2),"+",round(lm.mod$coefficients[2],3),"*vcf"))
+text(55,2.75,paste("r2=", round(summary(lm.mod)$r.squared,3)))
+
+vcfs <- stack(vcf.mask, vsd.mask, glc2000, melt.mm.day[[6]])
+vcfDF <- getValues(vcfs)
+plot(vcfDF[vcfDF[,3]==5,1], log(abs(vcfDF[vcfDF[,3]==5,4])),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Canopy cover in Evergreen needleleaf", main="year = 2005",ylim=c(0,3.2))
+text(55,3,paste("y=",round(lm.mod$coefficients[1],2),"+",round(lm.mod$coefficients[2],3),"*vcf"))
+text(55,2.75,paste("r2=", round(summary(lm.mod)$r.squared,3)))
+
+vcfs <- stack(vcf.mask, vsd.mask, glc2000, melt.mm.day[[7]])
+vcfDF <- getValues(vcfs)
+plot(vcfDF[vcfDF[,3]==5,1], log(abs(vcfDF[vcfDF[,3]==5,4])),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Canopy cover in Evergreen needleleaf", main="year = 2006",ylim=c(0,3.2))
+lm.mod <-lm(log(abs(vcfDF[vcfDF[,3]==5,4]))~vcfDF[vcfDF[,3]==5,1])
+text(55,3,paste("y=",round(lm.mod$coefficients[1],2),"+",round(lm.mod$coefficients[2],3),"*vcf"))
+text(55,2.75,paste("r2=", round(summary(lm.mod)$r.squared,3)))
+
+vcfs <- stack(vcf.mask, vsd.mask, glc2000, melt.mm.day[[8]])
+vcfDF <- getValues(vcfs)
+plot(vcfDF[vcfDF[,3]==5,1], log(abs(vcfDF[vcfDF[,3]==5,4])),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Canopy cover in Evergreen needleleaf", main="year = 2007",ylim=c(0,3.2))
+lm.mod <-lm(log(abs(vcfDF[vcfDF[,3]==5,4]))~vcfDF[vcfDF[,3]==5,1])
+text(55,3,paste("y=",round(lm.mod$coefficients[1],2),"+",round(lm.mod$coefficients[2],3),"*vcf"))
+text(55,2.75,paste("r2=", round(summary(lm.mod)$r.squared,3)))
+
+vcfs <- stack(vcf.mask, vsd.mask, glc2000, melt.mm.day[[9]])
+vcfDF <- getValues(vcfs)
+plot(vcfDF[vcfDF[,3]==5,1], log(abs(vcfDF[vcfDF[,3]==5,4])),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Canopy cover in Evergreen needleleaf", main="year = 2008",ylim=c(0,3.2))
+lm.mod <-lm(log(abs(vcfDF[vcfDF[,3]==5,4]))~vcfDF[vcfDF[,3]==5,1])
+text(55,3,paste("y=",round(lm.mod$coefficients[1],2),"+",round(lm.mod$coefficients[2],3),"*vcf"))
+text(55,2.75,paste("r2=", round(summary(lm.mod)$r.squared,3)))
+
+
+
+
+
+
+par(mfrow=c(3,3))
+
+vcfs <- stack(meltMeanT[[1]], vsd.mask, glc2000, melt.mm.day[[1]])
+vcfDF <- getValues(vcfs)
+plot(vcfDF[vcfDF[,3]==5,1], log(abs(vcfDF[vcfDF[,3]==5,4])),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Temp in Evergreen needleleaf", main="year = 2000",ylim=c(0,3.2))
+lm.mod <-lm(log(abs(vcfDF[vcfDF[,3]==5,4]))~vcfDF[vcfDF[,3]==5,1])
+text(8,1,paste("y=",round(lm.mod$coefficients[1],2),"+",round(lm.mod$coefficients[2],3),"*Temp"))
+text(8,0.75,paste("r2=", round(summary(lm.mod)$r.squared,3)))
+
+
+vcfs <- stack(meltMeanT[[2]], vsd.mask, glc2000, melt.mm.day[[2]])
+vcfDF <- getValues(vcfs)
+plot(vcfDF[vcfDF[,3]==5,1], log(abs(vcfDF[vcfDF[,3]==5,4])),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Temp in Evergreen needleleaf", main="year = 2001",ylim=c(0,3.2))
+lm.mod <-lm(log(abs(vcfDF[vcfDF[,3]==5,4]))~vcfDF[vcfDF[,3]==5,1])
+text(7,1,paste("y=",round(lm.mod$coefficients[1],2),"+",round(lm.mod$coefficients[2],3),"*Temp"))
+text(7,0.75,paste("r2=", round(summary(lm.mod)$r.squared,3)))
+
+vcfs <- stack(meltMeanT[[3]], vsd.mask, glc2000, melt.mm.day[[3]])
+vcfDF <- getValues(vcfs)
+plot(vcfDF[vcfDF[,3]==5,1], log(abs(vcfDF[vcfDF[,3]==5,4])),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Temp in Evergreen needleleaf", main="year = 2002",ylim=c(0,3.2))
+lm.mod <-lm(log(abs(vcfDF[vcfDF[,3]==5,4]))~vcfDF[vcfDF[,3]==5,1])
+text(7,1,paste("y=",round(lm.mod$coefficients[1],2),"+",round(lm.mod$coefficients[2],3),"*Temp"))
+text(7,0.75,paste("r2=", round(summary(lm.mod)$r.squared,3)))
+
+vcfs <- stack(meltMeanT[[4]], vsd.mask, glc2000, melt.mm.day[[4]])
+vcfDF <- getValues(vcfs)
+plot(vcfDF[vcfDF[,3]==5,1], log(abs(vcfDF[vcfDF[,3]==5,4])),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Temp in Evergreen needleleaf", main="year = 2003",ylim=c(0,3.2))
+lm.mod <-lm(log(abs(vcfDF[vcfDF[,3]==5,4]))~vcfDF[vcfDF[,3]==5,1])
+text(7,1,paste("y=",round(lm.mod$coefficients[1],2),"+",round(lm.mod$coefficients[2],3),"*Temp"))
+text(7,0.75,paste("r2=", round(summary(lm.mod)$r.squared,3)))
+
+vcfs <- stack(meltMeanT[[5]], vsd.mask, glc2000, melt.mm.day[[5]])
+vcfDF <- getValues(vcfs)
+plot(vcfDF[vcfDF[,3]==5,1], log(abs(vcfDF[vcfDF[,3]==5,4])),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Temp in Evergreen needleleaf", main="year = 2004",ylim=c(0,3.2))
+lm.mod <-lm(log(abs(vcfDF[vcfDF[,3]==5,4]))~vcfDF[vcfDF[,3]==5,1])
+text(7,1,paste("y=",round(lm.mod$coefficients[1],2),"+",round(lm.mod$coefficients[2],3),"*Temp"))
+text(7,0.75,paste("r2=", round(summary(lm.mod)$r.squared,3)))
+
+vcfs <- stack(meltMeanT[[6]], vsd.mask, glc2000, melt.mm.day[[6]])
+vcfDF <- getValues(vcfs)
+plot(vcfDF[vcfDF[,3]==5,1], log(abs(vcfDF[vcfDF[,3]==5,4])),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Temp in Evergreen needleleaf", main="year = 2005",ylim=c(0,3.2))
+text(7,1,paste("y=",round(lm.mod$coefficients[1],2),"+",round(lm.mod$coefficients[2],3),"*Temp"))
+text(7,0.75,paste("r2=", round(summary(lm.mod)$r.squared,3)))
+
+vcfs <- stack(meltMeanT[[7]], vsd.mask, glc2000, melt.mm.day[[7]])
+vcfDF <- getValues(vcfs)
+plot(vcfDF[vcfDF[,3]==5,1], log(abs(vcfDF[vcfDF[,3]==5,4])),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Temp in Evergreen needleleaf", main="year = 2006",ylim=c(0,3.2))
+lm.mod <-lm(log(abs(vcfDF[vcfDF[,3]==5,4]))~vcfDF[vcfDF[,3]==5,1])
+text(7,1,paste("y=",round(lm.mod$coefficients[1],2),"+",round(lm.mod$coefficients[2],3),"*Temp"))
+text(7,0.75,paste("r2=", round(summary(lm.mod)$r.squared,3)))
+
+vcfs <- stack(meltMeanT[[8]], vsd.mask, glc2000, melt.mm.day[[8]])
+vcfDF <- getValues(vcfs)
+plot(vcfDF[vcfDF[,3]==5,1], log(abs(vcfDF[vcfDF[,3]==5,4])),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Temp in Evergreen needleleaf", main="year = 2007",ylim=c(0,3.2))
+lm.mod <-lm(log(abs(vcfDF[vcfDF[,3]==5,4]))~vcfDF[vcfDF[,3]==5,1])
+text(7,1,paste("y=",round(lm.mod$coefficients[1],2),"+",round(lm.mod$coefficients[2],3),"*Temp"))
+text(7,0.75,paste("r2=", round(summary(lm.mod)$r.squared,3)))
+
+vcfs <- stack(meltMeanT[[9]], vsd.mask, glc2000, melt.mm.day[[9]])
+vcfDF <- getValues(vcfs)
+plot(vcfDF[vcfDF[,3]==5,1], log(abs(vcfDF[vcfDF[,3]==5,4])),
+     pch=19, col=rgb(0.5,0.5,0.5,0.5),
+     ylab="log melt rate", xlab="Temp in Evergreen needleleaf", main="year = 2008",ylim=c(0,3.2))
+lm.mod <-lm(log(abs(vcfDF[vcfDF[,3]==5,4]))~vcfDF[vcfDF[,3]==5,1])
+text(7,1,paste("y=",round(lm.mod$coefficients[1],2),"+",round(lm.mod$coefficients[2],3),"*Temp"))
+text(7,0.75,paste("r2=", round(summary(lm.mod)$r.squared,3)))
+
+
