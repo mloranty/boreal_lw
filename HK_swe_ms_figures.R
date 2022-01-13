@@ -233,6 +233,12 @@ vegePallete5 <-	c(rgb(50/255,80/255,10/255,.2),
                   rgb(60/255,60/255,110/255,.2),
                   rgb(170/255,190/255,140/255,.2))	
 
+vegePallete6 <-	c(rgb(50/255,80/255,10/255,.35),	
+                  rgb(130/255,160/255,190/255,.35),
+                  rgb(250/255,120/255,80/255,.35),
+                  rgb(60/255,60/255,110/255,.35),
+                  rgb(170/255,190/255,140/255,.35))	
+
 treePallete <- c(rgb(229,245,224,max=255),
                  rgb(199,233,192,max=255),
                  rgb(161,217,155,max=255),
@@ -752,35 +758,32 @@ dev.off()
 
 
 ###########################################
-########## Figure 4: bivariate   ##########
+########## Figure 5 & S: bivariate   ##########
 ########## plots of regression   ##########
 ########## data                  ##########
-########## Figure 4: -------
+########## Figure 5: -------
+#vadd IDs to mu.Temp
+mu.Temp$gcyearID <- rep(epsTable$gcyearID,each=200)
+mu.Canopy$gcyearID <- rep(epsTable$gcyearID,each=200)
+mu.Max$gcyearID <- rep(epsTable$gcyearID,each=200)
+mu.Onset$gcyearID <- rep(epsTable$gcyearID,each=200)
 
-#organize model output
-mu.Temp$gcID <- rep(seq(1,5),each=200) 
-mu.Onset$gcID <- rep(seq(1,5),each=200) 
-mu.Max$gcID <- rep(seq(1,5),each=200) 
-mu.Canopy$gcID <- rep(seq(1,5),each=200) 
 #intercepts
 
-plotTree <- c(1,2,3)	
-plotTun <- c(4,5)			
-analysisDF$logAbsRate <- log(abs(analysisDF$melt.mm.day))
 wd1 <- 11
 hd1 <- 11	
 yl <- - 1
 yh <- 3.5	
-xl1 <- 	floor(range(analysisDF$meltTempC)[1])
-xh1 <-	ceiling(range(analysisDF$meltTempC)[2])
-xl2 <- floor(range(analysisDF$vcf)[1])
-xh2 <-	ceiling(range(analysisDF$vcf)[2])
-xl3 <- range(analysisDF$doyStart)[1] - 1
-xh3 <-	range(analysisDF$doyStart)[2] + 1
+xl1 <- 	floor(range(analysisDFm1$meltTempC)[1])
+xh1 <-	ceiling(range(analysisDFm1$meltTempC)[2])
+xl2 <- floor(range(analysisDFm1$vcf)[1])
+xh2 <-	ceiling(range(analysisDFm1$vcf)[2])
+xl3 <- range(analysisDFm1$doyStart)[1] - 1
+xh3 <-	range(analysisDFm1$doyStart)[2] + 1
 
 ###check name of swe Max
-xl4 <- floor(range(analysisDF$log.max)[1])
-xh4 <- round(range(analysisDF$log.max)[2],1)
+xl4 <- floor(range(analysisDFm1$log.max)[1])
+xh4 <- round(range(analysisDFm1$log.max)[2],1)
 #axis labels
 xs1 <- seq(xl1,xh1-3, by=3)
 xs2 <- seq(xl2,xh2, by= 15)
@@ -789,7 +792,7 @@ ys <- seq(yl,yh, by = 1)
 xs4 <- seq(xl4,xh4,by=0.5)
 
 #width of regression line
-mlw <- 2
+mlw <- 4
 #width of ticks
 tlw <- 4
 #axis tick label line
@@ -805,6 +808,28 @@ ttx <- 4
 #legend size
 legcex <- 2.5
 
+plotTree <- c(1,2,3)
+plotTun <- c(4,5)
+
+vegePointColor <- vegePallete6
+plot(1:5, col=vegePointColor, pch=19)
+
+
+#### 2000 ----
+for(m in seq(2000,2009)){
+  
+yearF <- m
+
+
+
+png(paste0(plotDI,"\\regression_",yearF,".png"), width = 60, height = 35, units = "cm", res=300)
+layout(matrix(seq(1,8),ncol=4, byrow=TRUE), width=rep(lcm(wd1),4),height=rep(lcm(hd1),2))
+
+
+
+yearIDS <- epsTable[epsTable$year == yearF,] 
+
+
 dlTemp <- numeric(0)
 dhTemp <- numeric(0)
 dlvcf<- numeric(0)
@@ -814,77 +839,94 @@ dhOnset <- numeric(0)
 dlMax <- numeric(0)
 dhMax <- numeric(0)
 for(i in 1:5){
-  dlTemp[i] <- floor(min(analysisDF$meltTempC[analysisDF$glc == glcID$glc[i]]))
-  dhTemp[i] <- ceiling(max(analysisDF$meltTempC[analysisDF$glc == glcID$glc[i]]))
-  dlvcf[i] <- floor(min(analysisDF$vcf[analysisDF$glc == glcID$glc[i]]))
-  dhvcf[i] <- ceiling(max(analysisDF$vcf[analysisDF$glc == glcID$glc[i]]))
-  dlOnset[i] <- floor(min(analysisDF$doyStart[analysisDF$glc == glcID$glc[i]]))
-  dhOnset[i] <- ceiling(max(analysisDF$doyStart[analysisDF$glc == glcID$glc[i]]))
-  dlMax[i] <- floor(min(analysisDF$log.max[analysisDF$glc == glcID$glc[i]])*10)/10
-  dhMax[i] <- ceiling(max(analysisDF$log.max[analysisDF$glc == glcID$glc[i]])*10)/10
+  dlTemp[i] <- floor(min(analysisDFm1$meltTempC[analysisDFm1$gcyearID == yearIDS$gcyearID[i]]))
+  dhTemp[i] <- ceiling(max(analysisDFm1$meltTempC[analysisDFm1$gcyearID == yearIDS$gcyearID[i]]))
+  dlvcf[i] <- floor(min(analysisDFm1$vcf[analysisDFm1$gcyearID == yearIDS$gcyearID[i]]))
+  dhvcf[i] <- ceiling(max(analysisDFm1$vcf[analysisDFm1$gcyearID == yearIDS$gcyearID[i]]))
+  dlOnset[i] <- floor(min(analysisDFm1$doyStart[analysisDFm1$gcyearID == yearIDS$gcyearID[i]]))
+  dhOnset[i] <- ceiling(max(analysisDFm1$doyStart[analysisDFm1$gcyearID == yearIDS$gcyearID[i]]))
+  dlMax[i] <- floor(min(analysisDFm1$log.max[analysisDFm1$gcyearID == yearIDS$gcyearID[i]])*10)/10
+  dhMax[i] <- ceiling(max(analysisDFm1$log.max[analysisDFm1$gcyearID == yearIDS$gcyearID[i]])*10)/10
   
   
 }
 
 
-
-
-png(paste0(plotDI,"\\regression.png"), width = 60, height = 35, units = "cm", res=300)
-layout(matrix(seq(1,8),ncol=4, byrow=TRUE), width=rep(lcm(wd1),4),height=rep(lcm(hd1),2))
 par(mai=c(0,0,0,0))
 #temperature trees
 plot(c(0,1),c(0,1), type="n", xlim=c(xl1,xh1), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
+
 for(i in plotTree){
-  points(	analysisDF$meltTempC[analysisDF$glc == glcID$glc[i]],
-          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete4[i], pch=19)
-}
-for(i in plotTree){	
+  
+  
+  
+  points(	analysisDFm1$meltTempC[analysisDFm1$gcyearID == yearIDS$gcyearID[i]],
+          analysisDFm1$log.melt[analysisDFm1$gcyearID == yearIDS$gcyearID[i]], col=vegePointColor[i], pch=19)
+
+  if(beta1p$sig[beta1p$gcyearID == yearIDS$gcyearID[i]] == 0){
+    polygon(c(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
+              rev(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]])),
+            c(rep(beta0p$X2.5.[beta0p$gcyearID == yearIDS$gcyearID[i]], length(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]])),
+              rep(beta0p$X97.5.[beta0p$gcyearID == yearIDS$gcyearID[i]], length(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]]))),
+            border=NA, col=vegePallete3[i])
+    
+    points(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
+           rep(beta0p$Mean[beta0p$gcyearID == yearIDS$gcyearID[i]], length(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]])),
+           type="l", lwd=mlw, lty=3, col=vegePallete[i])		
+  }else{
+
   polygon(c(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
             rev(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]])),
-          c(mu.Temp$X2.5.[mu.Temp$gcID == i & tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
-            rev(mu.Temp$X97.5[mu.Temp$gcID == i & tempMean >= dlTemp[i] & tempMean <= dhTemp[i]])),
+          c(mu.Temp$X2.5.[mu.Temp$gcyearID == yearIDS$gcyearID[i] & tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
+            rev(mu.Temp$X97.5[mu.Temp$gcyearID == yearIDS$gcyearID[i] & tempMean >= dlTemp[i] & tempMean <= dhTemp[i]])),
           border=NA, col=vegePallete3[i])
   
   points(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
-         mu.Temp$Mean[mu.Temp$gcID == i & tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
+         mu.Temp$Mean[mu.Temp$gcyearID == yearIDS$gcyearID[i] & tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
          type="l", lwd=mlw, col=vegePallete[i])
+  }
 }
 axis(2, ys, rep(" ",length(ys)), lwd.ticks=tlw)
 mtext(ys,at=ys, line=tll, cex=alc, side=2,las=2)
 box(which="plot")
-mtext(expression(paste("log(Melt Rate (mm day"^"-1","))")), side=2, outer=TRUE,line= -5, cex=plc)
+mtext(expression(paste("log(Melt Rate (mm day"^"-1","))")), side=2, outer=TRUE,line= -12, cex=plc)
+mtext(paste("for the year", yearF), side=2, outer=TRUE,line= -16, cex=plc)
 text(xl1+(.05*(xh1-xl1)), yh-(.05*(yh-yl)), "a", cex=ttx)
 legend("bottomright", paste(glcID$name2[plotTree]), col=vegePallete[plotTree],cex=legcex, lwd=mlw,lty=1, bty="n")
+
+
+
 #tree cover trees
 par(mai=c(0,0,0,0))	
 plot(c(0,1),c(0,1), type="n", xlim=c(xl2,xh2), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTree){
-  points(	analysisDF$vcf[analysisDF$glc == glcID$glc[i]],
-          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete4[i], pch=19)
+  points(	analysisDFm1$vcf[analysisDFm1$gcyearID == yearIDS$gcyearID[i]],
+          analysisDFm1$log.melt[analysisDFm1$gcyearID == yearIDS$gcyearID[i]], col=vegePointColor[i], pch=19)
+  
 }
 for(i in plotTree){	
-  if(beta2$sig[i] == 0){
+  if(beta2p$sig[beta2p$gcyearID == yearIDS$gcyearID[i]] == 0){
   polygon(c(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
             rev(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
-          c(rep(beta0$X2.5.[i], length(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
-            rep(beta0$X97.5[i], length(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]]))),
+          c(rep(beta0p$X2.5.[beta0p$gcyearID == yearIDS$gcyearID[i]], length(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
+            rep(beta0p$X97.5.[beta0p$gcyearID == yearIDS$gcyearID[i]], length(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]]))),
           border=NA, col=vegePallete3[i])
   
   points(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
-         rep(beta0$Mean[i], length(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
+         rep(beta0p$Mean[beta0p$gcyearID == yearIDS$gcyearID[i]], length(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
          type="l", lwd=mlw, lty=3, col=vegePallete[i])		
   }else{
    
     polygon(c(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
               rev(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
-            c(mu.Canopy$X2.5.[mu.Canopy$gcID == i & CanopyMean >=  dlvcf[i] & CanopyMean <=dhvcf[i]],
-              rev(mu.Canopy$X97.5.[mu.Canopy$gcID == i & CanopyMean >=  dlvcf[i] & CanopyMean <=dhvcf[i]])),
+            c(mu.Canopy$X2.5.[mu.Canopy$gcyearID == yearIDS$gcyearID[i] & CanopyMean >=  dlvcf[i] & CanopyMean <=dhvcf[i]],
+              rev(mu.Canopy$X97.5.[mu.Canopy$gcyearID == yearIDS$gcyearID[i] & CanopyMean >=  dlvcf[i] & CanopyMean <=dhvcf[i]])),
             border=NA, col=vegePallete3[i])
     
     points(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
-           mu.Canopy$Mean[mu.Canopy$gcID == i & CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
+           mu.Canopy$Mean[mu.Canopy$gcyearID == yearIDS$gcyearID[i] & CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
            type="l", lwd=mlw, lty=1, col=vegePallete[i])
     
   }
@@ -896,20 +938,33 @@ par(mai=c(0,0,0,0))
 plot(c(0,1),c(0,1), type="n", xlim=c(xl3,xh3), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTree){
+  points(	analysisDFm1$doyStart[analysisDFm1$gcyearID == yearIDS$gcyearID[i]],
+          analysisDFm1$log.melt[analysisDFm1$gcyearID == yearIDS$gcyearID[i]], col=vegePointColor[i], pch=19)
   
-  points(analysisDF$doyStart[analysisDF$glc == glcID$glc[i]],
-          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete4[i], pch=19)
 }
-for(i in plotTree){	
+for(i in plotTree){
+  if(beta3p$sig[beta3p$gcyearID == yearIDS$gcyearID[i]] == 0){
+    polygon(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
+            rev(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]]),
+            c(rep(beta0p$X2.5.[beta0p$gcyearID == yearIDS$gcyearID[i]], length(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]])),
+              rep(beta0p$X97.5.[beta0p$gcyearID == yearIDS$gcyearID[i]], length(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]]))),
+            border=NA, col=vegePallete3[i])
+    
+    points(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
+           rep(beta0p$Mean[beta0p$gcyearID == yearIDS$gcyearID[i]], length(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]])),
+           type="l", lwd=mlw, lty=3, col=vegePallete[i])		
+  }else{
+    
   polygon(c(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
             rev(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]])),
-          c(mu.Onset$X2.5.[mu.Onset$gcID == i & SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
-            rev(mu.Onset$X97.5[mu.Onset$gcID == i & SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]])),
+          c(mu.Onset$X2.5.[mu.Onset$gcyearID == yearIDS$gcyearID[i] & SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
+            rev(mu.Onset$X97.5[mu.Onset$gcyearID == yearIDS$gcyearID[i] & SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]])),
           border=NA, col=vegePallete3[i])
   
   points(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
-         mu.Onset$Mean[mu.Onset$gcID == i & SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
+         mu.Onset$Mean[ mu.Onset$gcyearID == yearIDS$gcyearID[i] & SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
          type="l", lwd=mlw, col=vegePallete[i])
+  }
 }
 box(which="plot")
 text(xl3+(.05*(xh3-xl3)), yh-(.05*(yh-yl)), "e", cex=ttx)
@@ -919,20 +974,21 @@ par(mai=c(0,0,0,0))
 plot(c(0,1),c(0,1), type="n", xlim=c(xl4,xh4), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTree){
-  points(	analysisDF$log.max[analysisDF$glc == glcID$glc[i]],
-          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete4[i], pch=19)
+  points(	analysisDFm1$log.max[analysisDFm1$gcyearID == yearIDS$gcyearID[i]],
+          analysisDFm1$log.melt[analysisDFm1$gcyearID == yearIDS$gcyearID[i]], col=vegePointColor[i], pch=19)
+  
 }
 for(i in plotTree){	
   MaxMeans <- MaxMean[MaxMean >= dlMax[i] & MaxMean <= dhMax[i]]
   mu.Maxs <- mu.Max[MaxMean >= dlMax[i] & MaxMean <= dhMax[i],]
   polygon(c(MaxMeans,
             rev(MaxMeans)),
-          c(mu.Maxs$X2.5.[mu.Maxs$gcID == i],
-            rev(mu.Maxs$X97.5[mu.Maxs$gcID == i])),
+          c(mu.Maxs$X2.5.[mu.Maxs$gcyearID == yearIDS$gcyearID[i]],
+            rev(mu.Maxs$X97.5[mu.Maxs$gcyearID == yearIDS$gcyearID[i]])),
           border=NA, col=vegePallete3[i])
   
   points(MaxMeans,
-         mu.Maxs$Mean[mu.Maxs$gcID == i],
+         mu.Maxs$Mean[mu.Maxs$gcyearID == yearIDS$gcyearID[i]],
          type="l", lwd=mlw, col=vegePallete[i])	
   
 }
@@ -945,20 +1001,34 @@ par(mai=c(0,0,0,0))
 plot(c(0,1),c(0,1), type="n", xlim=c(xl1,xh1), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTun){
-  points(	analysisDF$meltTempC[analysisDF$glc == glcID$glc[i]],
-          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete4[i], pch=19)
-}
-for(i in plotTun){
-  polygon(c(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
-            rev(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]])),
-          c(mu.Temp$X2.5.[mu.Temp$gcID == i & tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
-            rev(mu.Temp$X97.5[mu.Temp$gcID == i & tempMean >= dlTemp[i] & tempMean <= dhTemp[i]])),
-          border=NA, col=vegePallete3[i])
   
-  points(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
-         mu.Temp$Mean[mu.Temp$gcID == i & tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
-         type="l", lwd=mlw, col=vegePallete[i])		
-}	
+  
+  points(	analysisDFm1$meltTempC[analysisDFm1$gcyearID == yearIDS$gcyearID[i]],
+          analysisDFm1$log.melt[analysisDFm1$gcyearID == yearIDS$gcyearID[i]], col=vegePointColor[i], pch=19)
+  
+  if(beta1p$sig[beta1p$gcyearID == yearIDS$gcyearID[i]] == 0){
+    polygon(c(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
+              rev(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]])),
+            c(rep(beta0p$X2.5.[beta0p$gcyearID == yearIDS$gcyearID[i]], length(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]])),
+              rep(beta0p$X97.5.[beta0p$gcyearID == yearIDS$gcyearID[i]], length(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]]))),
+            border=NA, col=vegePallete3[i])
+    
+    points(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
+           rep(beta0p$Mean[beta0p$gcyearID == yearIDS$gcyearID[i]], length(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]])),
+           type="l", lwd=mlw, lty=3, col=vegePallete[i])		
+  }else{
+    
+    polygon(c(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
+              rev(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]])),
+            c(mu.Temp$X2.5.[mu.Temp$gcyearID == yearIDS$gcyearID[i] & tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
+              rev(mu.Temp$X97.5[mu.Temp$gcyearID == yearIDS$gcyearID[i] & tempMean >= dlTemp[i] & tempMean <= dhTemp[i]])),
+            border=NA, col=vegePallete3[i])
+    
+    points(tempMean[tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
+           mu.Temp$Mean[mu.Temp$gcyearID == yearIDS$gcyearID[i] & tempMean >= dlTemp[i] & tempMean <= dhTemp[i]],
+           type="l", lwd=mlw, col=vegePallete[i])
+  }
+}  
 axis(2, ys, rep(" ",length(ys)), lwd.ticks=tlw)
 mtext(ys,at=ys, line=tll, cex=alc, side=2,las=2)
 axis(1, xs1, rep(" ",length(xs1)), lwd.ticks=tlw)
@@ -972,34 +1042,34 @@ par(mai=c(0,0,0,0))
 plot(c(0,1),c(0,1), type="n", xlim=c(xl2,xh2), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTun){
-  points(		analysisDF$vcf[analysisDF$glc == glcID$glc[i]],
-           analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete4[i], pch=19)
+  points(	analysisDFm1$vcf[analysisDFm1$gcyearID == yearIDS$gcyearID[i]],
+          analysisDFm1$log.melt[analysisDFm1$gcyearID == yearIDS$gcyearID[i]], col=vegePointColor[i], pch=19)
+  
 }
 for(i in plotTun){	
-  if(beta2$sig[i] == 0){
+  if(beta2p$sig[beta2p$gcyearID == yearIDS$gcyearID[i]] == 0){
     polygon(c(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
               rev(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
-            c(rep(beta0$X2.5.[i], length(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
-              rep(beta0$X97.5[i], length(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]]))),
+            c(rep(beta0p$X2.5.[beta0p$gcyearID == yearIDS$gcyearID[i]], length(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
+              rep(beta0p$X97.5.[beta0p$gcyearID == yearIDS$gcyearID[i]], length(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]]))),
             border=NA, col=vegePallete3[i])
     
     points(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
-           rep(beta0$Mean[i], length(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
+           rep(beta0p$Mean[beta0p$gcyearID == yearIDS$gcyearID[i]], length(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
            type="l", lwd=mlw, lty=3, col=vegePallete[i])		
   }else{
     
     polygon(c(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
               rev(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]])),
-            c(mu.Canopy$X2.5.[mu.Canopy$gcID == i & CanopyMean >=  dlvcf[i] & CanopyMean <=dhvcf[i]],
-              rev(mu.Canopy$X97.5.[mu.Canopy$gcID == i & CanopyMean >=  dlvcf[i] & CanopyMean <=dhvcf[i]])),
+            c(mu.Canopy$X2.5.[mu.Canopy$gcyearID == yearIDS$gcyearID[i] & CanopyMean >=  dlvcf[i] & CanopyMean <=dhvcf[i]],
+              rev(mu.Canopy$X97.5.[mu.Canopy$gcyearID == yearIDS$gcyearID[i] & CanopyMean >=  dlvcf[i] & CanopyMean <=dhvcf[i]])),
             border=NA, col=vegePallete3[i])
     
     points(CanopyMean[CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
-           mu.Canopy$Mean[mu.Canopy$gcID == i & CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
+           mu.Canopy$Mean[mu.Canopy$gcyearID == yearIDS$gcyearID[i] & CanopyMean >= dlvcf[i] & CanopyMean <= dhvcf[i]],
            type="l", lwd=mlw, lty=1, col=vegePallete[i])
     
-  }	
-  
+  }
 }
 axis(1, xs2, rep(" ",length(xs2)), lwd.ticks=tlw)
 mtext(xs2,at=xs2, line=tll, cex=alc, side=1)
@@ -1011,46 +1081,59 @@ par(mai=c(0,0,0,0))
 plot(c(0,1),c(0,1), type="n", xlim=c(xl3,xh3), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTun){
-  points(	analysisDF$doyStart[analysisDF$glc == glcID$glc[i]],
-          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete4[i], pch=19)
-}
-for(i in plotTun){	
-  polygon(c(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
-            rev(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]])),
-          c(mu.Onset$X2.5.[mu.Onset$gcID == i & SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
-            rev(mu.Onset$X97.5[mu.Onset$gcID == i & SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]])),
-          border=NA, col=vegePallete3[i])
+  points(	analysisDFm1$doyStart[analysisDFm1$gcyearID == yearIDS$gcyearID[i]],
+          analysisDFm1$log.melt[analysisDFm1$gcyearID == yearIDS$gcyearID[i]], col=vegePointColor[i], pch=19)
   
-  points(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
-         mu.Onset$Mean[mu.Onset$gcID == i & SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
-         type="l", lwd=mlw, col=vegePallete[i])
+}
+for(i in plotTun){
+  if(beta3p$sig[beta3p$gcyearID == yearIDS$gcyearID[i]] == 0){
+    polygon(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
+            rev(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]]),
+            c(rep(beta0p$X2.5.[beta0p$gcyearID == yearIDS$gcyearID[i]], length(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]])),
+              rep(beta0p$X97.5.[beta0p$gcyearID == yearIDS$gcyearID[i]], length(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]]))),
+            border=NA, col=vegePallete3[i])
+    
+    points(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
+           rep(beta0p$Mean[beta0p$gcyearID == yearIDS$gcyearID[i]], length(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]])),
+           type="l", lwd=mlw, lty=3, col=vegePallete[i])		
+  }else{
+    
+    polygon(c(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
+              rev(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]])),
+            c(mu.Onset$X2.5.[mu.Onset$gcyearID == yearIDS$gcyearID[i] & SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
+              rev(mu.Onset$X97.5[mu.Onset$gcyearID == yearIDS$gcyearID[i] & SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]])),
+            border=NA, col=vegePallete3[i])
+    
+    points(SdayMean[SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
+           mu.Onset$Mean[ mu.Onset$gcyearID == yearIDS$gcyearID[i] & SdayMean >= dlOnset[i] & SdayMean <= dhOnset[i]],
+           type="l", lwd=mlw, col=vegePallete[i])
+  }
 }
 axis(1, xs3, rep(" ",length(xs3)), lwd.ticks=tlw)
 mtext(xs3,at=xs3, line=tll, cex=alc, side=1)
 box(which="plot")
 mtext("Onset day of year", side=1,line= xpl, cex=plc)
 text(xl3+(.05*(xh3-xl3)), yh-(.05*(yh-yl)), "f", cex=ttx)
-#latitude tundra
+#max tundra
 par(mai=c(0,0,0,0))
 plot(c(0,1),c(0,1), type="n", xlim=c(xl4,xh4), ylim=c(yl,yh), xaxs="i",yaxs="i",
      xlab= " ", ylab=" ", axes=FALSE)
 for(i in plotTun){
-  points(	analysisDF$log.max[analysisDF$glc == glcID$glc[i]],
-          analysisDF$logAbsRate[analysisDF$glc == glcID$glc[i]], col=vegePallete4[i], pch=19)
+  points(	analysisDFm1$log.max[analysisDFm1$gcyearID == yearIDS$gcyearID[i]],
+          analysisDFm1$log.melt[analysisDFm1$gcyearID == yearIDS$gcyearID[i]], col=vegePointColor[i], pch=19)
+  
 }
-
-
 for(i in plotTun){	
   MaxMeans <- MaxMean[MaxMean >= dlMax[i] & MaxMean <= dhMax[i]]
   mu.Maxs <- mu.Max[MaxMean >= dlMax[i] & MaxMean <= dhMax[i],]
   polygon(c(MaxMeans,
             rev(MaxMeans)),
-          c(mu.Maxs$X2.5.[mu.Maxs$gcID == i],
-            rev(mu.Maxs$X97.5[mu.Maxs$gcID == i])),
+          c(mu.Maxs$X2.5.[mu.Maxs$gcyearID == yearIDS$gcyearID[i]],
+            rev(mu.Maxs$X97.5[mu.Maxs$gcyearID == yearIDS$gcyearID[i]])),
           border=NA, col=vegePallete3[i])
   
   points(MaxMeans,
-         mu.Maxs$Mean[mu.Maxs$gcID == i],
+         mu.Maxs$Mean[mu.Maxs$gcyearID == yearIDS$gcyearID[i]],
          type="l", lwd=mlw, col=vegePallete[i])	
   
 }
@@ -1062,6 +1145,8 @@ mtext(xs4,at=xs4, line=tll, cex=alc, side=1)
 mtext("log(Max SWE )", side=1,line= xpl, cex=plc)
 mtext("log(m)", side=1,line= xpl+5, cex=plc)
 dev.off()
+
+}
 
 
 ###########################################
@@ -1443,6 +1528,8 @@ text(2.5,0.25, paste("predicted = ",round(fit$coefficients[1],2),"+",
 text(2.5,0, expression(paste("R"^"2","= 0.65")), cex=1)
 text(2.5,-0.25, expression(paste("RSME","= 0.26")), cex=1)
 dev.off()
+
+
 
 ###########################################
 ########## Figure S2: melt onset ##########
