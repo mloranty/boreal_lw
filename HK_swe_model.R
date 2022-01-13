@@ -32,7 +32,7 @@ library(dplyr)
 
 #model out directory
 
-modDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/model/run3"
+modDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/model/run5"
 
 
 ###########################################
@@ -46,56 +46,6 @@ analysisDF$log.melt <- log(analysisDF$abs.melt)
 #log transform max swe
 analysisDF$log.max <- log(analysisDF$maxSwe.m)
 
-#check covariate correlation
-pairs(formula= ~ melt.mm.day + 
-        log.melt + 
-        vcf +
-        lat + 
-        meltTempC + 
-        maxSwe.m, data=analysisDF)
-
-pairs(formula= ~ melt.mm.day + 
-        log.melt + 
-        vcf +
-        lat + 
-        meltTempC + 
-        log.max, data=analysisDF[analysisDF$glc == 4,])
-cor(analysisDF[analysisDF$glc == 4,])
-
-pairs(formula= ~ melt.mm.day + 
-        log.melt + 
-        vcf +
-        lat + 
-        meltTempC + 
-        log.max, data=analysisDF[analysisDF$glc == 5,])
-cor(analysisDF[analysisDF$glc == 5,])
-
-pairs(formula= ~ melt.mm.day + 
-        log.melt + 
-        vcf +
-        lat + 
-        meltTempC + 
-        log.max, data=analysisDF[analysisDF$glc == 6,])
-cor(analysisDF[analysisDF$glc == 6,])
-
-pairs(formula= ~ melt.mm.day + 
-        log.melt + 
-        vcf +
-        lat + 
-        meltTempC + 
-        log.max, data=analysisDF[analysisDF$glc == 12,])
-cor(analysisDF[analysisDF$glc == 12,])
-
-pairs(formula= ~ melt.mm.day + 
-        log.melt + 
-        vcf +
-        lat + 
-        meltTempC + 
-        log.max, data=analysisDF[analysisDF$glc == 13,])
-cor(analysisDF[analysisDF$glc == 13,])
-
-#check correlation
-cor(analysisDF)
 
 #create gcID column in table
 colnames(glcID) <- c("glc","Desc")
@@ -112,15 +62,6 @@ epsTable <- epsTable[order(epsTable$gcID,epsTable$year),]
 #this order will be by GCID
 epsTable$gcyearID <- seq(1,dim(epsTable)[1])
 
-#create index for averaging eps
-gcIndT <- unique(data.frame(gcID=epsTable$gcID))
-startID <- numeric(0)
-endID <- numeric(0)
-
-for(i in 1:dim(gcIndT)[1]){
-  startID[i] <- head(which(epsTable$gcID==gcIndT$gcID[i]))[1]
-  endID [i] <- tail(which(epsTable$gcID==gcIndT$gcID[i]))[6]
-}
 
 #join back into analysis DF
 analysisDFm1 <- left_join(analysisDFm1, epsTable, by=c("gcID","year"))
@@ -140,30 +81,27 @@ MaxPlot <- seq(floor(range(analysisDFm1$log.max)[1]*10)/10,ceiling(range(analysi
 #organize into list
   datalist <- list(Nobs= dim(analysisDFm1)[1],
                    b0=analysisDFm1$log.melt,
-                   glcIDB=analysisDFm1$gcID,
+                   glcYearID=analysisDFm1$gcyearID,
                    TempAB=analysisDFm1$meltTempC,#centered around 0
                    CanopyB=analysisDFm1$vcf,#centered at 20
                    SweMax= analysisDFm1$log.max, #centered at log(0.15)
                    sweDay=analysisDFm1$doyStart, #centered at 107
-                   GCyearB=analysisDFm1$gcyearID,
-                   Ngcyear=dim(epsTable)[1],
+                   NglcYear=dim(epsTable)[1],
                    Nglc=dim(glcID)[1],
-                   ygcIDB=epsTable$gcID,
-                   startb=startID,
-                   endb=endID,
+                   glcID=epsTable$gcID,
                    TempMean=tempPlot,
                    CanopyMean=CanopyPlot,
                    SdayMean=SdayPlot,
                    MaxMean=MaxPlot)
 
-  inits <- list(list(tau.eb=rep(1,dim(gcIndT)[1])),
+  #inits <- list(list(tau.eb=rep(1,dim(gcIndT)[1])),
                list(tau.eb=rep(1.4,dim(gcIndT)[1])),
                list(tau.eb=rep(2,dim(gcIndT)[1])))
   
   
-  parms <- c("betaB0S","betaB1","betaB2","betaB3","betaB4",
+  parms <- c("betaB0","betaB1","betaB2","betaB3","betaB4",
              "mu.betaB0","mu.betaB1","mu.betaB2","mu.betaB3","mu.betaB4",
-             "sig.B0","sig.B1","sig.B2","sig.B3","sig.B4","trB0",
+             "sig.B0","sig.B1","sig.B2","sig.B3","sig.B4",
              "rep.b0","Dsum","loglike","eps.bS","sig.eb",
              "mu.Temp","mu.Canopy","mu.Onset","mu.Max")
   
@@ -227,60 +165,3 @@ MaxPlot <- seq(floor(range(analysisDFm1$log.max)[1]*10)/10,ceiling(range(analysi
   abline(0,1,col="red",lwd=2) 
   
   
-  #coda for correlation between predictors check
-  chains <- rbind(chain1,chain2,chain3)
-  
-betaB0S <- chains[,grep("betaB0S",colnames(chains))]
-betaB1 <- chains[,grep("betaB1",colnames(chains))]
-betaB2 <- chains[,grep("betaB2",colnames(chains))]
-betaB3 <- chains[,grep("betaB3",colnames(chains))]
-betaB4 <- chains[,grep("betaB4",colnames(chains))]
-
-#turn into single matrix
-#mu.betas get added on
-betaCompGC1 <- data.frame(
-                       B1 = as.vector(betaB1[,1]),
-                       B2 = as.vector(betaB2[,1]),
-                       B3 = as.vector(betaB3[,1]),
-                       B4 = as.vector(betaB4[,1]))
-                      
-pairs(betaCompGC1)
-cor(betaCompGC1)
-
-betaCompGC2 <- data.frame(
-  B1 = as.vector(betaB1[,2]),
-  B2 = as.vector(betaB2[,2]),
-  B3 = as.vector(betaB3[,2]),
-  B4 = as.vector(betaB4[,2]))
-
-pairs(betaCompGC2)
-cor(betaCompGC2)
-
-betaCompGC3 <- data.frame(
-  B1 = as.vector(betaB1[,3]),
-  B2 = as.vector(betaB2[,3]),
-  B3 = as.vector(betaB3[,3]),
-  B4 = as.vector(betaB4[,3]))
-
-pairs(betaCompGC3)
-cor(betaCompGC3)
-
-betaCompGC4 <- data.frame(
-  B1 = as.vector(betaB1[,4]),
-  B2 = as.vector(betaB2[,4]),
-  B3 = as.vector(betaB3[,4]),
-  B4 = as.vector(betaB4[,4]))
-
-pairs(betaCompGC4)
-cor(betaCompGC4)
-
-betaCompGC5 <- data.frame(
-  B1 = as.vector(betaB1[,5]),
-  B2 = as.vector(betaB2[,5]),
-  B3 = as.vector(betaB3[,5]),
-  B4 = as.vector(betaB4[,5]))
-
-pairs(betaCompGC5)
-cor(betaCompGC5)
-
-glcID
