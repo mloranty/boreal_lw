@@ -54,7 +54,7 @@ library(dplyr)
 ###########################################
 ########## Directories       -----
 plotDI <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/figures"
-modDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/model/run3"
+modDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/model/run5"
 
 ###########################################
 ########## Additional data      -----
@@ -76,10 +76,8 @@ unique(datC$parm)
 datC$parm2 <- gsub("\\d","",rownames(datC))
 
 #pull out parameters
-#transformed intercepts
-beta0NL <- datC[datC$parm == "trB0",] 
 #nontransformed regression parameters
-beta0 <- datC[datC$parm == "betaB0S",] 
+beta0 <- datC[datC$parm == "betaB0",] 
 beta1 <- datC[datC$parm == "betaB1",] 
 beta2 <- datC[datC$parm == "betaB2",] 
 beta3 <- datC[datC$parm == "betaB3",] 
@@ -97,6 +95,13 @@ beta3$sig <- ifelse(beta3$X2.5.<0&beta3$X97.5.<0,1,
 #maximum swe value -0.15m
 beta4$sig <- ifelse(beta4$X2.5.<0&beta4$X97.5.<0,1,
                     ifelse(beta4$X2.5.>0&beta4$X97.5.>0,1,0))	
+
+
+gbeta0 <- datC[datC$parm == "mu.betaB0",] 
+gbeta1 <- datC[datC$parm == "mu.betaB1",] 
+gbeta2 <- datC[datC$parm == "mu.betaB2",] 
+gbeta3 <- datC[datC$parm == "mu.betaB3",] 
+gbeta4 <- datC[datC$parm == "mu.betaB4",] 
 
 #check if any nonsignificant slopes to account for
 
