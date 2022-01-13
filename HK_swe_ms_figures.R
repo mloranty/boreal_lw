@@ -53,11 +53,13 @@ library(dplyr)
 
 ###########################################
 ########## Directories       -----
-plotDI <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/figures"
+plotDI <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/figures_run5"
 modDir <- "E:/Google Drive/research/projects/boreal_swe/boreal_2021/model/run5"
 
+
+
 ###########################################
-########## Additional data      -----
+########## Additional data if plotting model results     -----
 
 
 #regression info
@@ -102,6 +104,17 @@ gbeta1 <- datC[datC$parm == "mu.betaB1",]
 gbeta2 <- datC[datC$parm == "mu.betaB2",] 
 gbeta3 <- datC[datC$parm == "mu.betaB3",] 
 gbeta4 <- datC[datC$parm == "mu.betaB4",] 
+gbeta1$sig <- ifelse(gbeta1$X2.5.<0&gbeta1$X97.5.<0,1,
+                    ifelse(gbeta1$X2.5.>0&gbeta1$X97.5.>0,1,0))
+#Canopy cover - 20%						
+gbeta2$sig <- ifelse(gbeta2$X2.5.<0&gbeta2$X97.5.<0,1,
+                    ifelse(gbeta2$X2.5.>0&gbeta2$X97.5.>0,1,0))						
+#onset doy - 107 doy (middle of time period)				
+gbeta3$sig <- ifelse(gbeta3$X2.5.<0&gbeta3$X97.5.<0,1,
+                    ifelse(gbeta3$X2.5.>0&gbeta3$X97.5.>0,1,0))
+#maximum swe value -0.15m
+gbeta4$sig <- ifelse(gbeta4$X2.5.<0&gbeta4$X97.5.<0,1,
+                    ifelse(gbeta4$X2.5.>0&gbeta4$X97.5.>0,1,0))	
 
 #check if any nonsignificant slopes to account for
 
@@ -118,9 +131,37 @@ mu.Max <- datC[datC$parm2 == "mu.Max[,]",]
 mu.Canopy <- datC[datC$parm2 == "mu.Canopy[,]",]
 mu.Max[400:500,]
 #log transform
+analysisDF$abs.melt <- abs(analysisDF$melt.mm.day)
+
+#log transform
 analysisDF$log.melt <- log(analysisDF$abs.melt)
 #log transform max swe
 analysisDF$log.max <- log(analysisDF$maxSwe.m)
+
+
+
+#create gcID column in table
+colnames(glcID) <- c("glc","Desc")
+glcID$gcID <- seq(1, nrow(glcID))
+
+#join into analysis DF
+analysisDFm1 <- left_join(analysisDF, glcID, by="glc")
+
+
+#random effects ids
+#need to organize table for eps ids
+epsTable <- unique(data.frame(gcID=analysisDFm1$gcID,year=analysisDFm1$year))
+epsTable <- epsTable[order(epsTable$gcID,epsTable$year),]
+#this order will be by GCID
+epsTable$gcyearID <- seq(1,dim(epsTable)[1])
+
+
+#join back into analysis DF
+analysisDFm1 <- left_join(analysisDFm1, epsTable, by=c("gcID","year"))
+
+
+
+
 #regression mean plot
 tempMean <- seq(floor(range(analysisDF$meltTempC)[1]),ceiling(range(analysisDF$meltTempC)[2]), length.out=200)
 CanopyMean <- seq(floor(range(analysisDF$vcf)[1]),ceiling(range(analysisDF$vcf)[2]), length.out=200)
@@ -162,7 +203,7 @@ PolyBlock <- gDifference(sps,ptBuff, byid=TRUE)
 ###########################################
 ########## Color palette       -----
 
-glcID$gcID <- seq(1,5)
+
 
 vegePallete <- c(rgb(50/255,80/255,10/255), #evergreen needleleaf,
                  rgb(130/255,160/255,190/255),# deciduous needleleaf,
@@ -224,6 +265,10 @@ land <-"#ccc5b9"
 
 
 
+
+
+#if not plotting model
+glcID$gcID <- seq(1,5)
 glcID$name2 <- c("Evergreen needleleaf", "Deciduous needleleaf","Mixed boreal","Deciduous shrub", "Herbaceous")
 
 
@@ -1020,59 +1065,291 @@ dev.off()
 
 
 ###########################################
-########## Figure 5: intercept   ##########
-########## plots of regression   ##########
-########## data                  ##########
+########## Figure 4&5: intercept  ##########
+########## and slope plots        ##########
+########## regression             ##########
 ########## Figure 4: -------
 
-beta0NL$gcID <- seq(1,5)
-#join matching
-intercept <- left_join(beta0NL,glcID, by="gcID", type="left")
-plotOrder <- c(1,4,2,3,5)
+
+#add eps table to output
+beta0p <- cbind(beta0, epsTable)
+beta1p <- cbind(beta1, epsTable)
+beta2p <- cbind(beta2, epsTable)
+beta3p <- cbind(beta3, epsTable)
+beta4p <- cbind(beta4, epsTable)
+
+#add glcID info to means
+gbeta0p <- cbind(gbeta0, glcID)
+gbeta1p <- cbind(gbeta1, glcID)
+gbeta2p <- cbind(gbeta2, glcID)
+gbeta3p <- cbind(gbeta3, glcID)
+gbeta4p <- cbind(gbeta4, glcID)
+
 
 #break up names 
 nameSplit1 <- character(0)
 nameSplit2 <- character(0)
 for(i in 1:5){
-  nameSplit1[i] <- strsplit(intercept$name2[i], " ")[[1]][1]
-  nameSplit2[i] <- strsplit(intercept$name2[i], " ")[[1]][2]
+  nameSplit1[i] <- strsplit(gbeta1p$name2[i], " ")[[1]][1]
+  nameSplit2[i] <- strsplit(gbeta1p$name2[i], " ")[[1]][2]
 }
 nameSplit2 <- ifelse(is.na(nameSplit2), " ", nameSplit2)
 
-xseq <- seq(1,10, by=2)
 
-wd1 <- 18
-hd1 <- 18
+xseq <- c(seq(1,10, by=1),seq(15,24, by=1),seq(29,38, by=1),seq(43,52, by=1),seq(57,66,by=1))
+xstart <- c(1,15,29,43,57)
+xend <- c(10,24,38,52,66)
+
+xseqLabel <- xseq[epsTable$year == 2000 | epsTable$year == 2004 | epsTable$year == 2009]
+xseqLabelS <- xseq[epsTable$year == 2000  | epsTable$year == 2009]
+xseqLabelS2 <- xseq[epsTable$year == 2000  ]
+
+wd1 <- 15
+hd1 <- 10
+
+wd2 <- 18
+hd2 <- 10
 #error bar width
-eew <- 1
+eew <- 1.5
 #mean bar width
-mlw <- 2
+mlw <- 3
+#bar width for group mean
+gmlw <-4
 #tick arrow width
-tlw <- 2
+tlw <- 1.5
 
-png(paste0(plotDI,"\\intercepts1.png"), width = 20, height = 20, units = "cm", res=300)
-layout(matrix(c(1),ncol=1, byrow=TRUE), width=lcm(wd1),height=lcm(hd1))
-plot(c(0,1),c(0,1), xlim=c(0,11), ylim=c(0,6), axes=FALSE, type="n", xlab = " ", ylab= " ",
+#tick arrow width
+tlws <- 2
+#slope plot labels ticks
+caxt <- 1.5
+# slope plot labels axis
+scl <- 2
+
+#intercept limits
+yl0 <- 0.5
+yh0 <- 2.1
+yl1 <- -0.1
+yh1 <- 0.25
+yl2 <- -0.03
+yh2 <- 0.03
+yl3 <- -0.01
+yh3 <- 0.04
+yl4 <- -0.1
+yh4 <- 0.8
+
+# axis labels
+# intercept
+yb0s <- seq(0.5,2,by=0.25)
+yb1s <- seq(-0.1,0.2,by=0.05)
+yb2s <- seq(-0.03,0.02,by=0.01)
+yb3s <- seq(-0.01,0.03,by=0.01)
+yb4s <- seq(-0.1,0.7,by=0.1)
+
+#x labels for group name
+xnames <- c(6,20,34,48,62)
+
+#year box color
+ybxc <- rgb(0.5,0.5,0.5)
+# zero line
+# zero line width
+zlw <- 1
+# zero line color 
+zlcol <- rgb(0.25,0.25,0.25)
+# zero line style
+zty <- 2
+#box width
+bxlw <- 2
+
+
+png(paste0(plotDI,"\\regression_intercept.png"), width = 22, height = 17, units = "cm", res=300)
+layout(matrix(seq(1),ncol=1, byrow=TRUE), width=lcm(wd1),height=lcm(hd1))
+#intercept
+par(mai=c(0,0,0,0))
+plot(c(0,1),c(0,1), xlim=c(0,70), ylim=c(yl0,yh0), axes=FALSE, type="n", xlab = " ", ylab= " ",
      xaxs="i", yaxs="i")
 
-for(j in 1:5){
-  i <- j
-  arrows(xseq[j],intercept$X2.5.[i],xseq[j],intercept$X97.5.[i], code=0, lwd=eew)
-  polygon(c(xseq[j]-.5,xseq[j]-.5,xseq[j]+.5,xseq[j]+.5),
-          c(intercept$X25.[i],intercept$X75.[i],intercept$X75.[i],intercept$X25.[i]),
+for(i in 1:5){
+  polygon(c(xstart[i]-.25,xstart[i]-.25,xend[i]+.25,xend[i]+.25),
+          c(gbeta0p$X2.5.[i],gbeta0p$X97.5.[i],gbeta0p$X97.5.[i],gbeta0p$X2.5.[i]),
           border=NA,col=vegePallete3[i])
-  arrows(	xseq[j]-.5,intercept$Mean[i],xseq[j]+.5,	intercept$Mean[i],code=0,lwd=mlw,
+  arrows(xstart[i]-.25,gbeta0p$Mean[i],xend[i]+.25,	gbeta0p$Mean[i],code=0,lwd=gmlw,
           col=vegePallete[i])
   
 }
+
+
+for(j in 1:50){
+  arrows(xseq[j],beta0p$X2.5.[j],xseq[j],beta0p$X97.5.[j], code=0, lwd=eew)
+  polygon(c(xseq[j]-.25,xseq[j]-.25,xseq[j]+.25,xseq[j]+.25),
+          c(beta0p$X25.[j],beta0p$X75.[j],beta0p$X75.[j],beta0p$X25.[j]),
+          border=NA,col=ybxc)
+  arrows(	xseq[j]-.25,beta0p$Mean[j],xseq[j]+.25,	beta0p$Mean[j],code=0,lwd=mlw,
+          col=rep(vegePallete, each=10)[j])
+  
+}
+
+
 axis(1, xseq, rep(" ",length(xseq)),lwd.ticks=tlw)
-axis(2,seq(0,6, by=1),rep(" ",length(seq(0,6, by=1))),lwd.ticks=tlw)
-mtext(paste(nameSplit1),at=xseq,side=1,line=1,cex=1)
-mtext(paste(nameSplit2),at=xseq,side=1,line=2,cex=1)
-mtext(seq(0,6, by=1), at=seq(0,6, by=1), side=2, las=2, line=1, cex=1)
-mtext(expression(paste("Melt rate (mm day"^"-1",")")), side=2, line=3, cex=1.5)
-mtext("Landcover type", side=1, line=3, cex=1.5)
+axis(2,yb0s,rep(" ",length(yb0s)),lwd.ticks=tlw)
+mtext(rep(c(2000,2009), times=5), at=xseqLabelS,side=1,line=1,cex=1)
+mtext(paste(nameSplit1),at=xnames,side=1,line=3,cex=1)
+mtext(paste(nameSplit2),at=xnames,side=1,line=4,cex=1)
+mtext(yb0s, at=yb0s, side=2, las=2, line=1, cex=1)
+mtext(expression(paste("Melt rate (log(mm day"^"-1","))")), side=2, line=3, cex=1.5)
+mtext("Landcover type", side=1, line=6, cex=1.5)
 dev.off()		
+
+
+
+
+png(paste0(plotDI,"\\regression_coeff.png"), width = 45, height = 27, units = "cm", res=300)
+layout(matrix(seq(1,4),ncol=2, byrow=TRUE), width=rep(lcm(wd2),2),height=rep(lcm(hd2),2))
+#temperature slope
+par(mai=c(0,0,0,0))
+plot(c(0,1),c(0,1), xlim=c(0,70), ylim=c(yl1,yh1), axes=FALSE, type="n", xlab = " ", ylab= " ",
+     xaxs="i", yaxs="i")
+abline(h=0, lwd=zlw, col=zlcol, lty=zty)
+for(i in 1:5){
+  polygon(c(xstart[i]-.25,xstart[i]-.25,xend[i]+.25,xend[i]+.25),
+          c(gbeta1p$X2.5.[i],gbeta1p$X97.5.[i],gbeta1p$X97.5.[i],gbeta1p$X2.5.[i]),
+          border=NA,col=vegePallete3[i])
+  arrows(xstart[i]-.25,gbeta1p$Mean[i],xend[i]+.25,	gbeta1p$Mean[i],code=0,lwd=gmlw,
+         col=vegePallete[i])
+  
+}
+
+
+for(j in 1:50){
+  arrows(xseq[j],beta1p$X2.5.[j],xseq[j],beta1p$X97.5.[j], code=0, lwd=eew)
+  polygon(c(xseq[j]-.25,xseq[j]-.25,xseq[j]+.25,xseq[j]+.25),
+          c(beta1p$X25.[j],beta1p$X75.[j],beta1p$X75.[j],beta1p$X25.[j]),
+          border=NA,col=ybxc)
+  arrows(	xseq[j]-.25,beta1p$Mean[j],xseq[j]+.25,	beta1p$Mean[j],code=0,lwd=mlw,
+          col=rep(vegePallete, each=10)[j])
+  
+}
+
+
+
+
+axis(2,yb1s,rep(" ",length(yb1s)),lwd.ticks=tlws)
+mtext(yb1s, at=yb1s, side=2, las=2, line=1, cex=caxt)
+mtext("Temperature slope", side=2, line=7, cex=scl)
+mtext(expression(paste("log(mm day"^"-1",")",degree^"-1")), side=2, line=4.5, cex=scl)
+
+box(which="plot", lwd=bxlw)
+
+#vcf slope
+par(mai=c(0,0,0,0))
+plot(c(0,1),c(0,1), xlim=c(0,70), ylim=c(yl2,yh2), axes=FALSE, type="n", xlab = " ", ylab= " ",
+     xaxs="i", yaxs="i")
+abline(h=0, lwd=zlw, col=zlcol, lty=zty)
+for(i in 1:5){
+  polygon(c(xstart[i]-.25,xstart[i]-.25,xend[i]+.25,xend[i]+.25),
+          c(gbeta2p$X2.5.[i],gbeta2p$X97.5.[i],gbeta2p$X97.5.[i],gbeta2p$X2.5.[i]),
+          border=NA,col=vegePallete3[i])
+  arrows(xstart[i]-.25,gbeta2p$Mean[i],xend[i]+.25,	gbeta2p$Mean[i],code=0,lwd=gmlw,
+         col=vegePallete[i])
+  
+}
+
+
+for(j in 1:50){
+  arrows(xseq[j],beta2p$X2.5.[j],xseq[j],beta2p$X97.5.[j], code=0, lwd=eew)
+  polygon(c(xseq[j]-.25,xseq[j]-.25,xseq[j]+.25,xseq[j]+.25),
+          c(beta2p$X25.[j],beta2p$X75.[j],beta2p$X75.[j],beta2p$X25.[j]),
+          border=NA,col=ybxc)
+  arrows(	xseq[j]-.25,beta2p$Mean[j],xseq[j]+.25,	beta2p$Mean[j],code=0,lwd=mlw,
+          col=rep(vegePallete, each=10)[j])
+  
+}
+
+
+axis(4,yb2s,rep(" ",length(yb2s)),lwd.ticks=tlws)
+mtext(yb2s, at=yb4s, side=4, las=2, line=1, cex=caxt)
+mtext("VCF slope", side=4, line=5, cex=scl)
+mtext(expression(paste("log(mm day"^"-1",") % cover"^"-1")), side=4, line=8, cex=scl)
+
+box(which="plot", lwd=bxlw)
+
+#melt onset slope
+par(mai=c(0,0,0,0))
+plot(c(0,1),c(0,1), xlim=c(0,70), ylim=c(yl3,yh3), axes=FALSE, type="n", xlab = " ", ylab= " ",
+     xaxs="i", yaxs="i")
+abline(h=0, lwd=zlw, col=zlcol, lty=zty)
+for(i in 1:5){
+  polygon(c(xstart[i]-.25,xstart[i]-.25,xend[i]+.25,xend[i]+.25),
+          c(gbeta3p$X2.5.[i],gbeta3p$X97.5.[i],gbeta3p$X97.5.[i],gbeta3p$X2.5.[i]),
+          border=NA,col=vegePallete3[i])
+  arrows(xstart[i]-.25,gbeta3p$Mean[i],xend[i]+.25,	gbeta3p$Mean[i],code=0,lwd=gmlw,
+         col=vegePallete[i])
+  
+}
+
+
+for(j in 1:50){
+  arrows(xseq[j],beta3p$X2.5.[j],xseq[j],beta3p$X97.5.[j], code=0, lwd=eew)
+  polygon(c(xseq[j]-.25,xseq[j]-.25,xseq[j]+.25,xseq[j]+.25),
+          c(beta3p$X25.[j],beta3p$X75.[j],beta3p$X75.[j],beta3p$X25.[j]),
+          border=NA,col=ybxc)
+  arrows(	xseq[j]-.25,beta3p$Mean[j],xseq[j]+.25,	beta3p$Mean[j],code=0,lwd=mlw,
+          col=rep(vegePallete, each=10)[j])
+  
+}
+
+
+box(which="plot", lwd=bxlw)
+
+axis(1, xseq, rep(" ",length(xseq)),lwd.ticks=tlws)
+axis(2,yb3s,rep(" ",length(yb3s)),lwd.ticks=tlws)
+mtext(rep(c(2000), times=5), at=xseqLabelS2,side=1,line=1,cex=caxt)
+mtext(paste(nameSplit1),at=xnames,side=1,line=3,cex=caxt)
+mtext(paste(nameSplit2),at=xnames,side=1,line=5,cex=caxt)
+mtext(yb3s, at=yb3s, side=2, las=2, line=1, cex=caxt)
+mtext("Melt onset slope", side=2, line=7, cex=scl)
+mtext(expression(paste("log(mm day"^"-1",") doy"^"-1")), side=2, line=4.5, cex=scl)
+
+mtext("Landcover type", side=1, line=7, cex=scl)
+
+# melt max slope
+par(mai=c(0,0,0,0))
+plot(c(0,1),c(0,1), xlim=c(0,70), ylim=c(yl4,yh4), axes=FALSE, type="n", xlab = " ", ylab= " ",
+     xaxs="i", yaxs="i")
+abline(h=0, lwd=zlw, col=zlcol, lty=zty)
+for(i in 1:5){
+  polygon(c(xstart[i]-.25,xstart[i]-.25,xend[i]+.25,xend[i]+.25),
+          c(gbeta4p$X2.5.[i],gbeta4p$X97.5.[i],gbeta4p$X97.5.[i],gbeta4p$X2.5.[i]),
+          border=NA,col=vegePallete3[i])
+  arrows(xstart[i]-.25,gbeta4p$Mean[i],xend[i]+.25,	gbeta4p$Mean[i],code=0,lwd=gmlw,
+         col=vegePallete[i])
+  
+}
+
+
+for(j in 1:50){
+  arrows(xseq[j],beta4p$X2.5.[j],xseq[j],beta4p$X97.5.[j], code=0, lwd=eew)
+  polygon(c(xseq[j]-.25,xseq[j]-.25,xseq[j]+.25,xseq[j]+.25),
+          c(beta4p$X25.[j],beta4p$X75.[j],beta4p$X75.[j],beta4p$X25.[j]),
+          border=NA,col=ybxc)
+  arrows(	xseq[j]-.25,beta4p$Mean[j],xseq[j]+.25,	beta4p$Mean[j],code=0,lwd=mlw,
+          col=rep(vegePallete, each=10)[j])
+  
+}
+
+axis(1, xseq, rep(" ",length(xseq)),lwd.ticks=tlws)
+axis(4,yb4s,rep(" ",length(yb4s)),lwd.ticks=tlws)
+mtext(rep(c(2000), times=5), at=xseqLabelS2,side=1,line=1,cex=caxt)
+mtext(paste(nameSplit1),at=xnames,side=1,line=3,cex=caxt)
+mtext(paste(nameSplit2),at=xnames,side=1,line=5,cex=caxt)
+mtext(yb4s, at=yb4s, side=4, las=2, line=1, cex=caxt)
+mtext("Max SWE slope", side=4, line=5, cex=scl)
+mtext(expression(paste("log(mm day"^"-1",") log(m)"^"-1")), side=4, line=8, cex=scl)
+
+mtext("Landcover type", side=1, line=7, cex=scl)
+
+box(which="plot", lwd=bxlw)
+
+dev.off()
 
 
 
@@ -1080,13 +1357,14 @@ dev.off()
 ########## Tables:   ##########
 ########## Figure 4: -------
 #mixed effects parameters
-write.table(intercept,paste0(plotDI,"\\interceptTable.csv"), sep=",")
-betas <- rbind(beta1,beta2,beta3,beta4)
-betas$gcID <- rep(seq(1,5), times=4)
-betas <- left_join(betas,glcID, by="gcID", type="left")
-betas$betaN <- rep(seq(1,4), each=5)
+write.table(beta0p,paste0(plotDI,"\\interceptTable.csv"), sep=",")
+betas <- rbind(beta1p,beta2p,beta3p,beta4p)
+betas$betaN <- rep(seq(1,4), each=50)
 write.table(betas,paste0(plotDI,"\\betaTable.csv"), sep=",",row.names=FALSE)
-
+write.table(gbeta0p,paste0(plotDI,"\\groupinterceptTable.csv"), sep=",")
+groupbetas <- rbind(gbeta1p,gbeta2p,gbeta3p,gbeta4p)
+groupbetas$slopeD <- rep(c("temp","vcf","onset","max"), each=5)
+write.table(groupbetas,paste0(plotDI,"\\groupbetaTable.csv"), sep=",",row.names=FALSE)
 #stats on variables
 #get range of swe
 
@@ -1135,45 +1413,12 @@ maxM$max.mm <- maxM$max.m*1000
 
 ########## Set up model data        -----
 
-#calculate Abs melt rate, all values represent decrease in swe
-analysisDF$abs.melt <- abs(analysisDF$melt.mm.day)
 
-#log transform
-analysisDF$log.melt <- log(analysisDF$abs.melt)
-#log transform max swe
-analysisDF$log.max <- log(analysisDF$maxSwe.m)
-
-#create gcID column in table
-colnames(glcID) <- c("glc","Desc")
-glcID$gcID <- seq(1, nrow(glcID))
-
-#join into analysis DF
-analysisDFm1 <- left_join(analysisDF, glcID, by="glc")
-
-
-#random effects ids
-#need to organize table for eps ids
-epsTable <- unique(data.frame(gcID=analysisDFm1$gcID,year=analysisDFm1$year))
-epsTable <- epsTable[order(epsTable$gcID,epsTable$year),]
-#this order will be by GCID
-epsTable$gcyearID <- seq(1,dim(epsTable)[1])
-
-#create index for averaging eps
-gcIndT <- unique(data.frame(gcID=epsTable$gcID))
-startID <- numeric(0)
-endID <- numeric(0)
-
-for(i in 1:dim(gcIndT)[1]){
-  startID[i] <- head(which(epsTable$gcID==gcIndT$gcID[i]))[1]
-  endID [i] <- tail(which(epsTable$gcID==gcIndT$gcID[i]))[6]
-}
-
-#join back into analysis DF
-analysisDFm1 <- left_join(analysisDFm1, epsTable, by=c("gcID","year"))
 
 
 #pull out slope rep
-bRep <- datC[datC$parm=="rep.b0",]			
+bRep <- datC[datC$parm=="rep.b0",]
+png(paste0(plotDI,"\\model_fit.png"), width = 20, height = 20, units = "cm", res=300)
 par(mai=c(1,1,1,1))
 plot(analysisDFm1$log.melt,bRep$Mean, ylim=c(-0.5,4.25), xlim=c(-0.5,4.25),
      xlab = expression(paste("Observed melt rate (log(mm day"^"-1","))")),
@@ -1190,14 +1435,14 @@ abline(0,1,col="tomato3",lwd=2)
 abline(fit, col="royalblue3", lty=2, lwd=2)
 
 legend("topleft", c("model fit", "1:1 line"),
-       col=c("royalblue3","tomato3"), lty=c(2,1), lwd=2, bty="n", cex=1.5)
+       col=c("royalblue3","tomato3"), lty=c(2,1), lwd=2, bty="n", cex=1)
 
-text(2,4, paste("predicted = ",round(fit$coefficients[1],2),"+",
-                  round(fit$coefficients[2],2),"* observed"), cex=1.5)
+text(2.5,0.25, paste("predicted = ",round(fit$coefficients[1],2),"+",
+                  round(fit$coefficients[2],2),"* observed"), cex=1)
 
-text(2,3.75, expression(paste("R"^"2","= 0.612")), cex=1.5)
-
-
+text(2.5,0, expression(paste("R"^"2","= 0.65")), cex=1)
+text(2.5,-0.25, expression(paste("RSME","= 0.26")), cex=1)
+dev.off()
 
 ###########################################
 ########## Figure S2: melt onset ##########
