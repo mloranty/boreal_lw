@@ -275,6 +275,7 @@ land <-"#ccc5b9"
 
 #if not plotting model
 glcID$gcID <- seq(1,5)
+
 glcID$name2 <- c("Evergreen needleleaf", "Deciduous needleleaf","Mixed boreal","Deciduous shrub", "Herbaceous")
 
 
@@ -1244,6 +1245,8 @@ zlcol <- rgb(0.25,0.25,0.25)
 zty <- 2
 #box width
 bxlw <- 2
+#panel letter size 
+ttx <- 2
 
 
 png(paste0(plotDI,"\\regression_intercept.png"), width = 22, height = 17, units = "cm", res=300)
@@ -1321,7 +1324,7 @@ axis(2,yb1s,rep(" ",length(yb1s)),lwd.ticks=tlws)
 mtext(yb1s, at=yb1s, side=2, las=2, line=1, cex=caxt)
 mtext("Temperature slope", side=2, line=7, cex=scl)
 mtext(expression(paste("log(mm day"^"-1",")",degree^"-1")), side=2, line=4.5, cex=scl)
-
+text(0+(.05*(70)), yh1-(.05*(yh1-yl1)), "a", cex=ttx)
 box(which="plot", lwd=bxlw)
 
 #vcf slope
@@ -1351,7 +1354,8 @@ for(j in 1:50){
 
 
 axis(4,yb2s,rep(" ",length(yb2s)),lwd.ticks=tlws)
-mtext(yb2s, at=yb4s, side=4, las=2, line=1, cex=caxt)
+mtext(yb2s, at=yb2s, side=4, las=2, line=1, cex=caxt)
+text(0+(.05*(70)), yh2-(.05*(yh2-yl2)), "b", cex=ttx)
 mtext("VCF slope", side=4, line=5, cex=scl)
 mtext(expression(paste("log(mm day"^"-1",") % cover"^"-1")), side=4, line=8, cex=scl)
 
@@ -1393,7 +1397,7 @@ mtext(paste(nameSplit2),at=xnames,side=1,line=5,cex=caxt)
 mtext(yb3s, at=yb3s, side=2, las=2, line=1, cex=caxt)
 mtext("Melt onset slope", side=2, line=7, cex=scl)
 mtext(expression(paste("log(mm day"^"-1",") doy"^"-1")), side=2, line=4.5, cex=scl)
-
+text(0+(.05*(70)), yh3-(.05*(yh3-yl3)), "c", cex=ttx)
 mtext("Landcover type", side=1, line=7, cex=scl)
 
 # melt max slope
@@ -1429,7 +1433,7 @@ mtext(paste(nameSplit2),at=xnames,side=1,line=5,cex=caxt)
 mtext(yb4s, at=yb4s, side=4, las=2, line=1, cex=caxt)
 mtext("Max SWE slope", side=4, line=5, cex=scl)
 mtext(expression(paste("log(mm day"^"-1",") log(m)"^"-1")), side=4, line=8, cex=scl)
-
+text(0+(.05*(70)), yh4-(.05*(yh4-yl4)), "d", cex=ttx)
 mtext("Landcover type", side=1, line=7, cex=scl)
 
 box(which="plot", lwd=bxlw)
