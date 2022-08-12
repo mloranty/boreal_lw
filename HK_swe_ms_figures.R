@@ -1356,8 +1356,8 @@ for(j in 1:50){
 axis(4,yb2s,rep(" ",length(yb2s)),lwd.ticks=tlws)
 mtext(yb2s, at=yb2s, side=4, las=2, line=1, cex=caxt)
 text(0+(.05*(70)), yh2-(.05*(yh2-yl2)), "b", cex=ttx)
-mtext("VCF slope", side=4, line=5, cex=scl)
-mtext(expression(paste("log(mm day"^"-1",") % cover"^"-1")), side=4, line=8, cex=scl)
+mtext("Canopy cover slope", side=4, line=5.5, cex=scl)
+mtext(expression(paste("log(mm day"^"-1",") % cover"^"-1")), side=4, line=8.5, cex=scl)
 
 box(which="plot", lwd=bxlw)
 
